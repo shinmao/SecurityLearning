@@ -1,4 +1,4 @@
-# SQLinjection  
+# SQL injection  
 SQL is a famous database engine which is used with web server. In this situation, we can inject some SQL based code to get what we want <3.  
 [Remember, practice makes perfect!](http://www.tutorialspoint.com/mysql_terminal_online.php)   
   
@@ -73,7 +73,7 @@ Error: You have an error in your SQL syntax; check the manual that corresponds t
 ```sql
 /**
 we need:
-count()
+count()            // Important* 分組語句多要跟聚合語句配合才能回傳數據列
 concat()            // error會把碰撞的主鍵吐出來，因此我們需要把key跟查詢對象concat在一起
 floor(), rand()
 group by
