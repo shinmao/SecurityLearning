@@ -41,7 +41,12 @@ var_dump(md5($arr1) == md5($arr2));               // true
 ```  
 * strcmp()  
 strcmp是將兩個string參數都轉換成ascii再做減法，若str1 - str2 < 0 則回傳-1，相等為0，其餘為1...  
-* switch()  
+```php
+if (strcmp($input, $password) == 0){}
+// POC: ?input[]
+```
+除了輸入一樣的password可以讓strcmp回傳結果為0, 讓一個 string 和 non-string (Array injection)作strcmp()的參數會有錯誤訊息, 並且回傳0!  
+* switch()  
 switch也會將參數轉換成int類型...  
 * in_array()  
 [PHP Manual](http://php.net/manual/en/function.in-array.php)  
