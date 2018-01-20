@@ -5,7 +5,8 @@ Let's play some magic on web pages!
 Content | Link | Tags
 ------------ | ------------- | -------------
 info-leak | [go-to](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak) | #info
-sql-injection | [go-to](https://github.com/shinmao/Web-Security-Learning/tree/master/SQL-injection) | #exploit  
+sql-injection | [go-to](https://github.com/shinmao/Web-Security-Learning/tree/master/SQL-inj) | #exploit  
+xss | [go-to](https://github.com/shinmao/Web-Security-Learning/tree/master/XSS) | #exploit  
 code-audit | [go-to](https://github.com/shinmao/Web-Security-Learning/tree/master/Code-Auditing) | #ALL  
 webshell | [go-to](https://github.com/shinmao/Web-Security-Learning/tree/master/Webshell) | #exploit
   
