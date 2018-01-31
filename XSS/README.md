@@ -22,12 +22,24 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 ## 常見限制 < 對抗手勢
 * filter 對一些危險標籤做過濾  
   * 大小寫混用  
-  * 一次過濾繞過 e.g.```<scr<script>ipt>```  
-  * 不如換個方式不使用到限制字符 e.g.```<img src=1 onerror=alert(1)>```
+  * 一次過濾繞過  
+```php
+str_replace('<script>','',$GET['hi'])  //這裏代表hi中的<script>會變空字串
+// <scr<script>ipt> 
+```  
+  * 使用正規表達式高效率的過濾  
+```php
+preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大寫小寫一次繞過全都會被擋掉
+// <img src=1 onerror=alert(1)>
+```
 * encode 轉譯危險標籤  
   * url encode: % + ASCII(hex) ```%3Cscript%3E```  
   補充js常見處理函式: ```escape()/unescape(), encodeURL()/decodeURL(), encodeURLComponent()/decodeURLComponent()```  
   * html encode  
+```php
+htmlspecialchars($_GET['hi']);  // 會將特殊字元通通轉譯掉 
+// 這種情況下將無法再進行注入
+```
   * unicode encode: %u + ASCII(hex)  
   * ascii encode  
   ```js
@@ -62,4 +74,5 @@ alert(/1/);">
 ```
 
 ## Reference
-1. The Web Application Hacker's Handbook
+1. The Web Application Hacker's Handbook  
+2. [看雪](https://www.kanxue.com)
