@@ -28,3 +28,15 @@ public function getNexSlideUrl() {
 ```  
 這裡有兩關驗證URL的有效性，卻還是可以透過```nextSlide=javascript://comment%250aaler(1)```來完成xss  
 : 原因日後研究xss再做整理，最近在玩sqli XD
+
+### 繞過
+1. 繞過```addslashes()```, ```addslashes()```往往讓我們無法閉合引號  
+用雙轉譯 ```\\``` 繞過
+```php
+// payload1 = c';
+option='c\';';
+// There is a \ because addslashes
+// payload2 = c\';
+option='c\\';'
+// successful!!
+```

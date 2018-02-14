@@ -48,6 +48,17 @@ $arr1[] = array("hi" => "helloworld");
 $arr2 = array("hi","helloworld","ohmygod");
 var_dump(md5($arr1) == md5($arr2));               // true
 ```  
+  
+* int()  
+int() 在遇到參數為hex以及科學記號類型的字符串時，無法正確轉換...  
+```php
+$temp = $_GET['tmp'];
+echo (int)$tmp;
+//
+// ?tmp=0x76abb    輸出結果為0
+// ?tmp=4e325      輸出結果為4
+```  
+  
 * strcmp()  
 strcmp是將兩個string參數都轉換成ascii再做減法，若str1 - str2 < 0 則回傳-1，相等為0，其餘為1...  
 ```php
