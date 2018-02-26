@@ -20,21 +20,28 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 2. 惡意代碼被過濾掉，或者轉譯了 -> 這種情況下就要分析有沒有代替字元來繞過過濾名單，或者繞過轉譯！
 
 ## 常見限制 < 對抗手勢
-* filter 對一些危險標籤做過濾  
-  * 大小寫混用  
-  * 一次過濾繞過  
+* 大小寫混用  
+* toUpperCase()  
+```js
+İ (%c4%b0).toLowerCase() => i
+ı (%c4%b1).toUpperCase() => I
+ſ (%c5%bf) .toUpperCase() => S
+K (%E2%84%AA).toLowerCase() => k
+```
+* 一次過濾繞過  
 ```php
 str_replace('<script>','',$GET['hi'])  //這裏代表hi中的<script>會變空字串
 // <scr<script>ipt> 
 ```  
-  * 使用正規表達式高效率的過濾  
+* 使用正規表達式高效率的過濾  
 ```php
 preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大寫小寫一次繞過全都會被擋掉
 // <img src=1 onerror=alert(1)>
 ```
 * encode 轉譯危險標籤  
   * url encode: % + ASCII(hex) ```%3Cscript%3E```  
-  補充js常見處理函式: ```escape()/unescape(), encodeURL()/decodeURL(), encodeURLComponent()/decodeURLComponent()```  
+  * [JS fucking](http://www.jsfuck.com/)  
+  補充js常見處理函式: ```escape()/unescape(), encodeURL()/decodeURL(), encodeURLComponent()/decodeURLComponent()```  
   * html encode  
 ```php
 htmlspecialchars($_GET['hi']);  // 會將特殊字元通通轉譯掉 
@@ -58,7 +65,12 @@ alert(/1/);">
 ```
 
 ## 正規表達式
-js中會用正規表達式來過濾危險字符，參考如下文件：  
+js中會用正規表達式來過濾危險字符  
+```js
+/g -> 全局匹配
+/i -> case insensitive
+```
+參考如下文件：  
 [Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
 
 ## 攻擊手勢  
@@ -122,4 +134,5 @@ js中會用正規表達式來過濾危險字符，參考如下文件：
 3. [烏雲](http://wps2015.org/drops/drops/Bypass%20xss%E8%BF%87%E6%BB%A4%E7%9A%84%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95.html)  
 4. [云淡风轻](http://blog.idhyt.com/2014/10/15/technic-xss-bypass/)  
 5. [freebuf](http://www.freebuf.com/articles/web/153055.html)  
-6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)
+6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)  
+7. [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)
