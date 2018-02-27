@@ -1,13 +1,19 @@
 # Information leak  
 Before exploiting, we can use some trick to get related information or even source code!  
   
-### Get the file lists in root dir  
+### 尋找目錄/檔案  
 ```
 /robots.txt
 ```  
   
-### Get source code with version commit  
+### 拿源碼
 ```
 /.git  
 /.svn
+```
+
+### DB-PASSWORD
+```
+// google
+https://www.google.nl/search?q=%22DB_PASSWORD%22+filetype%3Aenv&gws_rd=ssl
 ```
