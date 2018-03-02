@@ -10,4 +10,27 @@ xss | [Cross-Site-Scripting](https://github.com/shinmao/Web-Security-Learning/tr
 code-audit | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Code-Auditing)   
 webshell | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Webshell)   
 
+## Web CTF Cheatsheet
+1. 爆破
+2. php特性  
+3. 花式繞WAF  
+   sql injection  
+4. 密碼學  
+   長度延展攻擊，XOR，ROT  
+5. 找src  
+   .git, svn, php  
+6. 文件上傳漏洞  
+   繞過檢測webshell  
+7. 不同引擎的sql injection  
+8. 繞過限制  
+   ```open__basedir```, ```disable__function```花式繞過  
+9. 條件競爭 
+10. 社工  
+11. window特性  
+12. SSRF  
+13. XSS  
+    各種花式繞reg, 繞browser auditor  
+14. XXE  
+15. 協議
+
 
