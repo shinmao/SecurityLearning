@@ -8,13 +8,13 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 3. DOM xss:   
 注意: reflective型 以及 stored型 才會與server有互動，因為server需要解析惡意代碼，而DOM型則是完全由客戶端js執行。  
   
-*  [XSS detection](#XSS-detection)  
-*  [常見限制 and 對抗手勢](#常見限制and對抗手勢)  
+*  [XSS detection](#xss-detection)  
+*  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
-*  [Cheatsheet](#Cheatsheet)  
-*  [Vue.js](#Vuejs-serverside-template-xss)  
-*  [Reference](#Reference)
+*  [Cheatsheet](#cheatsheet)  
+*  [Vue.js serverside template xss](#vuejs-serverside-template-xss)  
+*  [Reference](#reference)
 
 # XSS detection
 這裡先不談XSS探針...  
@@ -27,7 +27,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 1. 網頁不存在可利用的xss漏洞，可能注入點直接將值插入網頁作為內容  
 2. 惡意代碼被過濾掉，或者轉譯了 -> 這種情況下就要分析有沒有代替字元來繞過過濾名單，或者繞過轉譯！
 
-# 常見限制and對抗手勢
+# 常見限制 and 對抗手勢
 * 大小寫混用  
 * toUpperCase()  
 ```js
