@@ -1,8 +1,8 @@
 ## php 變量覆蓋
 php security in Variable Coverage  
 *  [```$$```]  
-*  [```extract```](#extract())  
-*  [```parse_str```](#parse_str())  
+*  [```extract```](###extract())  
+*  [```parse_str```](###parse_str())  
 *  [```import_request_variables```]  
 *  [```register_globals```]  
 *  [```$GLOBALS```]  
