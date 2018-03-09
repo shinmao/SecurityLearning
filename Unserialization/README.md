@@ -30,8 +30,8 @@ String | ```s:size:value;```
 Integer | ```i:value;```  
 Boolean | ```b:value;```  
 NULL | ```N;```  
-Array | ```a:size:{key definition;value definition;}```  
-Object | ```O:strlen(Object):class name:object size:```  
+Array | ```a:size:{key-type:key-value;value-type:value-value;}```  
+Object | ```O:strlen(Object):class-name:object size:```  
 ------------ | -------------  
 public | ```{s:4:"test"}```  
 private | ```{s:11:"%00pwnch%00test"}```  
@@ -59,7 +59,12 @@ unserialize($_GET[1]);
 1 = O:5:"pwnch":1:{s:4:"test";O:6:"pwnch2":1{s:5:"test2";s:10:"echo `ls`;";}}
 
 // 上例中我強行將test中的constructor覆蓋成pwnch2，再進而覆蓋pwnch2裡的變量：因為pwnch2裡有我想要用的function
+
+// 本有想要在反序列化裡試試延伸數組的特性來建造php後門
+// 構造了很久都沒有成功
 ```
+Tools:  
+* [php在线反序列化工具](https://1024tools.com/unserialize)
 
 ## Reference
 1. [chybeta's blog](https://chybeta.github.io/2017/06/17/%E6%B5%85%E8%B0%88php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/)
