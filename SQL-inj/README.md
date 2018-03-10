@@ -7,7 +7,8 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [Error based injection](#error-based)  
 *  [Waf bypass](#waf-bypass)  
 *  [Dump file](#dump-file)  
-*  [Trick of Pentesting](#trick-of-pentesting)  
+*  [sprintf/vprintf](#sprintf-vprintf)  
+*  [Trick of Pentesting](#trick-of-pentesting)  
 *  [NoSQL injection](#nosql-injection)  
 *  [Tools](#tools)  
 *  [Reference](#reference)
@@ -175,7 +176,11 @@ C:\inetpub\www\root\
 // @@datadir : 數據庫安裝路徑
 id=1' union select 1, @@basedir, @@datadir--+
 ```
-e.g. @@basedir 我們得到```C:/xampp/mysql```的結果, 而網頁根目錄路徑便是```C:/xampp/htdocs/```
+e.g. @@basedir 我們得到```C:/xampp/mysql```的結果, 而網頁根目錄路徑便是```C:/xampp/htdocs/```  
+
+### sprintf vprintf
+不會檢查格式化字串的類型。  
+SQLi中，```%'```會被轉譯成```\'``` -> ```%\'``` ```%\```被吃掉，```'```逃逸。
   
 ### Trick of Pentesting  
 Here are some tricks of pentesting, step by step from find the vulnerability to exploit it!  
