@@ -9,9 +9,14 @@ sql-injection | [mysql-injection, nosql-injection](https://github.com/shinmao/We
 xss | [Cross-Site-Scripting](https://github.com/shinmao/Web-Security-Learning/tree/master/XSS)   
 code-audit | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Code-Auditing)   
 webshell | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Webshell)   
-unserialization | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Unserialization)
+unserialization | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Unserialization)  
 
-## Web CTF Cheatsheet
+*  [Web狗出題思路](#web-ctf)  
+*  [Linux通配符](#linux-command)  
+*  [工具](#tool)  
+*  [Reference](#reference)
+
+## Web CTF
 1. 爆破
 2. php特性  
 3. 花式繞WAF  
@@ -34,7 +39,17 @@ unserialization | [php](https://github.com/shinmao/Web-Security-Learning/tree/ma
 14. XXE  
 15. 協議  
 
-## 工具
+## Linux command
+```php
+// ctf中，通配符是找到flag的淫巧
+// ? - 代表一個字符
+// * - 代表0或多個字符
+/var/www/html/flag.txt
+-> /???/???/????/*
+// 其中的問號當然也可以用*取代
+```
+
+## Tool
 1. [1024程序员开发工具箱](https://1024tools.com/)
 
 ## Reference
