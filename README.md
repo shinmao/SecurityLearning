@@ -7,9 +7,10 @@ Content | Link
 info-leak | [Leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak) 
 sql-injection | [mysql-injection, nosql-injection](https://github.com/shinmao/Web-Security-Learning/tree/master/SQL-inj)   
 xss | [Cross-Site-Scripting](https://github.com/shinmao/Web-Security-Learning/tree/master/XSS)   
-code-audit | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Code-Auditing)   
+php-code-audit | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/PHP-Code-Audt)   
 webshell | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Webshell)   
-unserialization | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Unserialization)  
+unserialization | [php, python, ruby](https://github.com/shinmao/Web-Security-Learning/tree/master/Unserialization)  
+LFI | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/LFI)
 
 *  [Web狗出題思路](#web-ctf)  
 *  [Linux通配符](#linux-command)  
