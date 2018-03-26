@@ -12,8 +12,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 *  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
-*  [Cheatsheet](#cheatsheet)  
-*  [Vue.js serverside template xss](#vuejs-serverside-template-xss)  
+*  [Cheatsheet](#cheatsheet)    
 *  [Reference](#reference)
 
 # XSS detection
@@ -136,13 +135,6 @@ js中會用正規表達式來過濾危險字符
 上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
 [Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
 
-# Vuejs serverside template xss
-```{{ your code run here! }}```  
-```js
-{{ constructor.constructor("alert('xss')")() }}
-```
-[Here is detail!](https://github.com/dotboris/vuejs-serverside-template-xss)
-
 # Reference
 1. The Web Application Hacker's Handbook  
 2. [看雪](https://www.kanxue.com)  
@@ -151,4 +143,3 @@ js中會用正規表達式來過濾危險字符
 5. [freebuf](http://www.freebuf.com/articles/web/153055.html)  
 6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)  
 7. [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)  
-8. [Github: Vue.js serverside template xss demo](https://github.com/dotboris/vuejs-serverside-template-xss)
