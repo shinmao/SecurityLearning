@@ -10,7 +10,8 @@ xss | [Cross-Site-Scripting](https://github.com/shinmao/Web-Security-Learning/tr
 php-code-audit | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/PHP-Code-Audt)   
 webshell | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/Webshell)   
 unserialization | [php, python, ruby](https://github.com/shinmao/Web-Security-Learning/tree/master/Unserialization)  
-LFI | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/LFI)
+LFI | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/LFI)  
+SSTI | [ruby, vue.js, angular.js](https://github.com/shinmao/Web-Security-Learning/tree/master/SSTI)
 
 *  [Web狗出題思路](#web-ctf)  
 *  [Linux通配符](#linux-command)  
