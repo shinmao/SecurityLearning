@@ -12,7 +12,8 @@ webshell | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/We
 unserialization | [php, python, ruby](https://github.com/shinmao/Web-Security-Learning/tree/master/Unserialization)  
 LFI | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/LFI)  
 SSTI | [ruby, vue.js, angular.js](https://github.com/shinmao/Web-Security-Learning/tree/master/SSTI)  
-XXE | [XXE](https://github.com/shinmao/Web-Security-Learning/tree/master/XXE)
+XXE | [XXE](https://github.com/shinmao/Web-Security-Learning/tree/master/XXE)  
+SSRF | [SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)
 
 *  [Web狗出題思路](#web-ctf)  
 *  [Linux通配符](#linux-command)  
