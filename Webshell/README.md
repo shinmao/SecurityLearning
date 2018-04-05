@@ -10,6 +10,7 @@
 *  [How works](#how-works)  
 *  [Command injection](#command-injection)  
 *  [Webshell cheatsheet](#webshell-cheatsheet)  
+*  [Bypass blacklist extension](#bypass-blacklist-extension)  
 *  [SQL inj to webshell](#sql-inj-to-webshell)  
 *  [Reference](#reference)
 
@@ -68,7 +69,18 @@ param=usort(...$_GET);
 * 用檔名拼湊成命令,再一次ls進一個shell script [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
 
 [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
-**基本上除了system都不會直接show在頁面上，exec()和shell_exec()我們都會搭個echo**
+**基本上除了system都不會直接show在頁面上，exec()和shell_exec()我們都會搭個echo**  
+
+# Bypass blacklist extension
+文件解析漏洞  
+除了```.php```，通過conf模塊的regular expression：  
+* ```.php3```  
+* ```.php4```  
+* ```.php5```  
+* ```.php7```  
+* ```.pht```  
+* ```.phtml```  
+以上副檔名也都會被解析成```.php```
 
 # SQL inj to webshell
 MYSQL:  
