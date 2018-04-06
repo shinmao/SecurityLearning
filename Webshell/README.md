@@ -86,7 +86,8 @@ param=usort(...$_GET);
 原理：apache2特性由右至左解析，遇到不認識的無法解析就像左跳！  
 * ```.php/.``` 
 值得注意的是 這招無法覆蓋舊檔  
-原理：php源碼中可以看到用遞歸的方式將檔名結尾的```/.```都去掉！
+原理：php源碼中可以看到用遞歸的方式將檔名結尾的```/.```都去掉！  
+[源碼審計](https://github.com/shinmao/Web-Security-Learning/blob/master/Webshell/apache2_php5.conf)
 
 # SQL inj to webshell
 MYSQL:  
