@@ -107,7 +107,10 @@ param=usort(...$_GET);
 * ```.php/.``` 
 值得注意的是 這招無法覆蓋舊檔  
 原理：php源碼中可以看到用遞歸的方式將檔名結尾的```/.```都去掉！  
-[源碼審計](https://github.com/shinmao/Web-Security-Learning/blob/master/Webshell/apache2_php5.conf)
+[源碼審計](https://github.com/shinmao/Web-Security-Learning/blob/master/Webshell/apache2_php5.conf)  
+* ```move_uploaded_file()```  
+配合lstat()在這個函式中的使用，可以突破```/.```沒辦法覆蓋舊檔的限制。  
+[參考自家筆記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)
 
 # SQL inj to webshell
 MYSQL:  
