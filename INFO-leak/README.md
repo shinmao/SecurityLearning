@@ -10,6 +10,9 @@ Before exploiting, we can use some trick to get related information or even sour
 ```
 /.git  
 /.svn
+
+// backup file
+index.php~
 ```
 
 ### APP__* , DB__* ....
