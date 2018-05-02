@@ -2,6 +2,7 @@
 *  [CTF中一些好用的奇技淫巧](#tricks)  
 *  [PHP危險過濾](#dangerous-filter)  
 *  [PHP弱類型](#weak-type)  
+*  [PHP處理陣列](#array-handling)  
 *  [PHP變量覆蓋](#variable-coverability)  
 *  [PHP危險函式](#dangerous-function)  
 *  [Reference](#reference)
@@ -12,19 +13,19 @@ eval(print_r(file("./flag.php")););
 ```
 
 # Dangerous filter
-永遠不要相信外部輸入: $_GET, $_POST, $_SERVER, fopen('php://input','r'), upload downloaded files, session, cookies...  
+永遠不要相信外部輸入: `$_GET, $_POST, $_SERVER, fopen('php://input','r'), upload downloaded files, session, cookies`...  
 * 常見處理 (以下介紹過濾輸入以及驗證數據  
-1. ```strip_tags()```,```htmlentities()```, or ```htmlspecialchars()``` 對一些html標籤做轉譯 -> xss  
+1. `strip_tags()`,`htmlentities()`, or `htmlspecialchars()` 對一些html標籤做轉譯 -> xss  
 ```php
 $input = '<script>...</script>';
 echo htmlentities($input, ENT_QUOTES, 'utf-8');
 ```  
-2. 若傳入數據必須在命令行中執行而調用```exec()```, 使用```escapeshellarg()```  
+2. 若傳入數據必須在命令行中執行而調用`exec()`, 使用`escapeshellarg()`  
 3. **PDO** 預處理 SQL 語句 -> SQL injection  
-4. File upload system 應注意路徑過濾 ```/```, ```../```... -> LFI  
-5. ```preg_replace()```, ```preg_replace_all()```等正規表達式的過濾方法很容易掉坑 www  
-```驗證數據跟過濾不一樣，而是檢查輸入是否為有效xx```  
-6. ```filter_var()```, ```filter_input()```針對不同類型的數據會回傳 True, False  
+4. File upload system 應注意路徑過濾 `/`, `../`... -> LFI  
+5. `preg_replace()`, `preg_replace_all()`等正規表達式的過濾方法很容易掉坑 www  
+`驗證數據跟過濾不一樣，而是檢查輸入是否為有效xx`  
+6. `filter_var()`, `filter_input()`針對不同類型的數據會回傳 True, False  
 [詳見PHP Manual](http://php.net/manual/en/function.filter-var.php)  
 ```php
 // 以下取自 ripstech php calendat 部分 source code  
@@ -38,10 +39,10 @@ public function getNexSlideUrl() {
     }
 ...
 ```  
-這裡有兩關驗證URL的有效性，卻還是可以透過```nextSlide=javascript://comment%250aaler(1)```來完成xss  
+這裡有兩關驗證URL的有效性，卻還是可以透過`nextSlide=javascript://comment%250aaler(1)`來完成xss  
 * 繞過  
-1. 繞過```addslashes()```, ```addslashes()```往往讓我們無法閉合引號  
-用雙轉譯 ```\\``` 繞過
+1. 繞過`addslashes()`, `addslashes()`往往讓我們無法閉合引號  
+用雙轉譯 `\\` 繞過
 ```php
 // payload1 = c';
 option='c\';';
@@ -95,16 +96,16 @@ php 是一種弱類型的語言，這意味著我們可以隨時將值賦予一�
 0 == 'abcd'     // true
 5 == '5cdeg'     // true
 ```  
-因此比較時應該用 ```===``` 強等於的方式！  
+因此比較時應該用 `===` 強等於的方式！  
 ```php
 "0x1f640" == 128576   // true
 "0x1f640" == "1f640"  // false 
 ```
-php遇到```0x```開頭的字符會先轉成十進制！
+php遇到`0x`開頭的字符會先轉成十進制！
 ```php
 "0e328428492284" == "0e24824048204"  // true
 ```
-這就是常見的**md5 collision**，php碰到```0e```開頭的字符會當作科學記號處理，後面必須是數字作為次方！  
+這就是常見的**md5 collision**，php碰到`0e`開頭的字符會當作科學記號處理，後面必須是數字作為次方！  
 順手留資料，下一次在CTF遇到好用XD......  
 ```php
 $ echo -n 240610708 | md5sum
@@ -159,7 +160,7 @@ if (strcmp($input, $password) == 0){}
 switch也會將參數轉換成int類型...  
 * in_array()  
 [PHP Manual](http://php.net/manual/en/function.in-array.php)  
-```bool in_array ( mixed $needle , array $haystack [, bool $strict = FALSE ] )```  
+`bool in_array ( mixed $needle , array $haystack [, bool $strict = FALSE ] )`  
 參考官方手冊得知：in_array可以用來檢測**$needle**是否存在於第二個參數的array之中？ 若使用第三個參數設為true，才會加上type的檢查！  
 ```php
 class Challenge {
@@ -183,13 +184,20 @@ class Challenge {
 }
 $challenge = new Challenge($_FILES['solution']);
 ```
-從上面的代碼可以推測：這是一個白名單上傳系統，如果通過檢查就能夠```mov_uploaded_file```  
-由於**in_array()**的漏洞，我們可以透過```1filename.php```輕鬆繞過白名單檢查！  
+從上面的代碼可以推測：這是一個白名單上傳系統，如果通過檢查就能夠`mov_uploaded_file`  
+由於**in_array()**的漏洞，我們可以透過`1filename.php`輕鬆繞過白名單檢查！  
 ：以上也是php security calendar 2017 - wish list 的學習筆記  
 
+# Array handling
+* 在**PHP5.5.9**之前的版本，在處理`if($a[0] == $a[$x])`陣列型態的比較時，會將兩個key相減取差值放入`result`，這個步驟可能會造成integer overflow  
+```php
+if($a[0] == $a[68719476736])
+```
+上面的結果因為`68719476736 - 0`被放進了32位元的`result`而被強制變成了True，詳情參考[Vlog #003: old PHP and array===array](https://www.youtube.com/watch?v=8fGigwN_E-U)
+
 # Variable Coverability 
-```$$```, ```extract```, ```parse_str```, ```import_request_variables```, ```register_globals```, ```$GLOBALS```, ```mb_parser_str```  
-1. ```parse_str```  
+`$$`, `extract`, `parse_str`, `import_request_variables`, `register_globals`, `$GLOBALS`, `mb_parser_str`  
+1. `parse_str`  
 [PHP MANUAL](http://php.net/manual/zh/function.parse-str.php)  
 parse_str($str,$output) 將$str解析放進$output陣列  
 ```php
@@ -199,7 +207,7 @@ echo $key; // value
 echo $arr[0];  // a
 echo $arr[1];  // b
 ```
-2. ```extract```  
+2. `extract`  
 extract 變量對象必為**陣列**  
 ```php
 $b = array("a"=>"1");
@@ -208,12 +216,12 @@ echo $a;   // 1
 ```
 
 # Dangerous function
-1. ```move_uploaded_file()```  
+1. `move_uploaded_file()`  
 ```php
 move_uploaded_file(string filename, string absolute path);
 // path = /path/x/../aaa.php/.
 ```
-調用```lstat()```來判斷是否有舊檔存在，由於```lstat()```判別路徑的問題，原本```/.```不能覆蓋舊檔現在卻能成功覆蓋。  
+調用`lstat()`來判斷是否有舊檔存在，由於`lstat()`判別路徑的問題，原本`/.`不能覆蓋舊檔現在卻能成功覆蓋。  
 [咱的日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)
 
