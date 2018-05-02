@@ -13,6 +13,7 @@ Before exploiting, we can use some trick to get related information or even sour
 
 // backup file
 index.php~
+.index.php.swp
 
 // asis 思路
 index.php/index.php

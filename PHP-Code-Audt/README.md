@@ -191,6 +191,7 @@ $challenge = new Challenge($_FILES['solution']);
 # Array handling
 * 在**PHP5.5.9**之前的版本，在處理`if($a[0] == $a[$x])`陣列型態的比較時，會將兩個key相減取差值放入`result`，這個步驟可能會造成integer overflow  
 ```php
+// ASIS 2018 Qual Nice Code 
 if($a[0] == $a[68719476736])
 ```
 上面的結果因為`68719476736 - 0`被放進了32位元的`result`而被強制變成了True，詳情參考[Vlog #003: old PHP and array===array](https://www.youtube.com/watch?v=8fGigwN_E-U)
