@@ -232,6 +232,7 @@ move_uploaded_file(string filename, string absolute path);
 調用`lstat()`來判斷是否有舊檔存在，由於`lstat()`判別路徑的問題，原本`/.`不能覆蓋舊檔現在卻能成功覆蓋。  
 [咱的日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
+
 2. `escapeshellarg`誤用  
 ```php
 <?php
