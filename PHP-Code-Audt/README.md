@@ -2,9 +2,9 @@
 *  [CTF中一些好用的奇技淫巧](#tricks)  
 *  [PHP危險過濾](#dangerous-filter)  
 *  [PHP弱類型](#weak-type)  
-*  [PHP處理陣列](#array-handling)  
+*  [PHP處理數據](#data-handling)  
 *  [PHP變量覆蓋](#variable-coverability)  
-*  [PHP危險函式](#dangerous-function)  
+*  [PHP危險函式/誤用](#dangerous-mistake-function)  
 *  [Reference](#reference)
 
 # Tricks
@@ -188,13 +188,20 @@ $challenge = new Challenge($_FILES['solution']);
 由於**in_array()**的漏洞，我們可以透過`1filename.php`輕鬆繞過白名單檢查！  
 ：以上也是php security calendar 2017 - wish list 的學習筆記  
 
-# Array handling
+# Data handling
 * 在**PHP5.5.9**之前的版本，在處理`if($a[0] == $a[$x])`陣列型態的比較時，會將兩個key相減取差值放入`result`，這個步驟可能會造成integer overflow  
 ```php
 // ASIS 2018 Qual Nice Code 
 if($a[0] == $a[68719476736])
 ```
-上面的結果因為`68719476736 - 0`被放進了32位元的`result`而被強制變成了True，詳情參考[Vlog #003: old PHP and array===array](https://www.youtube.com/watch?v=8fGigwN_E-U)
+上面的結果因為`68719476736 - 0`被放進了32位元的`result`而被強制變成了True，詳情參考[Vlog #003: old PHP and array===array](https://www.youtube.com/watch?v=8fGigwN_E-U)  
+* PHP變數名稱中的`.`或` `空白字元會自動轉成`_`底線 （不限版本  
+```php
+parse_str("pwn.ch=hello&pw nch=hey",$test);
+var_dump($test);
+// result: array(2) { ["pwn_ch"]=> string(5) "hello" ["pw_nch"]=> string(3) "hey" }
+```
+參考自[kaibro web ctf Cheatsheet](https://github.com/w181496/Web-CTF-Cheatsheet)
 
 # Variable Coverability 
 `$$`, `extract`, `parse_str`, `import_request_variables`, `register_globals`, `$GLOBALS`, `mb_parser_str`  
@@ -216,7 +223,7 @@ extract($b);
 echo $a;   // 1
 ```
 
-# Dangerous function
+# Dangerous Mistake function
 1. `move_uploaded_file()`  
 ```php
 move_uploaded_file(string filename, string absolute path);
@@ -224,7 +231,23 @@ move_uploaded_file(string filename, string absolute path);
 ```
 調用`lstat()`來判斷是否有舊檔存在，由於`lstat()`判別路徑的問題，原本`/.`不能覆蓋舊檔現在卻能成功覆蓋。  
 [咱的日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
-[pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)
+[pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
+2. `escapeshellarg`誤用  
+```php
+<?php
+$query = escapeshellarg($query);
+$results = $this->getClient()->run($this, "grep -i --line-number {$query} $branch");
+// exploit: git grep -i --line-number '--open-files-in-pager=id;' master
+```
+以上為gitlist中的漏洞代碼：[GitList 0.6 - Unauthenticated Remote Code Execution](https://www.exploit-db.com/exploits/44548/)  
+`escapeshellarg`函式在參數外圍包上引號，但是在exploit中，`--open-files-in-pager`還是變成了參數選項(options)而非參數值(value)，後面的`id;`則是在匹配到了內容會執行的命令，注意在shell中`;`代表順序執行不論失敗的cmd。  
+解決辦法：官方的patch就是用`preg_replace`把`$query`開頭的非法字元(`-`or`--`)去除然後拼接在寫死的`--`後面，如此一來後面的參數不會再被解析為參數選項(options)  
+```php
+// 命令解析器中，--表示後面不會再有options
+// patch
+$results = $this->getClient()->run($this, "grep -i --line-number -- {$query} $branch");
+```
+[谈escapeshellarg绕过与参数注入漏洞](https://www.leavesongs.com/PENETRATION/escapeshellarg-and-parameter-injection.html)
 
 # Reference
 * [咱的move_uploaded_file日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
