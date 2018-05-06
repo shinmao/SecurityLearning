@@ -233,7 +233,11 @@ move_uploaded_file(string filename, string absolute path);
 [咱的日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
 
-2. `escapeshellarg`誤用  
+2. `escapeshellarg`誤用  
+這裡要先介紹`escapeshellcmd`和`escapeshellarg`兩個函式  
+`escapeshellcmd`會把參數視為一個cmd  
+`escapeshellarg`會把參數視為一個變數  
+[exploit-bypass-php-escapeshellarg-escapeshellcmd](https://github.com/kacperszurek/exploits/blob/master/GitList/exploit-bypass-php-escapeshellarg-escapeshellcmd.md)
 ```php
 <?php
 $query = escapeshellarg($query);
