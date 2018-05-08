@@ -20,21 +20,23 @@ XML是一種描述資料的語言，跟html很像，但著重於傳輸資料，C
 ## Entity
 在DTD中事先宣告才可以使用實體  
 Entity就像定義變數一樣  
-1. 內部實體： ```<!ENTITY name "value">```  
+1. 內部實體： `<!ENTITY name "value">`  
 ```xml
 <!DOCTYPE pwnch[
   <!ENTITY var "hi">
 ]>
 <root>&var;</root>
-```
-2. 外部實體： ```<!ENTITY name SYSTEM "URL">```  
+```  
+
+2. 外部實體： `<!ENTITY name SYSTEM "URL">`  
 ```xml
 <!ENTITY var SYSTEM "url://.......txt">
 <root>&var;</root>
 ```
-新版本預設不解析外部實體  
+新版本2.9.0後預設不解析外部實體  
+所以可以用`print "libxml version: ".LIBXML_DOTTED_VERSION."\n";`確定一下  
 
-3. 參數實體： ```<!ENTITY %name "value>"```  
+3. 參數實體： `<!ENTITY %name "value>"`  
 ```xml
 // exp.dtd: <!ENTITY next SYSTEM "file://.txt">
 <!DOCTYPE pwnch[
