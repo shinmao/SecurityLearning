@@ -5,7 +5,8 @@
 2. stored xss (持久型):  
 Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內容  
   
-3. DOM xss: 最近の流行り   
+3. DOM xss: 最近の流行り  
+
 注意: reflective型 以及 stored型 才會與server有互動，因為server需要解析惡意代碼，而DOM型則是完全由客戶端js執行。  
   
 *  [XSS detection](#xss-detection)  
@@ -49,17 +50,18 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大�
   * url encode: `% + ASCII(hex) %3Cscript%3E`  
   * http://www.jsfuck.com/  
   補充js常見處理函式: `escape()/unescape()`, `encodeURL()/decodeURL()`, `encodeURLComponent()/decodeURLComponent()`  
-  * html encode  
-```php
-htmlspecialchars($_GET['hi']);  // 會將特殊字元通通轉譯掉 
-// 這種情況下將無法再進行注入
-```
+  * html encode
+  ```php
+  htmlspecialchars($_GET['hi']);  // 會將特殊字元通通轉譯掉 
+  // 這種情況下將無法再進行注入
+  ```  
   * unicode encode: %u + ASCII(hex)  
-  * ascii encode  
-```js
-eval(String.fromCharCode(97,108,101,114,116,40,49,41))
-// <script>alert(1)</script>
-```
+  * ascii encode
+  ```js
+  eval(String.fromCharCode(97,108,101,114,116,40,49,41))
+  // <script>alert(1)</script>
+  ```
+  [Encode_tool](http://monyer.com/demo/monyerjs/)  
   String.fromCharCode() 將unicode字碼轉換成字串 [Manual](https://www.w3schools.com/jsref/jsref_fromCharCode.asp)  
   eval() 執行參數中的js語句 [Manual](https://www.w3schools.com/jsref/jsref_eval.asp)  
 * length limit  
@@ -70,8 +72,6 @@ eval(String.fromCharCode(97,108,101,114,116,40,49,41))
 cript:
 alert(/1/);">
 ```
-
-[Encode_tool](http://monyer.com/demo/monyerjs/) 
 
 # 正規表達式
 js中會用正規表達式來過濾危險字符  
