@@ -1,11 +1,14 @@
 # Cross-Site Scripting  
 [同源策略](https://github.com/shinmao/Web-Security-Learning/blob/master/XSS/Same-Origin%20Policy.md)    
-1. reflected xss (非持久型):    
-  
+1. reflected xss (非持久型):  
+`<?php echo 'xss, '.$_GET['script']; ?>`
+
 2. stored xss (持久型):  
 Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內容  
-  
-3. DOM xss: 最近の流行り  
+`<?php echo 'xss, '.$DB_value; ?>`
+
+3. DOM xss: 最近の流行り  
+通過DOM操作觸發
 
 注意: reflective型 以及 stored型 才會與server有互動，因為server需要解析惡意代碼，而DOM型則是完全由客戶端js執行。  
   
@@ -13,6 +16,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 *  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
+*  [DOM BASED XSS](#dom-based-xss)  
 *  [Cheatsheet](#cheatsheet)    
 *  [Reference](#reference)
 
@@ -101,6 +105,12 @@ js中會用正規表達式來過濾危險字符
 ```js
 <body/onload=javascript:window.onerror=eval;throw'=alert\x281\x29’;>   
 // 這種payload也可以繞過括號過濾
+```
+
+# DOM based XSS
+```js
+<script>document.getElementById("contents").innerHTML=location.hash.substring(1);</script>
+// #之後的內容不會被傳送到server端
 ```
 
 # Cheatsheet
