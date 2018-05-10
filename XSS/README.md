@@ -48,7 +48,7 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大�
 ```
 * encode 轉譯危險標籤  
   * url encode: `% + ASCII(hex) %3Cscript%3E`  
-  * http://www.jsfuck.com/  
+  * http://www.jsfuck.com/  
   補充js常見處理函式: `escape()/unescape()`, `encodeURL()/decodeURL()`, `encodeURLComponent()/decodeURLComponent()`  
   * html encode
   ```php
