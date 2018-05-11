@@ -9,7 +9,15 @@ Server Side Request Forge 服務端請求偽造
 
 # 挖掘
 **可控**的URL參數：url, src, imgURL  
-1. XXE
+1. XXE  
+```php
+<!ENTITY % file SYSTEM "file://url/xxx">
+```
+2. `file_get_contents($url)`  
+```php
+$image = file_get_contents('http://self-ip');
+```
+[Day 20 - Stocking](https://www.ripstech.com/php-security-calendar-2017/#day-20)
 
 ## Reference
 * Orange Slides
