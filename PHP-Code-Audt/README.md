@@ -252,7 +252,9 @@ $results = $this->getClient()->run($this, "grep -i --line-number {$query} $branc
 // patch
 $results = $this->getClient()->run($this, "grep -i --line-number -- {$query} $branch");
 ```
-[谈escapeshellarg绕过与参数注入漏洞](https://www.leavesongs.com/PENETRATION/escapeshellarg-and-parameter-injection.html)
+[谈escapeshellarg绕过与参数注入漏洞](https://www.leavesongs.com/PENETRATION/escapeshellarg-and-parameter-injection.html)  
+3. `filter_var($uri, FILTER_VALIDATE_URL)`flag無法有效過濾URL  
+在這種過濾方式下
 
 # Reference
 * [咱的move_uploaded_file日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
