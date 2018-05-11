@@ -55,7 +55,10 @@ RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning
 ```
 
 ## Tool
-1. [1024程序员开发工具箱](https://1024tools.com/)
+1. [1024程序员开发工具箱](https://1024tools.com/)  
+2. 木馬查殺  
+   [下一代WebShell检测引擎](https://scanner.baidu.com/#/pages/intro)  
+   [Deep Learning model for PHP webshell detection](http://webshell.cdxy.me/)
 
 ## Reference
 1. [十五個web狗的出題思路](https://weibo.com/ttarticle/p/show?id=2309403980950244591011)
