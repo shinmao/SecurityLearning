@@ -159,7 +159,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 2. [ChromePlugin-CSP Mitigator](https://chrome.google.com/webstore/detail/csp-mitigator/gijlobangojajlbodabkpjpheeeokhfa)  
 
 以上筆記很大部分取自[LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
-非常推薦閱讀原文
+非常推薦閱讀原文  
+[迅速查表CSP cheatsheet](http://dogewatch.github.io/2016/12/08/By-Pass-CSP/)
 
 
 # 正規表達式

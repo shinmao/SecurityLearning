@@ -201,7 +201,7 @@ parse_str("pwn.ch=hello&pw nch=hey",$test);
 var_dump($test);
 // result: array(2) { ["pwn_ch"]=> string(5) "hello" ["pw_nch"]=> string(3) "hey" }
 ```
-參考自[kaibro web ctf Cheatsheet](https://github.com/w181496/Web-CTF-Cheatsheet)
+參考自[kaibro web ctf Cheatsheet](https://github.com/w181496/Web-CTF-Cheatsheet)   
 
 # Variable Coverability 
 `$$`, `extract`, `parse_str`, `import_request_variables`, `register_globals`, `$GLOBALS`, `mb_parser_str`  

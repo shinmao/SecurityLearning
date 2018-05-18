@@ -18,6 +18,8 @@ RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning
 
 *  [Web狗出題思路](#web-ctf)  
 *  [Linux通配符](#linux-command)  
+*  [奇技淫巧](#奇技淫巧)  
+*  [雜.jpg](#雜)
 *  [工具](#tool)  
 *  [Reference](#reference)
 
@@ -34,7 +36,7 @@ RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning
    繞過檢測webshell  
 7. 不同引擎的sql injection  
 8. 繞過限制  
-   ```open__basedir```, ```disable__function```花式繞過  
+   `open__basedir`, `disable__function`花式繞過  
 9. 條件競爭 
 10. 社工  
 11. window特性  
@@ -54,14 +56,20 @@ RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning
 // 其中的問號當然也可以用*取代
 ```
 
-## 令人興奮的奇技淫巧
+## 奇技淫巧
+
+## 雜
+1. 頁面編碼問題  
+使用者在頁面上看到的text都是經過encode過的，而且每個使用者看到的可能都不一樣，這取決自使用者自己設定的瀏覽器編碼方式  
 
 
 ## Tool
 1. [1024程序员开发工具箱](https://1024tools.com/)  
 2. 木馬查殺  
    [下一代WebShell检测引擎](https://scanner.baidu.com/#/pages/intro)  
-   [Deep Learning model for PHP webshell detection](http://webshell.cdxy.me/)
+   [Deep Learning model for PHP webshell detection](http://webshell.cdxy.me/)  
+3. [Ｐ師傅PHP線上沙箱](http://675ba661.2m1.pw/dbc05bfc-3302-4565-9ac9-3c94d905e53b.php)  
+4. [UTF8編碼器 <少數靠譜>](https://mothereff.in/utf-8)
 
 ## Reference
 1. [十五個web狗的出題思路](https://weibo.com/ttarticle/p/show?id=2309403980950244591011)
