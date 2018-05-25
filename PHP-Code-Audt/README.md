@@ -77,6 +77,7 @@ a+     One or more of a
 a{3}     Exactly 3 of a
 a{3,}     3 or more of a
 a{3,6}     Between 3 and 6 of a
+(?R)     recursive (paste pattern)
 
 options: 
 i case insensitive 
@@ -86,7 +87,8 @@ x ignore whitespace in regex o perform
 ```
 以上資料取自 [php manual](http://php.net/manual/zh/function.preg-match.php)  
 [求生 正規表達式](http://j796160836.pixnet.net/blog/post/29514227-%5B%E8%BD%89%E8%B2%BC%5D%E5%B8%B8%E7%94%A8%E7%9A%84php%E6%AD%A3%E8%A6%8F%E8%A1%A8%E7%A4%BA%E5%BC%8F)  
-[模式修飾符](http://php.net/manual/zh/reference.pcre.pattern.modifiers.php) 
+[模式修飾符](http://php.net/manual/zh/reference.pcre.pattern.modifiers.php)  
+[Using Regular Expressions with PHP](http://www.rexegg.com/regex-php.html)
 
 # Weak type
 php 是一種弱類型的語言，這意味著我們可以隨時將值賦予一個其他類型的變量，以下是常見的弱類型問題。  
