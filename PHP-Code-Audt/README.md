@@ -91,6 +91,7 @@ x ignore whitespace in regex o perform
 [Using Regular Expressions with PHP](http://www.rexegg.com/regex-php.html)
 
 # Weak type
+[PHP type comparison tables](http://us3.php.net/manual/en/types.comparisons.php)  
 php 是一種弱類型的語言，這意味著我們可以隨時將值賦予一個其他類型的變量，以下是常見的弱類型問題。  
 1. 類型轉換  
 ```php

