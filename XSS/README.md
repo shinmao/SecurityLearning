@@ -175,7 +175,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   ```
   `createElement`時，element還屬於非parser-inserted屬性的，使用`documemt.write`的話就是parser-inserted屬性的了  
     
-  **Script Gadgets**：  
+  :cat2:**Script Gadgets**：  
   [security-research-pocs by Google](https://github.com/google/security-research-pocs/tree/master/script-gadgets)  
   Script Gadget是指一些已存在的js code用來bypass xss mitigations  
   ```js
@@ -190,7 +190,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   // 如上面提到的，非parser-inserted
   ```
 
-  **CVE-2018-5175** (利用**add-on**繞過strict-dynamic)：  
+  :cat2:**CVE-2018-5175** (利用**add-on**繞過strict-dynamic)：  
   [首先extension和add-on都是些什麼東西？](https://developer.mozilla.org/zh-TW/Add-ons/WebExtensions)  
   legacy-extension就是那些過去以XUL/XPCOM為基礎所建造的擴充，雖然2017/11後基礎已改為Web-extensions，但瀏覽器內部至今還多使用這個機制  
   這裡我們必須了解`manifest`下的`web_accessible_resources`(webextension)以及`contentaccessible flag`(legacy extension)，被這個`url contentaccessible=yes`的resource可以從任何頁面載入，這裡就有個弊端了，**任何頁面載入並且不需要nonce允許**！  
