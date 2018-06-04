@@ -9,6 +9,9 @@ Before exploiting, we can use some trick to get related information or even sour
 ### 拿源碼
 ```
 /.git  
+git reflog
+git reset --hard comm-num
+
 /.svn
 
 // backup file
