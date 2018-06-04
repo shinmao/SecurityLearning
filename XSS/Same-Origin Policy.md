@@ -29,8 +29,7 @@ CDN的宗旨是取資源自最靠近的地方以降低成本，但是CDN一定�
 ### What's CORS? (Cross-Origin sharing standard)
 這個策略便同意```XMLHttpRequest()```以及```<script>```發起跨域請求!  
 [reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)  
-CORS在發出請求前會先發出一個```preflight```請求來檢查內容，不會觸發preflight的則被稱為```Simple Request```  
-```preflight request``` 是一個名為```OPTIONS```的請求  
+在source對target發出request時，瀏覽器會自動帶上`origin`頭，target domain就會對`origin`做出判斷，如果同意就返回`Access-Control-Allow-Origin: source`，爾後如果不是`source`發出的request就會出現權限錯誤(xxxxxxxx Origin is not allowed by Access-Control-Allow-Origin).  
 而在response中我們可以特別注意幾項內容:  
 ```  
 Access-Control-Allow-Credentials: true  // 瀏覽器同意將內容return 給 user
