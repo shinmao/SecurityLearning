@@ -14,6 +14,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
   
 *  [XSS detection](#xss-detection)  
 *  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
+*  [XSS-Auditor介紹與繞過](#xss-auditor-intro-and-bypass)  
 *  [CSP介紹與繞過](#csp-intro-and-bypass)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
@@ -81,7 +82,33 @@ alert(/1/);">
 * WAF  
 * HTML Sanitizer  
 * CSP(Content-Security-Policy)  
-  這部分內容有點多，我還是獨立出來筆記好了:sweat:
+  這部分內容有點多，我還是獨立出來筆記好了:sweat:  
+
+# XSS Auditor Intro and bypass
+XSS是chrome上面專門對付**Reflected XSS**的第三方防禦手段[XSS Auditor](https://www.chromium.org/developers/design-documents/xss-auditor)  
+這邊順便提一下三個瀏覽器XSS filter的工作原理：  
+1. IE XSS filter: 用正則取代request或response中的危險字元  
+2. Chrome XSS Auditor: 檢查request或reponse中的危險字元，**若放入HTML架構有危險再刪除**  
+3. Firefox Noscript: 只檢查request中的危險字元
+```
+// disable
+X-XSS-Protection: 0
+
+// 單去除危險的頁面部分
+X-XSS-Protection: 1
+
+// 攔截頁面response並且導向about:blank
+X-XSS-Protection: 1; mode=block
+
+// 將report送到想要的地方
+X-XSS-Protection: 1; mode=block; report=https://example.com/log.cgi
+X-XSS-Protection: 1; report="https://example.com/log.cgi?jsessionid=132;abc"
+```
+
+Auditor reference:  
+* Source code  
+[xss_auditor.h](https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/parser/xss_auditor.h)  
+[xss_auditor_delegate.h](https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/parser/xss_auditor_delegate.h)
 
 # CSP Intro and bypass
 從瀏覽器的層面來防禦漏洞[Content Security Policy Level 3](https://www.w3.org/TR/CSP/)  
