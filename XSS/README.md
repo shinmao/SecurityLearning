@@ -14,6 +14,7 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
   
 *  [XSS detection](#xss-detection)  
 *  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
+*  [htmlspecialchars繞過](#htmlspecialchars-bypass)
 *  [XSS-Auditor介紹與繞過](#xss-auditor-intro-and-bypass)  
 *  [CSP介紹與繞過](#csp-intro-and-bypass)  
 *  [正規表達式](#正規表達式)  
@@ -83,6 +84,15 @@ alert(/1/);">
 * HTML Sanitizer  
 * CSP(Content-Security-Policy)  
   這部分內容有點多，我還是獨立出來筆記好了:sweat:  
+
+# htmlspecialchars bypass  
+php內部函數，可將`&`,`'`,`"`,`<`,`>`五種字元轉成字串。沒有第二個參數(`ENT_QUOTES`)時不會過濾單引號。  
+1. `htmlspecialchars($input)`在`value`屬性內：  
+```php
+<input value="<" onclick=alert(1)>
+```  
+特殊字元被轉換成字串而閉合`value`屬性  
+2. 若頁面的編碼可控，可以嘗試用不同編碼繞過特殊字元，e.g. UTF-7
 
 # XSS Auditor Intro and bypass
 XSS是chrome上面專門對付**Reflected XSS**的第三方防禦手段[XSS Auditor](https://www.chromium.org/developers/design-documents/xss-auditor)  
