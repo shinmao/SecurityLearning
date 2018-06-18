@@ -245,8 +245,11 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   <script data-main="data:,alert(1)"></script>
   <script src="resource://devtools-client-jsonview/lib/require.js"></script>
   ```
-  所以我們不需要nonce也能讓`require.js`載入執行，靠script-gadget中提到`require.js`尋找`data-main`屬性，不難理解這個xss的攻擊就會成功bypass csp了！
+  所以我們不需要nonce也能讓`require.js`載入執行，靠script-gadget中提到`require.js`尋找`data-main`屬性，不難理解這個xss的攻擊就會成功bypass csp了！  
 
+  若不是框架中帶有的script-gadget，就從開發者的code中自己找一個，以下為思路：  
+  某段script中將`attribute`的值插入`innerHTML`;  
+  
 以web開發人員的角度推薦幾個工具：  
 1. [CSP Evaluator](https://csp-evaluator.withgoogle.com/)  
 2. [ChromePlugin-CSP Mitigator](https://chrome.google.com/webstore/detail/csp-mitigator/gijlobangojajlbodabkpjpheeeokhfa)  
