@@ -60,7 +60,7 @@ log是否可讀
 所以應用場景先透過配置文件得到路徑，還需要注意請求會不會被編碼，可以透過burp修改再送出，最後再包含log即可  
 4. include ssh log  
 是否可讀？  
-默認路徑在`/var/log/auth.log`  
+默認路徑在`/var/log/apache2/access.log`,`/var/log/apache2/error.log`  
 ```php
 ssh '<?php phpinfo();?>'@remotehost
 // phpinfo代碼會出現在log裡，在進行include就好
