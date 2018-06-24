@@ -14,6 +14,7 @@
 *  [SQL inj to webshell](#sql-inj-to-webshell)  
 *  [Don't delete my webshell](#dont-delete-my-webshell)  
 *  [Reverse shell](#reverse-shell)  
+*  [Privilege escalation](#privilege-escalation)  
 *  [Reference](#reference)
 
 # How works
@@ -191,7 +192,11 @@ useradd new;echo -e 'xxxxxxx' |passwd test
 python -c "import pty;pty.spawn('/bin/bash')"
 ```  
 
-reference from [安全客](https://www.anquanke.com/post/id/87017)
+reference from [安全客](https://www.anquanke.com/post/id/87017)  
+
+# Privilege escalation  
+提權手勢  
+1. [利用crontab提權](https://www.anquanke.com/post/id/148564#h2-2)
 
 ### Reference  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
