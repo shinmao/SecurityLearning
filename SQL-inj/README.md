@@ -11,6 +11,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [sql權限問題](#sql-privilege-management)  
 *  [sprintf/vprintf](#sprintf-vprintf)   
 *  [NoSQL injection](#nosql-injection)  
+*  [邏輯漏洞](#logic-vul)  
 *  [Tools](#tools)  
 *  [Reference](#reference)
   
@@ -286,6 +287,18 @@ Blind injection
 ```sql
 ?username=admin&password[$regex]=^a
 ```  
+
+### Logic Vul  
+對sql觀念的誤解很容易讓開發者犯了一些邏輯漏洞，下面做一些收集：  
+1. mysql整型  
+在mysql裡若字段為整型，`where`語句中的值不為整型時，會先被轉換成整型才進行語句查詢...  
+```php
+select a from user where id='0a';
+select a from user where id='0';
+```  
+若a col為int型態，id值會由字串轉換為int在進行查詢，因此`id='0a'`的結果和`id='0'`的結果會一樣...  
+[遇到一個有趣的邏輯漏洞](https://www.leavesongs.com/PENETRATION/findpwd-funny-logic-vul.html)
+
 ### Tools
 * [Mysql Online Terminal](http://www.tutorialspoint.com/mysql_terminal_online.php)
 
