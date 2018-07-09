@@ -199,7 +199,9 @@ reference from [安全客](https://www.anquanke.com/post/id/87017)
 
 # Privilege escalation  
 提權手勢  
-1. [利用crontab提權](https://www.anquanke.com/post/id/148564#h2-2)
+1. [利用crontab提權](https://www.anquanke.com/post/id/148564#h2-2)  
+2. [通过可写文件获取Root权限的多种方式](http://www.freebuf.com/articles/system/175086.html)  
+   改寫可寫文件的內容，可以通過SUID執行文件讓自己提升成root，或是利用`sudo -l`...
 
 ### Reference  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
