@@ -63,7 +63,7 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大�
   // 這種情況下將無法再進行注入
   ```  
   * unicode encode: %u + ASCII(hex) ASP,IIS上會自動解析unicode編碼，`<%s%cr%u0131pt>`  
-  * `IBM037`,`IBM500`,`IBM1026`,`cp875`支援by Django,Apache Tomcat(JSP),IIS ASPX,Apache/IIS PHP這幾種伺服器，可以用`urllib.quote_plus(s.encode("IBM500"))`這種方式獲取編碼，其中s就是payload。然後在`Content-Type`中加上`charset=xxx`的部分...  
+  * `IBM037`,`IBM500`,`IBM1026`,`cp875`  
   * ascii encode
   ```js
   eval(String.fromCharCode(97,108,101,114,116,40,49,41))
