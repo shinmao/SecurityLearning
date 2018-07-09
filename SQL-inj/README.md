@@ -201,6 +201,7 @@ WAF is a defender for web.
   - `unicode(右括號): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
   - `Char(49)` `Hex('a')` `Unhex(61)`  
   - asp+iis的server上有自動解析unicode的效果，url中的`%`字元會被忽略掉，`s%u0065lect`的unicode字串會被自動解析  
+  - `IBM037`,`IBM500`,`IBM1026`,`cp875`支援by Django,Apache Tomcat(JSP),IIS ASPX,Apache/IIS PHP這幾種伺服器，可以用`urllib.quote_plus(s.encode("IBM500"))`這種方式獲取編碼，其中s就是payload。然後在`Content-Type`中加上`charset=xxx`的部分...  
 - 注釋  
   - `#`  行內注釋  
   - `--+` `--` `-- -`  
