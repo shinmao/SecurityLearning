@@ -277,15 +277,18 @@ union select load_file( 文件名hex );
 
 ### Bypass waf with some charset
 ![image](https://farm2.staticflickr.com/1829/43302939171_78fbb87eba_h.jpg)  
+Request Encoding  
 從上圖得知大多數的伺服器支援IBM037,IBM500,IBM1026,cp875的字集，下面的code可以得到encoded string  
 ```python
 import urllib
 payload = 'xxx'
 print urllib.quote_plus(payload.encode("IBM500"))
 ```  
-以`QueryString`的利用方式為例，他可以接收來自GET和POST的參數，但不是同時...  
+以`QueryString`的利用方式為例，他負責接收來自GET的參數  
 ```php
 // Appsec Europe的一個sqlinj挑戰
+On Error Resume Next
+
 If Not Request.QueryString("uid").Contains("'") Then
   ...SELECT name FROM users WHERE uid = Request.QueryString("uid")...
   Response.Write(Query)
@@ -294,11 +297,14 @@ Else
 End If
 ```
 很明顯的，這個sql inj禁止單引號，可是我們需要他來做閉合...  
-這裡的exploit有一個前備條件：**兩次Request.QueryString("")**  
+這裡的exploit有兩個前備條件：**兩次Request.QueryString("")**和碰到錯誤不會中斷的**on Error Resume Next**  
 ![](https://farm1.staticflickr.com/921/42585039264_b5874cc629_h.jpg)  
-當payload是在GET裡時，要將Method改成POST，而反之亦然，所以exploit的流程就是，第一次的`QueryString`收到的是body裡面的空內容，當然沒有單引號，第二次執行的語句則是有單引號的payload  
+若payload在`QueryString`裡 -> `POST`  
+若payload在`body`裡 -> `GET`  
 * 防禦方式：  
 果然編碼的攻擊方式還是很強大，我們可以透過限制charset的值來避免這種攻擊方式  
+[Request encoding to bypass web application firewalls](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/august/request-encoding-to-bypass-web-application-firewalls/)  
+[Rare ASP.NET request validation bypass using request encoding](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/september/rare-aspnet-request-validation-bypass-using-request-encoding/)  
 
 ### sprintf vprintf
 不會檢查格式化字串的類型。  
