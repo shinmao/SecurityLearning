@@ -9,7 +9,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [Webshell...寫檔](#webshell)  
 *  [讀檔](#read-file)  
 *  [sql權限問題](#sql-privilege-management)  
-*  [用特殊編碼繞過waf](#bypass-waf-with-some-charset)  
+*  [繞過ASPX的RequestValidation](#bypass-requestvalidation-on-aspx)  
 *  [sprintf/vprintf](#sprintf-vprintf)   
 *  [NoSQL injection](#nosql-injection)  
 *  [邏輯漏洞](#logic-vul)  
@@ -202,7 +202,7 @@ WAF is a defender for web.
   - `unicode(右括號): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
   - `Char(49)` `Hex('a')` `Unhex(61)`  
   - asp+iis的server上有自動解析unicode的效果，url中的`%`字元會被忽略掉，`s%u0065lect`的unicode字串會被自動解析  
-  - `IBM037`,`IBM500`,`IBM1026`,`cp875`等特殊字集，細節請看[用特殊編碼繞過waf](#bypass-waf-with-some-charset)  
+  - `IBM037`,`IBM500`,`IBM1026`,`cp875`等特殊字集，細節請看[用特殊編碼繞過waf](#bypass-requestvalidation-on-aspx)  
 - 注釋  
   - `#`  行內注釋  
   - `--+` `--` `-- -`  
@@ -275,9 +275,9 @@ union select load_file( 文件名hex );
 寫shell用`select into outfile`常會碰到寫入權限的問題，即使`user()`是root... 原因可能是mysql中`--secure-file-priv`限制了寫檔路徑，或者是系統設定(e.g. apparmor)  
 [Ref:關於mysql中select into outfile權限的探討](https://blog.csdn.net/bnxf00000/article/details/64123549)  
 
-### Bypass waf with some charset
+### Bypass RequestValidation on ASPX
 ![image](https://farm2.staticflickr.com/1829/43302939171_78fbb87eba_h.jpg)  
-Request Encoding  
+Request Validation是ASP上檢查request是否含有惡意內容的機制，預設連HTML的一般MARKUP也會阻擋，因此可以客製化Request Validation，或者直接手動檢查  
 從上圖得知大多數的伺服器支援IBM037,IBM500,IBM1026,cp875的字集，下面的code可以得到encoded string  
 ```python
 import urllib
@@ -301,6 +301,7 @@ End If
 ![](https://farm1.staticflickr.com/921/42585039264_b5874cc629_h.jpg)  
 若payload在`QueryString`裡 -> `POST`  
 若payload在`body`裡 -> `GET`  
+除了上面`HTTP Verb Replacement`和`Charset`特殊字集，還有`change body type`,`remove unnecessary part`,`add unuseful part`等方法，細節在這邊先不贅述...  
 * 防禦方式：  
 果然編碼的攻擊方式還是很強大，我們可以透過限制charset的值來避免這種攻擊方式  
 [Request encoding to bypass web application firewalls](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/august/request-encoding-to-bypass-web-application-firewalls/)  
