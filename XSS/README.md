@@ -63,7 +63,7 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大�
   // 這種情況下將無法再進行注入
   ```  
   * unicode encode: %u + ASCII(hex) ASP,IIS上會自動解析unicode編碼，`<%s%cr%u0131pt>`  
-  * `IBM037`,`IBM500`,`IBM1026`,`cp875` 利用方法可以參考[Bypass waf with some charset](https://github.com/shinmao/Web-Security-Learning/tree/master/SQL-inj#bypass-waf-with-some-charset)  
+  * `IBM037`,`IBM500`,`IBM1026`,`cp875` 利用方法可以參考[ASPX上繞過RequestValidation](https://github.com/shinmao/Web-Security-Learning/blob/master/SQL-inj/README.md#bypass-requestvalidation-on-aspx)  
   * ascii encode
   ```js
   eval(String.fromCharCode(97,108,101,114,116,40,49,41))
