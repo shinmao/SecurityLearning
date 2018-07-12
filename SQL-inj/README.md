@@ -372,20 +372,22 @@ select a from user where id='0';
 若a col為int型態，id值會由字串轉換為int在進行查詢，因此`id='0a'`的結果和`id='0'`的結果會一樣...  
 [遇到一個有趣的邏輯漏洞](https://www.leavesongs.com/PENETRATION/findpwd-funny-logic-vul.html)
 
-### Tools
+# Tools
 * [Mysql Online Terminal](http://www.tutorialspoint.com/mysql_terminal_online.php)  
 
-### Defense
+# Defense
 為何會發生sql injection呢？原因是我們的輸入修改了原本的語意，而導致重編譯...  
 這邊就得先了解一下sql parser是怎麼運作的，當收到我們的輸入後開始進入了編譯的四階段：  
 1. 詞法分析：辨別是否為關鍵字，我們稱帶有關鍵字的語句為token[閱讀 詞法分析](https://segmentfault.com/a/1190000015568992)  
 2. 語法分析：辨認關鍵字，並以AST做成語法樹  
 3. 檢測內容  
 4. 語意辨識  
+  
 語意辨識完了之後就是**選用執行計畫**，最後才執行(一般編譯過後會放入plan cache，這樣下次同樣的語句就不用重編譯，而是重用執行計畫，大部分的注入都是因為我們沒有用原先的執行計畫...)  
 所以說為什麼prepare statement能夠防範注入呢？prepare所進行的是預編譯，這時不會把使用者輸入的值放入資料庫執行，搭配參數化查詢(正確使用)的話，我們就能重用執行計畫並且完美地避免sql注入  
+  
 🎅SQLChop可以說防禦了99%的sql注入，因為他對參數執行了詞法語法分析。不管payload再怎樣變化，只要經過sql原生的詞法語法分析後發現多個token，而他是個有效的語句，那就會被偵測到!  
 
-### Reference
+# Reference
 * [Personal article - first time meet with NoSQL](https://shinmao.github.io/2018/03/01/My-First-NoSQL/)  
 * [Joy__nick 新手神器](http://www.cnblogs.com/joy-nick/p/5774462.html)
