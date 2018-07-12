@@ -11,7 +11,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [sql權限問題](#sql-privilege-management)  
 *  [繞過ASPX的RequestValidation](#bypass-requestvalidation-on-aspx)  
 *  [sprintf/vprintf](#sprintf-vprintf)   
-*  [Wordpress4.8.2 double prepare漏洞用法](#wordpress4.8.2-double-prepare漏洞用法)  
+*  [Wordpress4.8.2 double prepare漏洞用法](#wordpress4.8.2-double-prepare-misuse)  
 *  [NoSQL injection](#nosql-injection)  
 *  [邏輯漏洞](#logic-vul)  
 *  [Tools](#tools)  
@@ -312,7 +312,7 @@ End If
 不會檢查格式化字串的類型。  
 SQLi中，```%'```會被轉譯成`\'` -> `%\'` `%\`被吃掉，`'`逃逸。  
 
-### Wordpress4.8.2 Double Prepare漏洞用法  
+### Wordpress4.8.2 Double Prepare Misuse  
 Wordpress自己寫了`prepare()`預編譯sql語句然後再`execute()`，有別於PDO下的`prepare()`,`blind()`,`execute()`。這是出現在wordpress4.8.3以前的版本的問題...  
 ```php
 $query = $wpdb->prepare( "SELECT * FROM table WHERE column = %s", $_GET['c1'] ); 
