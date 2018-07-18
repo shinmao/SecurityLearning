@@ -224,7 +224,9 @@ WAF is a defender for web.
 - aspx中HPP特性  
   - 當GET/POST/COOKIE同時提交參數`uid`，server會依GET/POST/COOKIE的順序接收並以逗號隔開  
   - 利用：`http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
-
+- 函數分隔符  
+  - func名和後面括號之間其實可以有分隔，這導致正規表達式可以被繞過  
+  - function `/**/`,`%2520`,`%250c`,`%25a0` ()  
     
 更多的思路：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  

