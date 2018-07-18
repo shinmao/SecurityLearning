@@ -40,6 +40,7 @@ data:URL schema
 ?file=data:text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2b (base64編碼phpinfo)
 ```  
 試試了解更多協議：`file://`,`ftp://`,`zlib://`,`glob://`,`ssh2://`,`rar://`,`ogg://`,`expect://`  
+
 2. include session  
 session內容可控，session路徑已知...  
 session路徑可以透過phpinfo中`session_save_path`得知  
