@@ -1,4 +1,4 @@
-# HRS
+# CRLF
 HRS(HTTP Request Smuggling)跟CRLF息息相關。注意CRLF可不是CSRF，CRLF正式window中換行的符號(carriage return + line feed)，也就是`\r(%0d)`+`\n(%0a)`，在Unix系統中只有`\n`代表換行，這也是為何Unix的文件拿到window系統中常常變成一行。現在回到攻擊手法，HTTP Header和HTTP Body會用兩個CRLF分隔，注入一些惡意的換行就可以掌握很多東西...  
 
 ### XSS
