@@ -15,7 +15,7 @@ SSTI | [ruby, vue.js, angular.js](https://github.com/shinmao/Web-Security-Learni
 XXE | [XXE](https://github.com/shinmao/Web-Security-Learning/tree/master/XXE)  
 SSRF | [SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
 RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning/tree/master/RPO)  
-HRS | [HTTP-Request-Smuggling](https://github.com/shinmao/Web-Security-Learning/tree/master/HRS)
+CRLF | [CRLF](https://github.com/shinmao/Web-Security-Learning/tree/master/HRS)
 
 *  [Web狗出題思路](#web-ctf)  
 *  [Linux通配符](#linux-command)  
