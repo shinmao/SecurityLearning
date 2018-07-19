@@ -301,8 +301,9 @@ Else
 End If
 ```
 很明顯的，這個sql inj禁止單引號，可是我們需要他來做閉合...  
-這裡的exploit有兩個前備條件：**兩次Request.QueryString("")**和碰到錯誤不會中斷的**on Error Resume Next**  
 ![](https://farm1.staticflickr.com/921/42585039264_b5874cc629_h.jpg)  
+Exploit:  
+第一次`QueryString`時發生了error，但卻因為`On Error Resume Next`而繼續執行下去，第二次`QueryString`時就通過了，這還需要切換Request Method  
 若payload在`QueryString`裡 -> `POST`  
 若payload在`body`裡 -> `GET`  
 除了上面`HTTP Verb Replacement`和`Charset`特殊字集，還有`change body type`,`remove unnecessary part`,`add unuseful part`等方法，細節在這邊先不贅述...  
