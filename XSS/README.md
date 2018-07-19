@@ -316,8 +316,15 @@ with SSTI
 :point_down: 被引入的`/assets/jquery.min.js`全都變成`http://controlled_domain/assets/jquery.min.js`  
 :point_down: `controlled_domain/assets/jquery.min.js`我們可以在裡面插入`location.href=url;`  
 :point_down: 當我們訪問最前面被插入`<base>`的頁面時就會被導到這個`url`囉！  
-細節詳見：[rblog-writeup](https://github.com/shinmao/CTF-writeups/tree/master/RCTF2018)
-
+細節詳見：[rblog-writeup](https://github.com/shinmao/CTF-writeups/tree/master/RCTF2018)  
+* `<base target>`竊取頁面內容  
+跟上面同樣利用`<base>`tag但是觀念完全不同  
+**Exploit**:  
+:point_down: 透過xss漏洞插入不完整的`<base target>`標籤到頁面中  
+:point_down: `target`讓頁面中所有URL[http://evil.com/](http://evil.com/)的page都設下了同名的`window.name`!  
+:point_down: [http://evil.com/](http://evil.com/)頁面中有`<script>alert(name);</script>`的功能  
+:point_down: 彈框的內容為target的name  
+[參考原文](https://portswigger.net/blog/evading-csp-with-dom-based-dangling-markup)  
 
 # 彈窗手勢
 現在大部分的瀏覽器都禁止未禁用戶允許的彈窗了  
