@@ -254,7 +254,8 @@ id=1' union select 1, @@basedir, @@datadir--+
 ```
 e.g. @@basedir 我們得到```C:/xampp/mysql```的結果, 而網頁根目錄路徑便是```C:/xampp/htdocs/```，更多內容可以到[INFO-leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak)看**爆物理路徑**的部分  
 :racehorse: General log  
-前提一樣是**要有寫的權限**，general log有紀錄執行sql命令的功能  
+前提一樣是對目錄**要有寫的權限**，general log有紀錄執行sql命令的功能  
+通常是用在拿到了高的權限，卻無法寫shell  
 ```php
 show variables like '%general%';
 set global general_log=on;
@@ -267,16 +268,17 @@ select '<?php @eval($_POST[1])?>';
 若當前db用戶有寫的權限即能寫入成功，然後把`general_log_file`改回原本的文件，把`general_log`設回off  
 
 ### Read file  
-上面的webshell相當於用`sql injection`寫檔，那當然也有獨檔的部分。  
+上面的webshell相當於用`sql injection`寫檔，那當然也有讀檔的部分。  
 ```php
 union select load_file( 文件名hex );
 ```  
-這裡讀取文件也需要讀取權限，所以當前數據庫用戶要被允許讀取(通常都有)。上面我們`load_file`常常會用來讀取一些機敏文件，譬如`DB.php`。  
+這裡讀取文件也需要讀取權限，所以當前數據庫用戶要被允許讀取(通常都有)。上面我們`load_file`常常會用來讀取一些機敏文件，譬如`DB.php`。除了讀取權限，`select into outfile`,`select into dumpfile`,`select load_file()`這類函式都受到`secure_file_priv`影響，會在下面做討論...  
 
 ### SQL Privilege management  
 上面碰到的寫檔和讀檔問題我們會碰到數據庫用戶的權限問題。在連上數據庫時，server會先檢查db_user認證，也可以設定限制外連，或特定ip外連。若通過認證，還可以設定當前登入用戶能執行哪些sql指令。  
 [Ref:Mysql權限管理](https://www.cnblogs.com/Richardzhu/p/3318595.html)  
-寫shell用`select into outfile`常會碰到寫入權限的問題，即使`user()`是root... 原因可能是mysql中`--secure-file-priv`限制了寫檔路徑，或者是系統設定(e.g. apparmor)  
+寫shell用`select into outfile`常會碰到寫入權限的問題，即使`user()`是root...  
+原因可能是mysql中`--secure-file-priv`限制了寫檔路徑，通過`select @@secure_file_priv`可以查看設定值，在5.7.5以前的版本預設為空，使用者可以自由使用讀寫函式，後來版本預設為NULL之後，這些招數就形同廢鐵了，因為不同於`general_log`，`@@secure_file_priv`無法在mysql執行時進行修改  
 [Ref:關於mysql中select into outfile權限的探討](https://blog.csdn.net/bnxf00000/article/details/64123549)  
 
 ### Bypass RequestValidation on ASPX
