@@ -258,7 +258,34 @@ $results = $this->getClient()->run($this, "grep -i --line-number -- {$query} $br
 [谈escapeshellarg绕过与参数注入漏洞](https://www.leavesongs.com/PENETRATION/escapeshellarg-and-parameter-injection.html)  
 
 3. `filter_var($uri, FILTER_VALIDATE_URL)`flag無法有效過濾URL  
-在這種過濾方式下還是可以用SSRF，可以看[連結](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)
+在這種過濾方式下還是可以用SSRF，可以看[連結](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
+4. `parse_url`函數有些考點  
+先談沒有options的部分，理論上不完整的url會導致錯誤，但有些狀況會不然  
+```php
+// 正常解析URL
+var_dump(parse_url('http://localhost.com:80/index'));
+// array(4) { ["scheme"]=> string(4) "http" ["host"]=> string(13) "localhost.com" ["port"]=> int(80) ["path"]=> string(6) "/index" }
+
+// 少了協議導致錯誤
+var_dump(parse_url('/localhost.com:80/index'));
+// bool(false) 
+
+// 少了協議，但port和字母串接成功返回！
+var_dump(parse_url('/localhost.com:80a'));
+// array(1) { ["path"]=> string(24) "/localhost.com:80a/index" }
+
+// port解析錯誤
+// index:80應該為路徑名，卻被解析成port
+var_dump(parse_url('//localhost.com/index:80'));
+// array(3) { ["host"]=> string(13) "localhost.com" ["port"]=> int(80) ["path"]=> string(9) "/index:80" }
+
+// 第二個解析成host
+var_dump(parse_url('/index?/go/'));
+// array(2) { ["path"]=> string(6) "/index" ["query"]=> string(4) "/go/" }
+var_dump(parse_url('//index?/go/'));
+// array(2) { ["host"]=> string(5) "index" ["query"]=> string(4) "/go/" }
+```  
+除此之外，`parse_url`還可以搭配類似`parse_url($url,PHP_URL_HOST)`來取得host。在[MEEPWN 2018 OmegaSector](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018)中可作參考  
 
 # Reference
 * [咱的move_uploaded_file日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
