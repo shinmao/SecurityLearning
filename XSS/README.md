@@ -83,6 +83,9 @@ alert(/1/);">
 * XSS filters  
 * WAF  
 * HTML Sanitizer  
+* URL繞過`.`, `//`  
+  RWCTF2018裡學到的招式: `<?=ip2long("my-ip")`繞過dot，`\\`繞過`http://`  
+  順便補充: 第一個`/`是用來分隔schema和路徑，第二個`/`是路徑  
 * CSP(Content-Security-Policy)  
   這部分內容有點多，我還是獨立出來筆記好了:sweat:  
 
