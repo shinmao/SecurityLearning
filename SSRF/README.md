@@ -2,7 +2,8 @@
 Server Side Request Forge  
 Bypass the firewall and grope through the intranet  
 
-![ssrf](https://github.com/shinmao/Web-Security-Learning/blob/master/SSRF/screenshot/SSRF.png)
+![ssrf](https://github.com/shinmao/Web-Security-Learning/blob/master/SSRF/screenshot/SSRF.png)  
+Find the vulnerable place > with Protocol > Apply to deeper attack > Bypass
 
 # Find the vulnerable place
 **Controllable** URL parameter：url, src, imgURL, share, wap, link  
@@ -22,9 +23,13 @@ $image = file_get_contents('http://self-ip');
 3. curl(PHP)  
 in fact, from `curl -V` we can see the libcurl support many protocols  
 
-![](https://farm2.staticflickr.com/1774/43295065584_6cfa758570_m.jpg)
+![](https://farm2.staticflickr.com/1774/43295065584_6cfa758570_m.jpg)  
 
-## Bypass  
+# with Protocol
+
+# Apply to deeper attack
+
+# Bypass  
 Bypass DNS limit  
 Bypass ip limit
 
