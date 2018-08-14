@@ -1,10 +1,10 @@
-# PHP 代碼審計
-*  [CTF中一些好用的奇技淫巧](#tricks)  
-*  [PHP危險過濾](#dangerous-filter)  
-*  [PHP弱類型](#weak-type)  
-*  [PHP處理數據](#data-handling)  
-*  [PHP變量覆蓋](#variable-coverability)  
-*  [PHP危險函式/誤用](#dangerous-mistake-function)  
+# PHP Code Auditing
+*  [Some tricks](#tricks)  
+*  [PHP Dangerous filter](#dangerous-filter)  
+*  [PHP weak type](#weak-type)  
+*  [PHP data handling](#data-handling)  
+*  [PHP variable coverability](#variable-coverability)  
+*  [PHP dangerous misuse of function](#dangerous-mistake-function)  
 *  [Reference](#reference)
 
 # Tricks
@@ -13,36 +13,35 @@ eval(print_r(file("./flag.php")););
 ```
 
 # Dangerous filter
-永遠不要相信外部輸入: `$_GET, $_POST, $_SERVER, fopen('php://input','r'), upload downloaded files, session, cookies`...  
-* 常見處理 (以下介紹過濾輸入以及驗證數據  
-1. `strip_tags()`,`htmlentities()`, or `htmlspecialchars()` 對一些html標籤做轉譯 -> xss  
+Don't trust in user's input: `$_GET, $_POST, $_SERVER, fopen('php://input','r'), upload downloaded files, session, cookies`...  
+* Common handle with input (following are some filter or authentication  
+1. `strip_tags()`,`htmlentities()`, or `htmlspecialchars()` will change some html tags -> xss  
 ```php
 $input = '<script>...</script>';
 echo htmlentities($input, ENT_QUOTES, 'utf-8');
 ```  
-2. 若傳入數據必須在命令行中執行而調用`exec()`, 使用`escapeshellarg()`  
-3. **PDO** 預處理 SQL 語句 -> SQL injection  
-4. File upload system 應注意路徑過濾 `/`, `../`... -> LFI  
-5. `preg_replace()`, `preg_replace_all()`等正規表達式的過濾方法很容易掉坑 www  
-`驗證數據跟過濾不一樣，而是檢查輸入是否為有效xx`  
-6. `filter_var()`, `filter_input()`針對不同類型的數據會回傳 True, False  
-[詳見PHP Manual](http://php.net/manual/en/function.filter-var.php)  
+2. if input needs to be run in command line by `exec()`, we would use `escapeshellarg()`  
+3. **PDO** pre-statement -> SQL injection  
+4. File upload system need to filter `/`, `../`...in the path -> LFI  
+5. `preg_replace()`, `preg_replace_all()`and some regex always can be bypassed www  
+6. `filter_var()`, `filter_input()` would return True, False according to data type  
+[See more in PHP Manual](http://php.net/manual/en/function.filter-var.php)  
 ```php
-// 以下取自 ripstech php calendat 部分 source code  
+// Ref to ripstech php calendat part of source code  
 $indexTemplate = '<img ' .
             'src="https://loremflickr.com/320/240">' .
-            '<a href="{{link|escape}}">Next slide »</a>';     // 可見php twig template engine, escape用法
+            '<a href="{{link|escape}}">Next slide »</a>';     // use of php twig template engine, escape
 .....
 public function getNexSlideUrl() {
         $nextSlide = $_GET['nextSlide'];
-        return filter_var($nextSlide, FILTER_VALIDATE_URL);  // filter_var() 驗證有效URL
+        return filter_var($nextSlide, FILTER_VALIDATE_URL);  // filter_var() authenticate on valid URL
     }
 ...
 ```  
-這裡有兩關驗證URL的有效性，卻還是可以透過`nextSlide=javascript://comment%250aaler(1)`來完成xss  
-* 繞過  
-1. 繞過`addslashes()`, `addslashes()`往往讓我們無法閉合引號  
-用雙轉譯 `\\` 繞過
+Here are two authentication on URL, but we still can xss via `nextSlide=javascript://comment%250aaler(1)`  
+* Bypass  
+1. bypass `addslashes()`, `addslashes()` which always let us not able to close quote  
+double addslash `\\` to bypass  
 ```php
 // payload1 = c';
 option='c\';';
@@ -50,8 +49,8 @@ option='c\';';
 // payload2 = c\';
 option='c\\';'
 // successful!!
-```
-* 正規表達式  
+```  
+* Regex  
 ```php
 [abc]     A single character: a, b or c
 [^abc]     Any single character but a, b, or c
@@ -85,31 +84,31 @@ m make dot match newlines
 x ignore whitespace in regex o perform 
 #{...} substitutions only once
 ```
-以上資料取自 [php manual](http://php.net/manual/zh/function.preg-match.php)  
+[Ref to php manual](http://php.net/manual/zh/function.preg-match.php)  
 [求生 正規表達式](http://j796160836.pixnet.net/blog/post/29514227-%5B%E8%BD%89%E8%B2%BC%5D%E5%B8%B8%E7%94%A8%E7%9A%84php%E6%AD%A3%E8%A6%8F%E8%A1%A8%E7%A4%BA%E5%BC%8F)  
 [模式修飾符](http://php.net/manual/zh/reference.pcre.pattern.modifiers.php)  
 [Using Regular Expressions with PHP](http://www.rexegg.com/regex-php.html)
 
 # Weak type
 [PHP type comparison tables](http://us3.php.net/manual/en/types.comparisons.php)  
-php 是一種弱類型的語言，這意味著我們可以隨時將值賦予一個其他類型的變量，以下是常見的弱類型問題。  
-1. 類型轉換  
+php is a language of weak type, this means that we can assigan a value to another type of variable at any time.  
+1. Type of changes  
 ```php
 1 == '1'       // true
 0 == 'abcd'     // true
 5 == '5cdeg'     // true
 ```  
-因此比較時應該用 `===` 強等於的方式！  
+Therefore, we need `===`!  
 ```php
 "0x1f640" == 128576   // true
 "0x1f640" == "1f640"  // false 
 ```
-php遇到`0x`開頭的字符會先轉成十進制！
+php would change char to decimal while facing char starts with `0x`!  
 ```php
 "0e328428492284" == "0e24824048204"  // true
 ```
-這就是常見的**md5 collision**，php碰到`0e`開頭的字符會當作科學記號處理，後面必須是數字作為次方！  
-順手留資料，下一次在CTF遇到好用XD......  
+**md5 collision**, php would consider the words after `0e` as `10^x`, which means ten to the power of x！  
+Here are some example can be used in CTF for convenience XD......  
 ```php
 $ echo -n 240610708 | md5sum
 0e462097431906509019562988736854  -
@@ -117,11 +116,11 @@ $ echo -n QNKCDZO | md5sum
 0e830400451993494058024219903391  -
 $ echo -n aabg7XSs | md5sum
 0e087386482136013740957780965295  -
-// 順便留個sha1當伴手禮XD
+// sha1, too for your gift XD
 var_dump(sha1('aaroZmOk') == sha1('aaK1STfY'));
 var_dump(sha1('aaO8zKZF') == sha1('aa3OFF9m'));
 ```
-2. 類型轉換 Functions  
+2. Functions to change type  
 int -> string :  
 ```php
 $str = (string)$var;
@@ -132,10 +131,10 @@ string -> int :
 var_dump(intval('1abc'));    // 1
 var_dump(intval('abc'));    // 0
 ```
-intval()即便遇到非字串類型也不會報錯，只會回傳0  
-3. 一些Functions的危險使用  
+intval() would not return error even it face the type which is not string, but only return 0.  
+3. Dangerous use of some functions  
 * md5()  
-md5() 在遇到參數為陣列時不會報錯，也無法正確計算hash值...
+md5() won't return error when the parameter is array, and also cannot calculate hash value correctly...
 ```php
 $arr1[] = array("hi" => "helloworld");
 $arr2 = array("hi","helloworld","ohmygod");
@@ -143,28 +142,28 @@ var_dump(md5($arr1) == md5($arr2));               // true
 ```  
   
 * int()  
-int() 在遇到參數為hex以及科學記號類型的字符串時，無法正確轉換...  
+int() cannot change correctly while the parameter is **hex** or `0e`...  
 ```php
 $temp = $_GET['tmp'];
 echo (int)$tmp;
 //
-// ?tmp=0x76abb    輸出結果為0
-// ?tmp=4e325      輸出結果為4
+// ?tmp=0x76abb    ret 0
+// ?tmp=4e325      ret 4
 ```  
   
 * strcmp()  
-strcmp是將兩個string參數都轉換成ascii再做減法，若str1 - str2 < 0 則回傳-1，相等為0，其餘為1...  
+strcmp would change two string parameters to ascii then do subtraction, if str1 - str2 < 0 ret (-1), if equal ret (0), the others ret(1)  
 ```php
 if (strcmp($input, $password) == 0){}
 // POC: ?input[]
 ```
-除了輸入一樣的password可以讓strcmp回傳結果為0, 讓一個 string 和 non-string (Array injection)作strcmp()的參數會有錯誤訊息, 並且回傳0!  
+Exploit: subtraction between string and non-string (Array injection) as parameter of strcmp() will run into error, and return 0!  
 * switch()  
-switch也會將參數轉換成int類型...  
+switch would also change parameter into **int** type...  
 * in_array()  
 [PHP Manual](http://php.net/manual/en/function.in-array.php)  
 `bool in_array ( mixed $needle , array $haystack [, bool $strict = FALSE ] )`  
-參考官方手冊得知：in_array可以用來檢測**$needle**是否存在於第二個參數的array之中？ 若使用第三個參數設為true，才會加上type的檢查！  
+From manual：in_array can be used to detect whether **$needle** exist in the array of second parameter？ If set the third parameter to true, the check of type would be added！  
 ```php
 class Challenge {
     const UPLOAD_DIRECTORY = './solutions/';
@@ -173,7 +172,7 @@ class Challenge {
 
     public function __construct($file) {
         $this->file = $file;
-        $this->whitelist = range(1, 24);    // 白名單為1到24的亂數
+        $this->whitelist = range(1, 24);    // whitelist is the random number between 1 to 24
     }
 
     public function __destruct() {
@@ -187,39 +186,39 @@ class Challenge {
 }
 $challenge = new Challenge($_FILES['solution']);
 ```
-從上面的代碼可以推測：這是一個白名單上傳系統，如果通過檢查就能夠`mov_uploaded_file`  
-由於**in_array()**的漏洞，我們可以透過`1filename.php`輕鬆繞過白名單檢查！  
-：以上也是php security calendar 2017 - wish list 的學習筆記  
+This is the whitelist upload system, we can `mov_uploaded_file` if we bypass the check  
+Due to the bug in **in_array()**, we can use `1filename.php` to bypass the whitelist  
+：The above is the learning note from php security calendar 2017 - wish list  
 
 # Data handling
-* 在**PHP5.5.9**之前的版本，在處理`if($a[0] == $a[$x])`陣列型態的比較時，會將兩個key相減取差值放入`result`，這個步驟可能會造成integer overflow  
+* Before **PHP5.5.9**, while comparison bwtween `if($a[0] == $a[$x])`of array type, result of two key would be put into `result`, and this would cause to integer overflow.  
 ```php
 // ASIS 2018 Qual Nice Code 
 if($a[0] == $a[68719476736])
 ```
-上面的結果因為`68719476736 - 0`被放進了32位元的`result`而被強制變成了True，詳情參考[Vlog #003: old PHP and array===array](https://www.youtube.com/watch?v=8fGigwN_E-U)  
-* PHP變數名稱中的`.`或` `空白字元會自動轉成`_`底線 （不限版本  
+Because of `68719476736 - 0` is put into 32 bits `result` and forced to become True, details in [Vlog #003: old PHP and array===array](https://www.youtube.com/watch?v=8fGigwN_E-U)  
+* PHP var name have special chars: `.` or ` `(space char) would be changed into `_`(underline) （not limited to version  
 ```php
 parse_str("pwn.ch=hello&pw nch=hey",$test);
 var_dump($test);
 // result: array(2) { ["pwn_ch"]=> string(5) "hello" ["pw_nch"]=> string(3) "hey" }
 ```
-參考自[kaibro web ctf Cheatsheet](https://github.com/w181496/Web-CTF-Cheatsheet)   
+Ref to [kaibro web ctf Cheatsheet](https://github.com/w181496/Web-CTF-Cheatsheet)   
 
 # Variable Coverability 
 `$$`, `extract`, `parse_str`, `import_request_variables`, `register_globals`, `$GLOBALS`, `mb_parser_str`  
 1. `parse_str`  
 [PHP MANUAL](http://php.net/manual/zh/function.parse-str.php)  
-parse_str($str,$output) 將$str解析放進$output陣列  
+parse_str($str,$output) parse $str then put into the array $output  
 ```php
-// php manual裡面的例子對這個漏洞的瞭解很有幫助
+// php manual example really help me so much to understand the vul
 parse_str("key=value&arr[]=a&arr[]=b");
 echo $key; // value
 echo $arr[0];  // a
 echo $arr[1];  // b
 ```
 2. `extract`  
-extract 變量對象必為**陣列**  
+extract parameter must be **array**  
 ```php
 $b = array("a"=>"1");
 extract($b);
@@ -232,63 +231,40 @@ echo $a;   // 1
 move_uploaded_file(string filename, string absolute path);
 // path = /path/x/../aaa.php/.
 ```
-調用`lstat()`來判斷是否有舊檔存在，由於`lstat()`判別路徑的問題，原本`/.`不能覆蓋舊檔現在卻能成功覆蓋。  
-[咱的日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
+Call `lstat()` to judge whether the old file exists, due to `lstat()` problem, `/.` can override the old file now!  
+[My note](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
-
-2. `escapeshellarg`誤用  
-這裡要先介紹`escapeshellcmd`和`escapeshellarg`兩個函式  
-`escapeshellcmd`會把參數視為一個cmd  
-`escapeshellarg`會把參數視為一個變數  
-[exploit-bypass-php-escapeshellarg-escapeshellcmd](https://github.com/kacperszurek/exploits/blob/master/GitList/exploit-bypass-php-escapeshellarg-escapeshellcmd.md)  
+2. `filter_var($uri, FILTER_VALIDATE_URL)`flag can not filter URL effectively  
+SSRF，ref to [連結](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
+3. `parse_url`  
 ```php
-<?php
-$query = escapeshellarg($query);
-$results = $this->getClient()->run($this, "grep -i --line-number {$query} $branch");
-// exploit: git grep -i --line-number '--open-files-in-pager=id;' master
-```
-以上為gitlist中的漏洞代碼：[GitList 0.6 - Unauthenticated Remote Code Execution](https://www.exploit-db.com/exploits/44548/)  
-`escapeshellarg`函式在參數外圍包上引號，但是在exploit中，`--open-files-in-pager`還是變成了參數選項(options)而非參數值(value)，後面的`id;`則是在匹配到了內容會執行的命令，注意在shell中`;`代表順序執行不論失敗的cmd。  
-解決辦法：官方的patch就是用`preg_replace`把`$query`開頭的非法字元(`-`or`--`)去除然後拼接在寫死的`--`後面，如此一來後面的參數不會再被解析為參數選項(options)  
-```php
-// 命令解析器中，--表示後面不會再有options
-// patch
-$results = $this->getClient()->run($this, "grep -i --line-number -- {$query} $branch");
-```
-[谈escapeshellarg绕过与参数注入漏洞](https://www.leavesongs.com/PENETRATION/escapeshellarg-and-parameter-injection.html)  
-
-3. `filter_var($uri, FILTER_VALIDATE_URL)`flag無法有效過濾URL  
-在這種過濾方式下還是可以用SSRF，可以看[連結](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
-4. `parse_url`函數有些考點  
-先談沒有options的部分，理論上不完整的url會導致錯誤，但有些狀況會不然  
-```php
-// 正常解析URL
+// Common URL
 var_dump(parse_url('http://localhost.com:80/index'));
 // array(4) { ["scheme"]=> string(4) "http" ["host"]=> string(13) "localhost.com" ["port"]=> int(80) ["path"]=> string(6) "/index" }
 
-// 少了協議導致錯誤
+// lack of schema
 var_dump(parse_url('/localhost.com:80/index'));
 // bool(false) 
 
-// 少了協議，但port和字母串接成功返回！
+// lack of schema, but success if port concatenate with letters!
 var_dump(parse_url('/localhost.com:80a'));
 // array(1) { ["path"]=> string(24) "/localhost.com:80a/index" }
 
-// port解析錯誤
-// index:80應該為路徑名，卻被解析成port
+// Error parsing of port
+// index:80 should be path, but be parsed as port
 var_dump(parse_url('//localhost.com/index:80'));
 // array(3) { ["host"]=> string(13) "localhost.com" ["port"]=> int(80) ["path"]=> string(9) "/index:80" }
 
-// 第二個解析成host
+// we can see the parsed host in the second example
 var_dump(parse_url('/index?/go/'));
 // array(2) { ["path"]=> string(6) "/index" ["query"]=> string(4) "/go/" }
 var_dump(parse_url('//index?/go/'));
 // array(2) { ["host"]=> string(5) "index" ["query"]=> string(4) "/go/" }
 ```  
-除此之外，`parse_url`還可以搭配類似`parse_url($url,PHP_URL_HOST)`來取得host。在[MEEPWN 2018 OmegaSector](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018)中可作參考  
+In addition, backend system can use `parse_url($url,PHP_URL_HOST)` to get host. Ref to [MEEPWN 2018 OmegaSector](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018)  
 
 # Reference
-* [咱的move_uploaded_file日記](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
+* [My learning note of move_upload_file](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 * [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
 * [php manual preg match](http://php.net/manual/zh/function.preg-match.php)  
 * [求生 正規表達式](http://j796160836.pixnet.net/blog/post/29514227-%5B%E8%BD%89%E8%B2%BC%5D%E5%B8%B8%E7%94%A8%E7%9A%84php%E6%AD%A3%E8%A6%8F%E8%A1%A8%E7%A4%BA%E5%BC%8F)  
