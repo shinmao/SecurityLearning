@@ -12,3 +12,4 @@ And here are some problems:
 3. CDN: we can use `dig www.example.com` to trace whether CDN exists.  
 4. `ngx_http_realip_module` helps get client's ip. However, XFF has repetive ip during wrong settings.  
 Therefore, it's difficult for us to forge our ip with XFF in realworld nowadays.  
+[ref: X-Forwarded-For缺陷与陷阱](https://www.jianshu.com/p/14dcc24272fe) 
