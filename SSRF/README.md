@@ -57,6 +57,7 @@ In addition to find the potential parameter, we also can set up a server or DNS 
 # with Protocol  
 ![](https://farm2.staticflickr.com/1774/43295065584_6cfa758570_b.jpg)  
 gopher is an awesome protocol to attack intranet service  
+[利用 Gopher 协议拓展攻击面-转载长亭科技](https://blog.chaitin.cn/gopher-attack-surfaces/)  
 Jar is a protocol which can be used to create controllable temp file  
 FTP or SMB can also be used on bruteforce of password  
 
