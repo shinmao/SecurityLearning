@@ -2,9 +2,9 @@
 Let's play some magic on web!
 
 ## Table of Contents  
-Content | Link 
------------- | ------------- 
-info-leak | [Leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak) 
+Content | Link
+------------ | -------------
+info-leak | [Leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak)
 sql-injection | [mysql-injection, nosql-injection](https://github.com/shinmao/Web-Security-Learning/tree/master/SQL-inj)   
 xss | [Cross-Site-Scripting](https://github.com/shinmao/Web-Security-Learning/tree/master/XSS)   
 php-code-audit | [php](https://github.com/shinmao/Web-Security-Learning/tree/master/PHP-Code-Audt)   
@@ -15,9 +15,8 @@ SSTI | [ruby, vue.js, angular.js](https://github.com/shinmao/Web-Security-Learni
 XXE | [XXE](https://github.com/shinmao/Web-Security-Learning/tree/master/XXE)  
 SSRF | [SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
 RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning/tree/master/RPO)  
-CRLF | [CRLF](https://github.com/shinmao/Web-Security-Learning/tree/master/HRS)  
 HTTP-header | [HTTP-header](https://github.com/shinmao/Web-Security-Learning/tree/master/HTTP-header)   
-  
+
 *  [Linux wildcard](#linux-wildcard)    
 *  [Tool](#tool)  
 *  [Reference](#reference)  
