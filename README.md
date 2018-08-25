@@ -16,9 +16,8 @@ XXE | [XXE](https://github.com/shinmao/Web-Security-Learning/tree/master/XXE)
 SSRF | [SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
 RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning/tree/master/RPO)  
 HTTP-header | [HTTP-header](https://github.com/shinmao/Web-Security-Learning/tree/master/HTTP-header)   
-Command-Injection | [cmd-inj]()  
+Command-Injection | [cmd-injection](https://github.com/shinmao/Web-Security-Learning/tree/master/cmd-injection)  
 
-*  [Linux wildcard](#linux-wildcard)    
 *  [Tool](#tool)  
 *  [Reference](#reference)  
 
