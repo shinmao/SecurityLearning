@@ -16,19 +16,11 @@ XXE | [XXE](https://github.com/shinmao/Web-Security-Learning/tree/master/XXE)
 SSRF | [SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
 RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning/tree/master/RPO)  
 HTTP-header | [HTTP-header](https://github.com/shinmao/Web-Security-Learning/tree/master/HTTP-header)   
+Command-Injection | [cmd-inj]()  
 
 *  [Linux wildcard](#linux-wildcard)    
 *  [Tool](#tool)  
 *  [Reference](#reference)  
-
-## Linux wildcard
-```php
-// ? - 1 char
-// * - 0 or more char
-/var/www/html/flag.txt
--> /???/???/????/*
-// ? can also be replaced by *
-```
 
 ## Tool
 1. [1024 CTF toolbox](https://1024tools.com/)  

