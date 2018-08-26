@@ -1,5 +1,7 @@
 # Web-Security-Learning    
-Let's play some magic on web!
+Let's play some magic on web!  
+
+> some of the reference is in version of Chinese
 
 ## Table of Contents  
 Content | Link

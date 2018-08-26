@@ -15,7 +15,7 @@ eval(print_r(file("./flag.php")););
 # Dangerous filter
 Don't trust in user's input: `$_GET, $_POST, $_SERVER, fopen('php://input','r'), upload downloaded files, session, cookies`...  
 * Common handle with input (following are some filter or authentication  
-1. `strip_tags()`,`htmlentities()`, or `htmlspecialchars()` will change some html tags -> xss  
+1. `strip_tags()`,`htmlentities()`, or `htmlspecialchars()` will unvalidate your malicious payload -> no xss  
 ```php
 $input = '<script>...</script>';
 echo htmlentities($input, ENT_QUOTES, 'utf-8');
@@ -78,10 +78,10 @@ a{3,}     3 or more of a
 a{3,6}     Between 3 and 6 of a
 (?R)     recursive (paste pattern)
 
-options: 
-i case insensitive 
-m make dot match newlines 
-x ignore whitespace in regex o perform 
+options:
+i case insensitive
+m make dot match newlines
+x ignore whitespace in regex o perform
 #{...} substitutions only once
 ```
 [Ref to php manual](http://php.net/manual/zh/function.preg-match.php)  
@@ -91,7 +91,7 @@ x ignore whitespace in regex o perform
 
 # Weak type
 [PHP type comparison tables](http://us3.php.net/manual/en/types.comparisons.php)  
-php is a language of weak type, this means that we can assigan a value to another type of variable at any time.  
+php is a language of weak type, this means that we can assign a value to another type of variable at any time.  
 1. Type of changes  
 ```php
 1 == '1'       // true
@@ -101,14 +101,14 @@ php is a language of weak type, this means that we can assigan a value to anothe
 Therefore, we need `===`!  
 ```php
 "0x1f640" == 128576   // true
-"0x1f640" == "1f640"  // false 
+"0x1f640" == "1f640"  // false
 ```
-php would change char to decimal while facing char starts with `0x`!  
+php would change char to decimal while facing char which starts with `0x`!  
 ```php
 "0e328428492284" == "0e24824048204"  // true
 ```
 **md5 collision**, php would consider the words after `0e` as `10^x`, which means ten to the power of x！  
-Here are some example can be used in CTF for convenience XD......  
+Here are some examples can be used in CTF for convenience :)......  
 ```php
 $ echo -n 240610708 | md5sum
 0e462097431906509019562988736854  -
@@ -140,7 +140,7 @@ $arr1[] = array("hi" => "helloworld");
 $arr2 = array("hi","helloworld","ohmygod");
 var_dump(md5($arr1) == md5($arr2));               // true
 ```  
-  
+
 * int()  
 int() cannot change correctly while the parameter is **hex** or `0e`...  
 ```php
@@ -150,7 +150,7 @@ echo (int)$tmp;
 // ?tmp=0x76abb    ret 0
 // ?tmp=4e325      ret 4
 ```  
-  
+
 * strcmp()  
 strcmp would change two string parameters to ascii then do subtraction, if str1 - str2 < 0 ret (-1), if equal ret (0), the others ret(1)  
 ```php
@@ -193,7 +193,7 @@ Due to the bug in **in_array()**, we can use `1filename.php` to bypass the white
 # Data handling
 * Before **PHP5.5.9**, while comparison bwtween `if($a[0] == $a[$x])`of array type, result of two key would be put into `result`, and this would cause to integer overflow.  
 ```php
-// ASIS 2018 Qual Nice Code 
+// ASIS 2018 Qual Nice Code
 if($a[0] == $a[68719476736])
 ```
 Because of `68719476736 - 0` is put into 32 bits `result` and forced to become True, details in [Vlog #003: old PHP and array===array](https://www.youtube.com/watch?v=8fGigwN_E-U)  
@@ -205,7 +205,7 @@ var_dump($test);
 ```
 Ref to [kaibro web ctf Cheatsheet](https://github.com/w181496/Web-CTF-Cheatsheet)   
 
-# Variable Coverability 
+# Variable Coverability
 `$$`, `extract`, `parse_str`, `import_request_variables`, `register_globals`, `$GLOBALS`, `mb_parser_str`  
 1. `parse_str`  
 [PHP MANUAL](http://php.net/manual/zh/function.parse-str.php)  
@@ -227,16 +227,17 @@ echo $a;   // 1
 
 # Dangerous Mistake function
 1. `move_uploaded_file()`  
+Originally, we can use `.php/.` to bypass the limit of extension. However, it cannot used to overwrite the file which already exists  
 ```php
 move_uploaded_file(string filename, string absolute path);
 // path = /path/x/../aaa.php/.
 ```
-Call `lstat()` to judge whether the old file exists, due to `lstat()` problem, `/.` can override the old file now!  
-[My note](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
+`lstat()` is called to determine whether the old file exists. Due to `lstat()`, `/.` can overwrite the old file now!  
+[You can see more details in My note](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
 2. `filter_var($uri, FILTER_VALIDATE_URL)`flag can not filter URL effectively  
-SSRF，ref to [連結](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
-3. `parse_url`  
+[See more details in my part of SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
+3. `parse_url()`  
 ```php
 // Common URL
 var_dump(parse_url('http://localhost.com:80/index'));
@@ -244,14 +245,14 @@ var_dump(parse_url('http://localhost.com:80/index'));
 
 // lack of schema
 var_dump(parse_url('/localhost.com:80/index'));
-// bool(false) 
+// bool(false)
 
-// lack of schema, but success if port concatenate with letters!
+// lack of schema, but success if the port concatenate with letters!
 var_dump(parse_url('/localhost.com:80a'));
 // array(1) { ["path"]=> string(24) "/localhost.com:80a/index" }
 
 // Error parsing of port
-// index:80 should be path, but be parsed as port
+// index:80 should be path, but be parsed as port in fact
 var_dump(parse_url('//localhost.com/index:80'));
 // array(3) { ["host"]=> string(13) "localhost.com" ["port"]=> int(80) ["path"]=> string(9) "/index:80" }
 
@@ -261,7 +262,7 @@ var_dump(parse_url('/index?/go/'));
 var_dump(parse_url('//index?/go/'));
 // array(2) { ["host"]=> string(5) "index" ["query"]=> string(4) "/go/" }
 ```  
-In addition, backend system can use `parse_url($url,PHP_URL_HOST)` to get host. Ref to [MEEPWN 2018 OmegaSector](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018)  
+In addition, backend system can use `parse_url($url,PHP_URL_HOST)` to get host. Reference to [MEEPWN 2018 OmegaSector](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018)  
 
 # Reference
 * [My learning note of move_upload_file](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
@@ -270,4 +271,3 @@ In addition, backend system can use `parse_url($url,PHP_URL_HOST)` to get host. 
 * [求生 正規表達式](http://j796160836.pixnet.net/blog/post/29514227-%5B%E8%BD%89%E8%B2%BC%5D%E5%B8%B8%E7%94%A8%E7%9A%84php%E6%AD%A3%E8%A6%8F%E8%A1%A8%E7%A4%BA%E5%BC%8F)  
 * [PHP Manual in-array](http://php.net/manual/en/function.in-array.php)  
 * [PHP Mamual parse-str](http://php.net/manual/zh/function.parse-str.php)  
-

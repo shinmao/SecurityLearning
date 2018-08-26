@@ -1,12 +1,12 @@
 # Information leak  
 Before exploiting, we can use some trick to get related information or even source code!  
-  
-### allow/disallow file  
+
+### Allow/disallow file  
 ```
 /robots.txt
 ```  
-  
-### get source code
+
+### Get source code
 ```
 /.git  
 git reflog
@@ -25,11 +25,11 @@ index.php/index.php
 ### APP__* , DB__* ....
 ```
 /.env
-// goog hack
+// google hacking
 "DB_PASSWORD" filetype:env site:www.xxx.xx
 ```  
 
-### get abs path
+### Get absolute path
 ```php
 // sql inj error, system return error message
 ?id=1'
@@ -40,7 +40,7 @@ select @@datadir;
 // Google hacking
 site:
 
-// test file if content is phpinfo()
+// some developers like to put phpinfo() in the test file
 test.php
 info.php
 phpinfo.php
@@ -64,14 +64,21 @@ C:\windows\system32\inetsrv\MetaBase.xml
 /xxx/darkblue_orange/layout.inc.php
 /xxx/index.php?lang[]=1
 
-// nginx with file parse vul
-www.example.com/test.jpg/index.php  // jpg might be parsed as php and leak phys path
+// Nginx with file parsing vulnerability
+www.example.com/test.jpg/index.php  // jpg might be parsed as php and leak to physical path
 ```  
 
-### map opening port  
+### Scan opening port  
 * nmap  
 ```php
 nmap -sS -p -v ip   // map all the port
+```  
+
+### Laravel 4.2 information leak  
+Laravel 4.2 doesn't set a page for error message.  
+```php
+// Google hacking
+"Whoops! There was an error."
 ```
 
 ### search engine  

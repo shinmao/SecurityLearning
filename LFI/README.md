@@ -1,18 +1,18 @@
 # File Inclusion    
-Scene: Attacker can control the variable which can be used to include files  
+Scene: Attacker can control the variable which can determine the included files  
 Dangerous functions：  
 PHP: `include()`, `include_once()`, `require()`, `require_once()`, `fopen()`, `readfile()`  
 JSP: `java.io.FileReader()`  
 ASP: `includefile`  
-PHP will run the content of file as php script when it includes a file, so it is **not influenced by file type**.    
+PHP will run the content of file as php script when it includes a file, so it is **not influenced by file extension**!.    
 
 # RFI  
-Include remote file, more dangerous, but more requirement, mostly dissapear in real world  
+Include remote file, more dangerous, but more requirement, so mostly disappear in real world  
 `php.ini` setting  
 1. allow_url_fopen = on (default: on)  
 2. allow_url_include = on (default: off)  
 
-# Way to include  
+# Methods to include  
 1. php protocol  
 ```php
 php://input
@@ -21,13 +21,14 @@ php://input
 POST data: xxx
 
 php://filter
-// get source code
+// get base-64 encoded source code
 ?file=php://filter/read=convert.base64-encode/resource=file.php
-// filter can be used on handling string, take a look at the reference#1
-php://filter/read=string.strip_tags/resource=php://input
+// It's important that filter can be used to handle string with various ways, please take a look at the reference#1
+php://filter/write=string.strip_tags|convert.base64-decode/resource=shell.php
 
 phar://path.zip/file.php
 // php5.3.0up, parse the archived file
+// Sam Thomas publish a new use of phar able to unserialize without unserialize() function, please take a look at my Unserialization part
 
 zip://path.zip%23file.php
 // php5.3.0up, work as phar://, but need absolute path, and need to encode # as %23
@@ -58,7 +59,7 @@ xxx/phpmyadmin/index.php?target=xxx.php%253F/../../../../../var/lib/php/sessions
 3. Log inclusion  
 **Permission** to read the log?  
 Take apache for example, request would be written to `access.log`, and error would be written to `error.log`. The default stored path is `/var/log/apache2/`  
-Therefore, attacker always needs to get the path via config file, and pay attention to whether the request would be encoded (use burp to modify the encoded request), then include the log in the end  
+Therefore, attacker always needs to get the path with config file, and pay attention to the fact that whether the request would be encoded (use burp to modify the encoded request), then include the log in the end  
 4. SSH log inclusion  
 **Permission** to read？  
 Default path: `/var/log/apache2/access.log`,`/var/log/apache2/error.log`  

