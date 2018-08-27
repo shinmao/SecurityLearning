@@ -27,6 +27,9 @@ The link above is our exploit and the background color has been changed to red!
 :sparkles: This is the most important point of the exploit! What css loads here is the index.php with query，the part of `/1%2F%3Fquery={}*{background-color%3Ared}%2F..%2F..` would be ignored because the path can not be recognized, and browser will load the index.php with css syntax  
 Why the xss in css can work here? Because css can ignore most of the error syntax，so the part of `%2F..%2F..` would be ignored！  
 
+# Be careful
+But be careful, sometimes you would get 404 again and again on the apache. The reason for that is the configuration `AllowEncodedSlashes` in Apache might be set to OFF. In this case, apache won't accept the word `%2F` in the URL.
+
 # Reference
 1. [RPO攻击技术浅析](https://mp.weixin.qq.com/s?__biz=MzUxOTYzMzU0NQ==&mid=2247483692&idx=1&sn=ecd853bb5cb3e654a08c5214a1b951a2&chksm=f9f7eecace8067dc155346e5204f6eae0df9890af60777234e249021d577226c6989e73a107b&scene=21#wechat_redirect)  
 2. [Kaibro web_ctf_cheatsheet](https://github.com/w181496/Web-CTF-Cheatsheet)
