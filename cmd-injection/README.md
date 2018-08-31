@@ -28,8 +28,18 @@ mark /OutputFile (%pipe%id) currentdevice putdeviceprops
 ```  
 Here, you can also forge it as gif with `gif89` header to deceive the file upload system.  
 ❗️ Attention: The timing to trigger the RCE is important.  
+
+Others from `convert xxx.jpg xxx` can trigger the RCE, someone found that `less .jpg` can also trigger it. But why?  
+```php
+strace -f -o trace_result.txt less xxx.jpg
+
+// one is suspicious
+execve("/bin/sh", ["sh", "-c", "/usr/bin/lesspipe.sh xxx.jpg"], [/* 10 vars */]) = 0
+```  
+Then we can find something in the `lesspipe.sh`, it use `identify` command of ImageMagick to output the information of jpeg.  
 [ref: mail of Tavis](http://openwall.com/lists/oss-security/2018/08/21/2)  
 [ref: security team of imageMagick](https://imagetragick.com/)  
 [ref: PostScript语言安全研究](https://paper.seebug.org/68/#0x03-ghostscriptimagemagick)  
 [ref: ImageMagick-CVE-2016-3714](http://www.zerokeeper.com/vul-analysis/ImageMagick-CVE-2016-3714.html)  
-[ref: 安全客ghostscript命令执行漏洞预警](https://www.anquanke.com/post/id/157513)
+[ref: 安全客ghostscript命令执行漏洞预警](https://www.anquanke.com/post/id/157513)  
+[用二進制的方式fuzzing ImageMagick漏洞](https://github.com/lcatro/Fuzzing-ImageMagick/blob/master/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Fuzzing%E6%8C%96%E6%8E%98ImageMagick%E7%9A%84%E6%BC%8F%E6%B4%9E.md)

