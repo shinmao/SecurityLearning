@@ -19,6 +19,7 @@ SSRF | [SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)
 RPO | [Relative Path Overwrite](https://github.com/shinmao/Web-Security-Learning/tree/master/RPO)  
 HTTP-header | [HTTP-header](https://github.com/shinmao/Web-Security-Learning/tree/master/HTTP-header)   
 Command-Injection | [cmd-injection](https://github.com/shinmao/Web-Security-Learning/tree/master/cmd-injection)  
+URL-Redirection | [URL-Redirection](https://github.com/shinmao/Web-Security-Learning/tree/master/URL-redirect)  
 
 *  [Tool](#tool)  
 *  [Reference](#reference)  
