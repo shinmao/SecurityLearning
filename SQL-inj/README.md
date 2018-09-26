@@ -12,7 +12,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [Bypass ASPX RequestValidation](#bypass-requestvalidation-on-aspx)  
 *  [Wordpress4.8.2 double prepare](#wordpress-double-prepare-misuse)  
 *  [NoSQL injection](#nosql-injection)  
-*  [Logic Vul](#logic-vul)  
+*  [Logic Vulnerability](#logic-vulnerability)  
 *  [Tools](#tools)  
 *  [Defense](#defense)  
 *  [Reference](#reference)
@@ -321,7 +321,7 @@ prepare2: SELECT * FROM table WHERE column1 = ' 'or 1=1--' ' AND column2 = 'a';
 在Wordpress4.8.3的版本之後，patch成使用者輸入的`%`會被取代為66bytes的秘密字串：`{xxxxx...xxx}s`  
   
 # NoSQL injection
-MongoDB parse the data with format of json.  
+MongoDB parse the data with a format just likes json.  
 Therefore, we cannot inject with string, but use `{key:value}` this kind of format to do injection.  
 ```sql
 // The list of regex
@@ -348,7 +348,7 @@ Blind injection
 ?username=admin&password[$regex]=^a
 ```  
 
-# Logic Vul  
+# Logic Vulnerability  
 對sql觀念的誤解很容易讓開發者犯了一些邏輯漏洞，下面做一些收集：  
 1. mysql整型  
 在mysql裡若字段為整型，`where`語句中的值不為整型時，會先被轉換成整型才進行語句查詢...  
