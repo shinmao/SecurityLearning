@@ -349,18 +349,17 @@ prepare2: SELECT * FROM table WHERE column1 = ' 'or 1=1--' ' AND column2 = 'a';
 在Wordpress4.8.3的版本之後，patch成使用者輸入的`%`會被取代為66bytes的秘密字串：`{xxxxx...xxx}s`  
 
 # Defense
-為何會發生sql injection呢？原因是我們的輸入修改了原本的語意，而導致重編譯...  
-這邊就得先了解一下sql parser是怎麼運作的，當收到我們的輸入後開始進入了編譯的四階段：  
-1. 詞法分析：辨別是否為關鍵字，我們稱帶有關鍵字的語句為token[閱讀 詞法分析](https://segmentfault.com/a/1190000015568992)  
-2. 語法分析：辨認關鍵字，並以AST做成語法樹  
-3. 檢測內容  
-4. 語意辨識  
-
-語意辨識完了之後就是**選用執行計畫**，最後才執行(一般編譯過後會放入plan cache，這樣下次同樣的語句就不用重編譯，而是重用執行計畫，大部分的注入都是因為我們沒有用原先的執行計畫...)  
-所以說為什麼prepare statement能夠防範注入呢？prepare所進行的是預編譯，這時不會把使用者輸入的值放入資料庫執行，搭配參數化查詢(正確使用)的話，我們就能重用執行計畫並且完美地避免sql注入  
-這邊還要注意`PDO::prepare`的用法，PDO內建一個叫`ATTR_EMULATE_PREPARES`的模擬器，預設情況下是**true**，在PDO的模擬器中完成預處理與參數化查詢，再根據字符集處理後才送給mysql。我們必須把他設為**false**，他才會分兩次傳給mysql執行！
-
-🎅SQLChop可以說防禦了99%的sql注入，因為他對參數執行了詞法語法分析。不管payload再怎樣變化，只要經過sql原生的詞法語法分析後發現多個token，而他是個有效的語句，那就會被偵測到!  
+The cause of SQL injection is that **user_input works as part of SQL command**!  
+If we change to use `PreparedStatement`, the SQL sentence will only be compiled for **one time**, and the placeholder(`?`) will be replaced with the value of user input while running. Therefore, this is the best way to avoid SQL injection.  
+However, using `PreparedStatement` doesn't mean the vulnerability of SQL injection doesn't exist. For example, if you still concat user input to SQL sentence instead of using placeholder(`?`) like following:  
+```sql
+// bad
+string sql = "SELECT * FROM USERS WHERE NAME ='" + name + "'";
+// good
+string sql = "SELECT * FROM USERS WHERE NAME = ?";
+```  
+user input will still be compiled together with SQL sentence and cause to injection again!  
+[How does a PreparedStatement avoid or prevent SQL injection?](https://stackoverflow.com/questions/1582161/how-does-a-preparedstatement-avoid-or-prevent-sql-injection/34)
 
 # NoSQL injection
 MongoDB parse the data with a format just likes json.  
