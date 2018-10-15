@@ -42,4 +42,14 @@ Then we can find something in the `lesspipe.sh`, it use `identify` command of Im
 [ref: PostScript语言安全研究](https://paper.seebug.org/68/#0x03-ghostscriptimagemagick)  
 [ref: ImageMagick-CVE-2016-3714](http://www.zerokeeper.com/vul-analysis/ImageMagick-CVE-2016-3714.html)  
 [ref: 安全客ghostscript命令执行漏洞预警](https://www.anquanke.com/post/id/157513)  
-[用二進制的方式fuzzing ImageMagick漏洞](https://github.com/lcatro/Fuzzing-ImageMagick/blob/master/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Fuzzing%E6%8C%96%E6%8E%98ImageMagick%E7%9A%84%E6%BC%8F%E6%B4%9E.md)
+[用二進制的方式fuzzing ImageMagick漏洞](https://github.com/lcatro/Fuzzing-ImageMagick/blob/master/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Fuzzing%E6%8C%96%E6%8E%98ImageMagick%E7%9A%84%E6%BC%8F%E6%B4%9E.md)  
+
+## Command Injection in libnmap <Nodejs>
+libnmap is the third party module for nodejs to access nmap. If attacker can control the scanned range of ip, it might cause to command injection.  
+```js
+range:[
+	"a.b.$(id)"
+]
+```  
+A very simple vulnerability  
+[Hackerone report](https://hackerone.com/reports/390865)
