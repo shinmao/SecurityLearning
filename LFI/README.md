@@ -1,10 +1,15 @@
 # File Inclusion    
 Scene: Attacker can control the variable which can determine the included files  
+*  [Remote file inclusion](#rfi)  
+*  [Methods to include](#methods-to-include)  
+*  [WAF bypass](#waf-bypass)  
+*  [LFI with PHP7 segfault](#lfi-with-php7-segmentfault)  
+*  [Defense](#defense)  
+*  [Reference](#reference)  
 Dangerous functions：  
 PHP: `include()`, `include_once()`, `require()`, `require_once()`, `fopen()`, `readfile()`  
 JSP: `java.io.FileReader()`  
 ASP: `includefile`  
-PHP will run the content of file as php script when it includes a file, so it is **not influenced by file extension**!.    
 
 # RFI  
 Include remote file, more dangerous, but more requirement, so mostly disappear in real world  
@@ -13,7 +18,8 @@ Include remote file, more dangerous, but more requirement, so mostly disappear i
 2. allow_url_include = on (default: off)  
 
 # Methods to include  
-1. php protocol  
+File inclusion is always used to arbitrary code execution:  
+1. pseudo protocol  
 ```php
 php://input
 // Condition：allow_url_include = on
@@ -56,21 +62,21 @@ phpmyadmin from LFI to RCE
 ```php
 xxx/phpmyadmin/index.php?target=xxx.php%253F/../../../../../var/lib/php/sessions/sess_xxxxxx
 ```  
+
 3. Log inclusion  
 **Permission** to read the log?  
 Take apache for example, request would be written to `access.log`, and error would be written to `error.log`. The default stored path is `/var/log/apache2/`  
 Therefore, attacker always needs to get the path with config file, and pay attention to the fact that whether the request would be encoded (use burp to modify the encoded request), then include the log in the end  
 4. SSH log inclusion  
-**Permission** to read？  
+**Permission** to read?  
 Default path: `/var/log/apache2/access.log`,`/var/log/apache2/error.log`  
 ```php
 ssh '<?php phpinfo();?>'@remotehost
 // phpinfo in log, and include
 ```  
-5. include environ  
-6. include fd  
-7. include temp file  
-8. include uploaded file  
+5. include temp file  
+6. include `/proc/self/environ`: php requires to run as CGI  
+7. include uploaded file: need uploading functionality on website itself   
 
 # WAF bypass  
 * Relative path bypass  
@@ -86,7 +92,16 @@ WAF usually detect **continuous** multiple `../`
 ```php
 /aaa/../etc/passwd
 /etc/./passwd
+```  
+
+# LFI with PHP7 SegmentFault  
+![]()  
+In the environment of `ubuntu16+php7.1`:  
 ```
+php://filter/string.strip_tags/resource=xxx
+```  
+will cause to segmentation fault. Therefore, the tmp file cannot be removed because PHP is crashed, then we can use bruteforce to include the tmp file. With analysis, the bug of PHP is due to the inference of null pointer.  
+[Script by @Wang YiHang](https://www.jianshu.com/p/dfd049924258)
 
 # Defense  
 Make a conclusion of the requirement above, we can get the following mitigation  
@@ -95,4 +110,5 @@ Make a conclusion of the requirement above, we can get the following mitigation
 * filter of dangerous characters  
 
 # Reference  
-1. [Phith0n 谈一谈php://filter的妙用](https://www.leavesongs.com/PENETRATION/php-filter-magic.html)
+1. [Phith0n 谈一谈php://filter的妙用](https://www.leavesongs.com/PENETRATION/php-filter-magic.html)  
+2. [LFI with phpinfo assistance](https://www.insomniasec.com/downloads/publications/LFI%20With%20PHPInfo%20Assistance.pdf)
