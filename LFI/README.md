@@ -95,7 +95,7 @@ WAF usually detect **continuous** multiple `../`
 ```  
 
 # LFI with PHP7 SegmentFault  
-![]()  
+![](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/php_tmp.PNG)  
 In the environment of `ubuntu16+php7.1`:  
 ```
 php://filter/string.strip_tags/resource=xxx
