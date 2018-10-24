@@ -1,21 +1,17 @@
-# File Inclusion    
-Scene: Attacker can control the variable which can determine the included files  
-*  [Remote file inclusion](#rfi)  
+# File Inclusion  
+PHP:  
+*  [Environment](#environment)  
 *  [Methods to include](#methods-to-include)  
 *  [WAF bypass](#waf-bypass)  
 *  [LFI with PHP7 segfault](#lfi-with-php7-segmentfault)  
 *  [Defense](#defense)  
-*  [Reference](#reference)  
-Dangerous functions：  
-PHP: `include()`, `include_once()`, `require()`, `require_once()`, `fopen()`, `readfile()`  
-JSP: `java.io.FileReader()`  
-ASP: `includefile`  
+*  [Reference](#reference)    
 
-# RFI  
-Include remote file, more dangerous, but more requirement, so mostly disappear in real world  
-`php.ini` setting  
-1. allow_url_fopen = on (default: on)  
-2. allow_url_include = on (default: off)  
+# Environment  
+Here I would put some settings that you need to know before starting on Local File Inclusion. In `php.ini`:  
+1. `allow_url_include` (default: off and makes it impossible to RFI)  
+2. `session.auto_start` (default: off and makes it hard to create session)  
+3. `session.upload_progress.cleanup` (default: On and makes it hard to include the session)  
 
 # Methods to include  
 File inclusion is always used to arbitrary code execution:  
@@ -50,23 +46,18 @@ More protocol：`file://`,`ftp://`,`zlib://`,`glob://`,`ssh2://`,`rar://`,`ogg:/
 2. Session inclusion  
 We can control the content of session, and we also know the path of session...  
 Path of session can be got from `session_save_path` in phpinfo  
-Place of stored session：  
-```php
-/var/lib/php/sess_xxxxx
-/var/lib/php/sessions/sess_xxxx
-/tmp/sess_xxxxxx
-/tmp/sessions/sess_xxxxx
-```  
-CVE：  
-phpmyadmin from LFI to RCE  
-```php
-xxx/phpmyadmin/index.php?target=xxx.php%253F/../../../../../var/lib/php/sessions/sess_xxxxxx
-```  
+
+🍊Include Session in Hitcon CTF 2018 [ONE LINE PHP CHALLENGE](https://blog.orange.tw/2018/10/hitcon-ctf-2018-one-line-php-challenge.html):  
+`session.upload_progress.name`➡️create session file➡️filename: `sess_{PHPSESSID}`  
+From the challenge, we can find that even the session doesn't start, the post request which includes `-F 'PHP_SESSION_UPLOAD_PROGRESS=xxxxxx'` still can create a session file. Then, to deal with the problem of `session.upload_progress.cleanup`, race condition is necessary.  
+[ hitcon 2018受虐笔记一:one-line-php-challenge 学习 by wonderkun](http://wonderkun.cc/index.html/?cat=1)  
+[Session Upload Progress ](http://php.net/manual/en/session.upload-progress.php)  
 
 3. Log inclusion  
 **Permission** to read the log?  
 Take apache for example, request would be written to `access.log`, and error would be written to `error.log`. The default stored path is `/var/log/apache2/`  
 Therefore, attacker always needs to get the path with config file, and pay attention to the fact that whether the request would be encoded (use burp to modify the encoded request), then include the log in the end  
+
 4. SSH log inclusion  
 **Permission** to read?  
 Default path: `/var/log/apache2/access.log`,`/var/log/apache2/error.log`  
@@ -74,8 +65,11 @@ Default path: `/var/log/apache2/access.log`,`/var/log/apache2/error.log`
 ssh '<?php phpinfo();?>'@remotehost
 // phpinfo in log, and include
 ```  
-5. include temp file  
+5. include temp file (lfi with phpinfo)  
+Just like the picture in [LFI with PHP7 segfault](#lfi-with-php7-segmentfault), PHP handles `enctype="multipart/form-data"` with following steps. When output from PHP script is larger than output buffer setting (which is always 4096), the partial content would change to `Transfer-Encoding: chunked`. Therefore, what we need to do is to delay the execution time of PHP script. The reason for using phpinfo is getting the tmp file name from `$_FILE`.  
+
 6. include `/proc/self/environ`: php requires to run as CGI  
+
 7. include uploaded file: need uploading functionality on website itself   
 
 # WAF bypass  
