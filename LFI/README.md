@@ -106,4 +106,5 @@ Make a conclusion of the requirement above, we can get the following mitigation
 
 # Reference  
 1. [Phith0n 谈一谈php://filter的妙用](https://www.leavesongs.com/PENETRATION/php-filter-magic.html)  
-2. [LFI with phpinfo assistance](https://www.insomniasec.com/downloads/publications/LFI%20With%20PHPInfo%20Assistance.pdf)
+2. [LFI with phpinfo assistance](https://www.insomniasec.com/downloads/publications/LFI%20With%20PHPInfo%20Assistance.pdf)  
+3. [php文件包含漏洞](https://chybeta.github.io/2017/10/08/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E/?fbclid=IwAR0537cUHx0RuYwbjdVLudlitdkofr5HHhqMcafXW3aoWqlUoJ_lMRAsnk8)
