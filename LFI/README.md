@@ -48,9 +48,10 @@ We can control the content of session, and we also know the path of session...
 Path of session can be got from `session_save_path` in phpinfo  
 
 🍊Include Session in Hitcon CTF 2018 [ONE LINE PHP CHALLENGE](https://blog.orange.tw/2018/10/hitcon-ctf-2018-one-line-php-challenge.html):  
-`session.upload_progress.name`➡️create session file➡️filename: `sess_{PHPSESSID}`  
-From the challenge, we can find that even the session doesn't start, the post request which includes `-F 'PHP_SESSION_UPLOAD_PROGRESS=xxxxxx'` still can create a session file. Then, to deal with the problem of `session.upload_progress.cleanup`, race condition is necessary.  
-[ hitcon 2018受虐笔记一:one-line-php-challenge 学习 by wonderkun](http://wonderkun.cc/index.html/?cat=1)  
+`session.upload_progress.name` ➡️ create session file ➡️ filename: `sess_{PHPSESSID}`  
+![](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/burp_multipart.png)
+As long as `PHP_SESSION_UPLOAD_PROGRESS` in POST of multipart/form-data and `session.upload_progress.enabled = On` (fortunately default is on), PHP session files would be created no matter `session.auto_start = 0`! Then to deal with the problem of `session.upload_progress.cleanup = On`, we need race condition.  
+[hitcon 2018受虐笔记一:one-line-php-challenge 学习 by wonderkun](http://wonderkun.cc/index.html/?cat=1)  
 [Session Upload Progress ](http://php.net/manual/en/session.upload-progress.php)  
 
 3. Log inclusion  
