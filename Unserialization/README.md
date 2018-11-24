@@ -125,7 +125,9 @@ $phar = new Phar("phar.phar");
 $phar->startBuffering();
 $phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");     // forge to gif and upload to application?filename=phar://uploads/exp.gif
 ..........
-```  
+```
+[Find more detail here](http://blog.1pwnch.com/websecurity/2018/11/24/The-Magic-Power-of-Phar/#more)  
+
 2. Trace any function: whether it **calls file open function** in the bottom side, then whether we can control its parameter. What's more interesting, it even can be used to make a DOS attack.  
 
 ## Reference2
