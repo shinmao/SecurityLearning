@@ -1,16 +1,11 @@
 # PHP Code Auditing
-*  [Some tricks](#tricks)  
 *  [PHP Dangerous filter](#dangerous-filter)  
+*  [PCRE DoS](#pcre-dos)  
 *  [PHP weak type](#weak-type)  
 *  [PHP data handling](#data-handling)  
 *  [PHP variable coverability](#variable-coverability)  
 *  [PHP dangerous misuse of function](#dangerous-mistake-function)  
 *  [Reference](#reference)
-
-# Tricks
-```php
-eval(print_r(file("./flag.php")););
-```
 
 # Dangerous filter
 Don't trust in user's input: `$_GET, $_POST, $_SERVER, fopen('php://input','r'), upload downloaded files, session, cookies`...  
@@ -84,10 +79,24 @@ m make dot match newlines
 x ignore whitespace in regex o perform
 #{...} substitutions only once
 ```
-[Ref to php manual](http://php.net/manual/zh/function.preg-match.php)  
-[求生 正規表達式](http://j796160836.pixnet.net/blog/post/29514227-%5B%E8%BD%89%E8%B2%BC%5D%E5%B8%B8%E7%94%A8%E7%9A%84php%E6%AD%A3%E8%A6%8F%E8%A1%A8%E7%A4%BA%E5%BC%8F)  
-[模式修飾符](http://php.net/manual/zh/reference.pcre.pattern.modifiers.php)  
-[Using Regular Expressions with PHP](http://www.rexegg.com/regex-php.html)
+
+# PCRE DoS
+We usually obfuscate the function `preg_match()` with some tricks such like encoding, or the natural attribute of the programming language itself. However, here is another way to bypass with making it crash:  
+[The event happens from here, one day...](https://bugs.php.net/bug.php?id=61744)  
+To understand why it crashed, we need to know that regular expression of php is based on the library of **PCRE**. There are two related settings of it in the apache modules or php-cgi:  
+1. `pcre.backtrack_limit`  
+2. `pcre.recursion_limit`  
+[pcre-configuration](http://php.net/manual/en/pcre.configuration.php)  
+If the number of backtrack or recursion is over the limit, it will make it crash and the function of `match()` would not work (child process would restart). However, even you try to assign a very big number to limit, it will still crash because overflow on the stack.  
+* Exploit:  
+Try do make the number of backtrack bigger!  
+* Defense:  
+`preg_match` return 1 if matched, return `0` when not matched, return `false` when error(over limit).  
+Therefore, don't write a sentence such like:  
+```php
+if(preg_match == 0)
+```  
+This would cause that even error can also go into the if condition. Instead, we should use `if(preg_match() === 0)`.
 
 # Weak type
 [PHP type comparison tables](http://us3.php.net/manual/en/types.comparisons.php)  
