@@ -90,6 +90,7 @@ To understand why it crashed, we need to know that regular expression of php is 
 If the number of backtrack or recursion is over the limit, it will make it crash and the function of `match()` would not work (child process would restart). However, even you try to assign a very big number to limit, it will still crash because overflow on the stack.  
 * Exploit:  
 Try do make the number of backtrack bigger!  
+[code-breaking-puzzles pcrewaf](http://blog.1pwnch.com/ctf/websecurity/2018/11/26/Code-Breaking-Puzzles/#easy---pcrewaf)  
 * Defense:  
 `preg_match` return 1 if matched, return `0` when not matched, return `false` when error(over limit).  
 Therefore, don't write a sentence such like:  
