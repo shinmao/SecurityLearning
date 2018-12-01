@@ -4,7 +4,11 @@ PHP:
 *  [Methods to include](#methods-to-include)  
 *  [WAF bypass](#waf-bypass)  
 *  [LFI with PHP7 segfault](#lfi-with-php7-segmentfault)  
-*  [Inject path to session id?](#inject-path-to-session-id?)  
+
+Gogs:  
+*  [Inject path to session id](#inject-path-to-session-id)  
+  
+Conclusion:  
 *  [Defense](#defense)  
 *  [Reference](#reference)    
 
@@ -99,7 +103,7 @@ php://filter/string.strip_tags/resource=xxx
 will cause to segmentation fault. Therefore, the tmp file cannot be removed because PHP is crashed, then we can use bruteforce to include the tmp file. With analysis, the bug of PHP is due to the inference of null pointer.  
 [Script by @Wang YiHang](https://www.jianshu.com/p/dfd049924258)  
 
-# Inject path to session id?
+# Inject path to session id
 [CVE-2018-18925](https://github.com/vulhub/vulhub/tree/master/gogs/CVE-2018-18925)  
 You can try to include the other file as fake session. This is also based on the condition that the library parse the session id in a wrong way.  
 
