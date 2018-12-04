@@ -105,7 +105,7 @@ will cause to segmentation fault. Therefore, the tmp file cannot be removed beca
 
 # Inject path to session id
 [CVE-2018-18925](https://github.com/vulhub/vulhub/tree/master/gogs/CVE-2018-18925)  
-You can try to include the other file as fake session. This is also based on the condition that the library parse the session id in a wrong way.  
+The cause of this bug is that framework use file as the session provider, but not all framework do the same things. You can try to include the other file as fake session.  
 
 # Defense  
 Make a conclusion of the requirement above, we can get the following mitigation  
