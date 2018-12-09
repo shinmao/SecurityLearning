@@ -3,7 +3,6 @@ PHP:
 *  [Environment](#environment)  
 *  [Methods to include](#methods-to-include)  
 *  [WAF bypass](#waf-bypass)  
-*  [LFI with PHP7 segfault](#lfi-with-php7-segmentfault)  
 
 Gogs:  
 *  [Inject path to session id](#inject-path-to-session-id)  
@@ -43,13 +42,8 @@ zip://path.zip%23file.php
 [List of Available Filters](http://php.net/manual/en/filters.php)
 
 2. Session inclusion  
-We can control the content of session, and we also know the path of session...  
-Path of session can be got from `session_save_path` in phpinfo  
-
-🍊Include Session in Hitcon CTF 2018 [ONE LINE PHP CHALLENGE](https://blog.orange.tw/2018/10/hitcon-ctf-2018-one-line-php-challenge.html):  
-`session.upload_progress.name` ➡️ create session file ➡️ filename: `sess_{PHPSESSID}`  
-![](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/burp_multipart.png)
-As long as `PHP_SESSION_UPLOAD_PROGRESS` in POST of multipart/form-data and `session.upload_progress.enabled = On` (fortunately default is on), PHP session files would be created no matter `session.auto_start = 0`! Then to deal with the problem of `session.upload_progress.cleanup = On`, we need race condition.  
+* [include tmp with phpinfo](https://github.com/vulhub/vulhub/tree/master/php/inclusion)
+* 🍊[Hitcon2018 ONE LINE PHP CHALLENGE](https://blog.orange.tw/2018/10/hitcon-ctf-2018-one-line-php-challenge.html)  
 [hitcon 2018受虐笔记一:one-line-php-challenge 学习 by wonderkun](http://wonderkun.cc/index.html/?cat=1&paged=3)  
 [Session Upload Progress ](http://php.net/manual/en/session.upload-progress.php)  
 
@@ -65,12 +59,10 @@ Default path: `/var/log/apache2/access.log`,`/var/log/apache2/error.log`
 ssh '<?php phpinfo();?>'@remotehost
 // phpinfo in log, and include
 ```  
-5. include temp file (lfi with phpinfo)  
-Just like the picture in [LFI with PHP7 segfault](#lfi-with-php7-segmentfault), PHP handles `enctype="multipart/form-data"` with following steps. When output from PHP script is larger than output buffer setting (which is always 4096), the partial content would change to `Transfer-Encoding: chunked`. Therefore, what we need to do is to delay the execution time of PHP script. The reason for using phpinfo is getting the tmp file name from `$_FILE`.  
 
-6. include `/proc/self/environ`: php requires to run as CGI  
+5. include `/proc/self/environ`: php requires to run as CGI  
 
-7. include uploaded file: need uploading functionality on website itself   
+6. include uploaded file: need uploading functionality on website itself   
 
 # WAF bypass  
 * Relative path bypass  
@@ -87,15 +79,6 @@ WAF usually detect **continuous** multiple `../`
 /aaa/../etc/passwd
 /etc/./passwd
 ```  
-
-# LFI with PHP7 SegmentFault  
-![](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/php_tmp.PNG)  
-In the environment of `php7.1.13` (The bug has been fixed in php7.1.24):  
-```
-php://filter/string.strip_tags/resource=xxx
-```  
-will cause to segmentation fault. Therefore, the tmp file cannot be removed because PHP is crashed, then we can use bruteforce to include the tmp file. With analysis, the bug of PHP is due to the inference of null pointer.  
-[Script by @Wang YiHang](https://www.jianshu.com/p/dfd049924258)  
 
 # Inject path to session id
 [CVE-2018-18925](https://github.com/vulhub/vulhub/tree/master/gogs/CVE-2018-18925)  
