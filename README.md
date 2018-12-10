@@ -29,11 +29,10 @@ URL-Redirection | [URL-Redirection](https://github.com/shinmao/Web-Security-Lear
 2. Del your shell  
    [Webshell detection engine](https://scanner.baidu.com/#/pages/intro)  
    [Deep Learning model for PHP webshell detection](http://webshell.cdxy.me/)  
-3. [Phit0n PHP sandbox](http://675ba661.2m1.pw/dbc05bfc-3302-4565-9ac9-3c94d905e53b.php)  
-4. [UTF8 Encoder <Nice>](https://mothereff.in/utf-8)  
-5. [Dont let Regex bother you](https://regex101.com/)   
-6. [Some special chars](http://www.cnblogs.com/balaamwe/archive/2012/03/15/2397998.html)  
-7. [PHP sandbox of multiple version](http://sandbox.onlinephpfunctions.com/)
+3. [UTF8 Encoder <Nice>](https://mothereff.in/utf-8)  
+4. [Dont let Regex bother you](https://regex101.com/)   
+5. [Some special chars](http://www.cnblogs.com/balaamwe/archive/2012/03/15/2397998.html)  
+6. [PHP sandbox of multiple version](http://sandbox.onlinephpfunctions.com/)
 
 ## Reference
 1. [What can be played in CTF](https://weibo.com/ttarticle/p/show?id=2309403980950244591011)
