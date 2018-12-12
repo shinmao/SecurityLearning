@@ -243,20 +243,10 @@ move_uploaded_file(string filename, string absolute path);
 // path = /path/x/../aaa.php/.
 ```
 `lstat()` is called to determine whether the old file exists. Due to `lstat()`, `/.` can overwrite the old file now!  
-[You can see more details in My note](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
-[pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
-2. `filter_var($uri, FILTER_VALIDATE_URL)`flag can not filter URL effectively  
-[See more details in my part of SSRF](https://github.com/shinmao/Web-Security-Learning/tree/master/SSRF)  
-3. `parse_url()`  
+[Analysis](http://blog.1pwnch.com/websecurity/ctf/2018/04/13/The-Magic-from-0CTF-ezDoor/#more)  
+
+2. `parse_url()`  
 ```php
-// Common URL
-var_dump(parse_url('http://localhost.com:80/index'));
-// array(4) { ["scheme"]=> string(4) "http" ["host"]=> string(13) "localhost.com" ["port"]=> int(80) ["path"]=> string(6) "/index" }
-
-// lack of schema
-var_dump(parse_url('/localhost.com:80/index'));
-// bool(false)
-
 // lack of schema, but success if the port concatenate with letters!
 var_dump(parse_url('/localhost.com:80a'));
 // array(1) { ["path"]=> string(24) "/localhost.com:80a/index" }
@@ -265,12 +255,6 @@ var_dump(parse_url('/localhost.com:80a'));
 // index:80 should be path, but be parsed as port in fact
 var_dump(parse_url('//localhost.com/index:80'));
 // array(3) { ["host"]=> string(13) "localhost.com" ["port"]=> int(80) ["path"]=> string(9) "/index:80" }
-
-// we can see the parsed host in the second example
-var_dump(parse_url('/index?/go/'));
-// array(2) { ["path"]=> string(6) "/index" ["query"]=> string(4) "/go/" }
-var_dump(parse_url('//index?/go/'));
-// array(2) { ["host"]=> string(5) "index" ["query"]=> string(4) "/go/" }
 ```  
 In addition, backend system can use `parse_url($url,PHP_URL_HOST)` to get host. Reference to [MEEPWN 2018 OmegaSector](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018)  
 
