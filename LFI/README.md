@@ -60,9 +60,14 @@ ssh '<?php phpinfo();?>'@remotehost
 // phpinfo in log, and include
 ```  
 
-5. include `/proc/self/environ`: php requires to run as CGI  
-
-6. include uploaded file: need uploading functionality on website itself   
+5. Include temporary file with segmentation fault  
+[php 7.1.x<20](https://github.com/php/php-src/blob/PHP-7.1.0/ext/standard/filters.c#L277)  
+In the above version, `php://filter/string.strip_tags/resource=` will cause to segmentation fault and temporary files cannot be cleaned up. [My analysis of the detail](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/LFI-with-segmentation-fault.pdf)  
+```php
+// assume that I can control the parameter of file function
+include($_POST['file']);
+```  
+[Here is the script of bruteforce which can help to get temp filename](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/gen_tmp.py)
 
 # WAF bypass  
 * Relative path bypass  
