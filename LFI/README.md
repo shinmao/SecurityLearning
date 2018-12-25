@@ -44,8 +44,8 @@ zip://path.zip%23file.php
 2. Session inclusion  
 * [include tmp with phpinfo](https://github.com/vulhub/vulhub/tree/master/php/inclusion)
 * 🍊[Hitcon2018 ONE LINE PHP CHALLENGE](https://blog.orange.tw/2018/10/hitcon-ctf-2018-one-line-php-challenge.html)  
-[hitcon 2018受虐笔记一:one-line-php-challenge 学习 by wonderkun](http://wonderkun.cc/index.html/?cat=1&paged=3)  
 [Session Upload Progress ](http://php.net/manual/en/session.upload-progress.php)  
+If you provide the `PHP_SESSION_UPLOAD_PROGRESS` in multipart POST data, PHP will enable the session for you!  
 
 3. Log inclusion  
 **Permission** to read the log?  
