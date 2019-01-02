@@ -16,7 +16,7 @@ Vulnerability of unserialization exists in many program languages，please remem
   
 
 # PHP Unserialization
-It's always used in Cookie and session. If the parameter of `unserialize()` can be controlled，we can build up a payload to overwrite specific variable or change control flow.  
+It's always used in Cookie and session. If the parameter of `unserialize()` can be controlled，we can build up a payload to overwrite specific variable or change control flow. The concept of **POP CHAIN** is important in unserialization. The chain starts from the `unserialize()` to each possible magic functions.  
 
 ## Serialization vs Unserialization
 Basically speaking：  
@@ -51,6 +51,7 @@ protected | `{s:7:"%00*%00test"}`
 * `destruct()`: called when destroy a object，also be called when unserialize  
 * `__sleep()`: run at the first moment of serialize  
 * `__wakeup()`: run at the first moment of unserialize  
+* `__toString()`: called when `echo` a object, so user don't need explicit function call and able to define how object return the string.
 
 ## Exploit
 payload
