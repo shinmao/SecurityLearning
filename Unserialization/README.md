@@ -3,7 +3,6 @@ Vulnerability of unserialization exists in many program languages，please remem
 *  [PHP Unserialization](#php-unserialization)  
    *  [Serialization vs Unserialization](#serialization-vs-unserialization)  
    *  [Magic Function](#magic-function)  
-   *  [Exploit](#exploit)    
    *  [Reference](#reference1)  
    *  [unserialize with phar](#unserialize-with-phar)  
    *  [what is phar?](#what-is-phar)  
@@ -51,25 +50,7 @@ protected | `{s:7:"%00*%00test"}`
 * `destruct()`: called when destroy a object，also be called when unserialize  
 * `__sleep()`: run at the first moment of serialize  
 * `__wakeup()`: run at the first moment of unserialize  
-* `__toString()`: called when `echo` a object, so user don't need explicit function call and able to define how object return the string.
-
-## Exploit
-payload
-```php
-unserialize($_GET[1]);
-
-1 = O:5:"pwnch":1:{s:4:"test";s:length of your code:"code you want to insert";}
-
-// Here you can overwrite the variable test，remember to modify the lenght of your code  
-
-// find your own gadget  
-
-1 = O:5:"pwnch":1:{s:4:"test";O:6:"pwnch2":1{s:5:"test2";s:10:"echo `ls`;";}}
-
-// In second payload, I overwrite the constructor in variable test with pwnch2，then overwrite the variable test2 in pwnch2 because I need the function in pwn2!
-```
-Tools:  
-* [php online tool](https://1024tools.com/unserialize)
+* `__toString()`: called when `echo` a object, so user don't need explicit function call and able to define how object return the string.  
 
 ## Reference1
 1. [chybeta's blog](https://chybeta.github.io/2017/06/17/%E6%B5%85%E8%B0%88php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/)  
@@ -79,7 +60,7 @@ Sam Thomas published a new way to trigger a unserialization without use of `unse
 Trace to the kernel of PHP, we can find that `meta-data` would be unserialized when library function use `phar://` to parse the document. Therefore, we can build up a malicious phar document and pass to file functions such as:  
 ```php
 // file(phar://) -> unserialization
-// from now on, magic function are not limited to unserialize() anymore :)
+// from now on, trigger point is not limited to unserialize() anymore :)
 file_exists, file_get_contents, file_put_contents, file, fopen, is_dir, is_executable, is_file, is_link, is_readable, is_writable, copy, unlink, stat, readfile
 ```  
 Just a little test can prove the concept:  
