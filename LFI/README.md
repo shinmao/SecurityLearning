@@ -1,4 +1,6 @@
 # File Inclusion  
+When PHP includes a file, PHP will execute the included file as PHP script no matter what kind of the file type is.  
+
 PHP:  
 *  [Environment](#environment)  
 *  [Methods to include](#methods-to-include)  
@@ -42,26 +44,20 @@ zip://path.zip%23file.php
 [List of Available Filters](http://php.net/manual/en/filters.php)
 
 2. Session inclusion  
-* [include tmp with phpinfo](https://github.com/vulhub/vulhub/tree/master/php/inclusion)
-* 🍊[Hitcon2018 ONE LINE PHP CHALLENGE](https://blog.orange.tw/2018/10/hitcon-ctf-2018-one-line-php-challenge.html)  
-[Session Upload Progress ](http://php.net/manual/en/session.upload-progress.php)  
-If you provide the `PHP_SESSION_UPLOAD_PROGRESS` in multipart POST data, PHP will enable the session for you!  
+* [include tmp with phpinfo](https://github.com/vulhub/vulhub/tree/master/php/inclusion) -> `/tmp/sess_SESSIONID`  
+* 🍊[Hitcon2018 ONE LINE PHP CHALLENGE](https://blog.orange.tw/2018/10/hitcon-ctf-2018-one-line-php-challenge.html)[Session Upload Progress ](http://php.net/manual/en/session.upload-progress.php)  
+If you provide the `PHP_SESSION_UPLOAD_PROGRESS` in **multipart** POST data, PHP will enable the session for you!  
 
 3. Log inclusion  
-**Permission** to read the log?  
-Take apache for example, request would be written to `access.log`, and error would be written to `error.log`. The default stored path is `/var/log/apache2/`  
-Therefore, attacker always needs to get the path with config file, and pay attention to the fact that whether the request would be encoded (use burp to modify the encoded request), then include the log in the end  
-
-4. SSH log inclusion  
-**Permission** to read?  
-Default path: `/var/log/apache2/access.log`,`/var/log/apache2/error.log`  
+If client has permission to read the log  
 ```php
 ssh '<?php phpinfo();?>'@remotehost
-// phpinfo in log, and include
-```  
 
-5. Include temporary file with segmentation fault  
-[php 7.1.x<20](https://github.com/php/php-src/blob/PHP-7.1.0/ext/standard/filters.c#L277)  
+GET /<?php phpinfo();?> HTTP/1.1
+```  
+include `/var/log/apache2/access.log` or `error.log`, `/var/log/httpd/access_log`, `/etc/httpd/logs/access_log`, `/usr/local/nginx/logs`    
+
+4. Include temporary file with segmentation fault [php 7.1.x<20](https://github.com/php/php-src/blob/PHP-7.1.0/ext/standard/filters.c#L277)  
 In the above version, `php://filter/string.strip_tags/resource=` will cause to segmentation fault and temporary files cannot be cleaned up. [My analysis of the detail](https://github.com/shinmao/Web-Security-Learning/blob/master/LFI/LFI-with-segmentation-fault.pdf)  
 ```php
 // assume that I can control the parameter of file function
