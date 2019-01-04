@@ -1,5 +1,4 @@
 # Cross-Site Scripting  
-[同源策略](https://github.com/shinmao/Web-Security-Learning/blob/master/XSS/Same-Origin%20Policy.md)    
 1. reflected xss:  
 `<?php echo 'xss, '.$_GET['script']; ?>`
 
