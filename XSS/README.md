@@ -22,7 +22,6 @@ document.location = url;
 e.g. `eval`, `setInterval`, `setTimeout`  
 
 *  [Bypass tricks](#bypass-tricks)  
-*  [htmlspecialchars bypass](#htmlspecialchars-bypass)
 *  [XSS-Auditor Introduction and bypass](#xss-auditor-intro-and-bypass)  
 *  [CSP Introduction and bypass](#csp-intro-and-bypass)  
 *  [Some tricks played in CTF](#some-tricks-played-in-ctf)  
@@ -67,15 +66,13 @@ alert(/1/);">
 * URL bypass `.`, `//`  
   RWCTF2018: `<?=ip2long("my-ip")` bypass dot，`\\` bypass `http://`  
   Sup: the first `/` is used to separate schema and path, the second `/` is part of path  
+* htmlspecialchars bypass  
+  php nature function, can convert `&`,`'`,`"`,`<`,`>` five kinds of char to string. It won't filter out the single quote if it doesn't   have the second parameter(`ENT_QUOTES`).  
+* bypass with ANSI charset (e.g. GBK, BIG5)  
+  to fight against `magic_quotes_gpc = on` or `addslashes`  
+  `1%81\" onclick=alert(1)/>`, `\` is 0x5C, 0x81 and 0x5C compose to a legal character in charset of GBK, so `"` wouldn't be escaped.  
 
-# htmlspecialchars bypass  
-php nature function, can convert `&`,`'`,`"`,`<`,`>` five kinds of char to string. It won't filter out the single quote if it doesn't have the second parameter(`ENT_QUOTES`).  
-1. `htmlspecialchars($input)` in `value`:  
-```php
-<input value="<" onclick=alert(1)>
-```  
-special chars are converted to pure string and close the `value` attribute  
-2. If you can control the content encoding type, you can try such as UTF-7
+[PHP filter functions](https://blog.csdn.net/h1023417614/article/details/29560985)  
 
 # XSS Auditor Intro and bypass
 XSS Auditor is specific defense toward **Reflected XSS** on Chrome. -- [XSS Auditor](https://www.chromium.org/developers/design-documents/xss-auditor)  
@@ -96,7 +93,12 @@ X-XSS-Protection: 1; mode=block
 // redirect report to the place you want
 X-XSS-Protection: 1; mode=block; report=https://example.com/log.cgi
 X-XSS-Protection: 1; report="https://example.com/log.cgi?jsessionid=132;abc"
+```  
+
+Bypass with CRLF in header injection:  
 ```
+%0d%0aX-XSS-Protection:%200
+```  
 
 Auditor reference:  
 * Source code  
