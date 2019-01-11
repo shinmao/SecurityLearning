@@ -250,6 +250,17 @@ var_dump(parse_url('//localhost.com/index:80'));
 ```  
 In addition, backend system can use `parse_url($url,PHP_URL_HOST)` to get host. Reference to [MEEPWN 2018 OmegaSector](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018)  
 
+3. `getallheaders()`  
+[PHP Manual](http://php.net/manual/en/function.getallheaders.php)  
+This function can get all the http headers. Command injection can be done with `eval(getallheaders)` and code injection in headers.  
+
+4. `get_defined_vars()`  
+[PHP Manual](http://php.net/manual/en/function.get-defined-vars.php)  
+Same concept, but `reset` first would be helpful.  
+[More detail to find here](http://blog.1pwnch.com/ctf/websecurity/2018/11/26/Code-Breaking-Puzzles/#easy---phplimit)  
+
+Be careful, if the return data of the function is other type instead of string (e.g. array, object). We can use `implode()` to concate all the data to a string in advance.  
+
 # Reference
 * [My learning note of move_upload_file](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 * [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  

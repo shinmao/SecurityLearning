@@ -1,8 +1,7 @@
 # Command injection  
 1. [ghostscript RCE](#ghostscript-rce)  
 2. [Command Injection in libnmap](#command-injection-in-libnmap-<nodejs>)  
-3. [Dangerous use of php functions](#dangerous-use-of-php-function)  
-4. [Bypass with Uninitialized Variable in PHP](#bypass-with-uninitialized-variable-in-php)  
+3. [Bypass with Uninitialized Variable in PHP](#bypass-with-uninitialized-variable-in-php)  
 
 In CTF, we can directly cat flag with cmd injection. In real world, we can directly make a reverse shell with it.  
 First, we can take a look at the power of wildcard...  
@@ -66,17 +65,6 @@ range:[
 ```  
 A very simple vulnerability  
 [Hackerone report](https://hackerone.com/reports/390865)  
-
-## Dangerous use of php function
-1. `getallheaders()`  
-[PHP Manual](http://php.net/manual/en/function.getallheaders.php)  
-This function can get all the http headers. Command injection can be done with `eval(getallheaders)` and code injection in headers.  
-2. `get_defined_vars()`  
-[PHP Manual](http://php.net/manual/en/function.get-defined-vars.php)  
-Same concept, but `reset` first would be helpful.  
-[More detail to find here](http://blog.1pwnch.com/ctf/websecurity/2018/11/26/Code-Breaking-Puzzles/#easy---phplimit)  
-
-Be careful, if the return data of the function is other type instead of string (e.g. array, object). We can use `implode()` to concate all the data to a string in advance.  
 
 ## Bypass with Uninitialized Variable in PHP  
 `$u` would be parsed to empty string in bash, but parsed as original string to bypass the waf  
