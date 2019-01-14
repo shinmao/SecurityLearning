@@ -4,8 +4,9 @@
 *  [PHP weak type](#weak-type)  
 *  [PHP data handling](#data-handling)  
 *  [PHP variable coverability](#variable-coverability)  
+*  [Function list of resource operation](#function-list-of-resource-operation)  
 *  [PHP dangerous misuse of function](#dangerous-mistake-function)  
-*  [Reference](#reference)
+*  [Reference](#reference)  
 
 # Dangerous filter
 Don't trust in user's input: `$_GET, $_POST, $_SERVER, fopen('php://input','r'), upload downloaded files, session, cookies`...  
@@ -22,7 +23,7 @@ echo htmlentities($input, ENT_QUOTES, 'utf-8');
 6. `filter_var()`, `filter_input()` would return True, False according to data type  
 [See more in PHP Manual](http://php.net/manual/en/function.filter-var.php)  
 ```php
-// Ref to ripstech php calendat part of source code  
+// Ref to ripstech php calendar part of source code  
 $indexTemplate = '<img ' .
             'src="https://loremflickr.com/320/240">' .
             '<a href="{{link|escape}}">Next slide »</a>';     // use of php twig template engine, escape
@@ -225,7 +226,10 @@ extract parameter must be **array**
 $b = array("a"=>"1");
 extract($b);
 echo $a;   // 1
-```
+```  
+
+# Function list of resource operation
+[resource-operations by Sebastian Bergmann](https://github.com/sebastianbergmann/resource-operations/blob/master/src/ResourceOperations.php)  
 
 # Dangerous Mistake function
 1. `move_uploaded_file()`  
