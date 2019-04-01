@@ -1,26 +1,12 @@
 # Unserialization
-Vulnerability of unserialization exists in many program languages，please remember the basic concept：**serialize：convert object to the string; unserialize：convert string to the object**.  
-*  [PHP Unserialization](#php-unserialization)  
-   *  [Serialization vs Unserialization](#serialization-vs-unserialization)  
-   *  [Magic Function](#magic-function)  
-   *  [Reference](#reference1)  
-   *  [unserialize with phar](#unserialize-with-phar)  
-   *  [what is phar?](#what-is-phar)  
-   *  [how to exploit?](#how-to-exploit)  
-   *  [Reference](#reference2)  
-*  [Python Unserialization](#python-unserialization)  
-   *  [Magic Function](#magic-function)  
-   *  [Exploit](#exploit)  
-   *  [Reference](#reference3)
+**序列化：將物件轉換成字串; 反序列化：將字串轉換成物件**.  
+*  [PHP 反序列化](#PHP-反序列化)  
+*  [Python 反序列化](#python-反序列化)  
   
-
-# PHP Unserialization
-It's always used in Cookie and session. If the parameter of `unserialize()` can be controlled，we can build up a payload to overwrite specific variable or change control flow. The concept of **POP CHAIN** is important in unserialization. The chain starts from the `unserialize()` to each possible magic functions.  
+# PHP 反序列化
+當`unserialize()`的參數可控時，我們可以構造攻擊字串去覆蓋特定變數來控制程式流程。**POP CHAIN**在反序列化中非常重要，擔任串起`unserialize()`和各個magic functions的角色。  
 
 ## Serialization vs Unserialization
-Basically speaking：  
-`serialize()`: convert object to string
-`unserialize()`: convert string to object  
 ```php
 class pwnch(){
   $test = "helloworld";
@@ -30,9 +16,9 @@ class pwnch(){
 }
 echo serialize(new pwnch());   // OUTPUT: O:5:"pwnch":1:{s:4:"test";s:10:"helloworld";}
 ```
-OUTPUT: `O` means object, `5` is the length of object name. `1` is the size of attribute, `4` is the length of variable name, format is `key:value`.  
+輸出: `O`代表物件，`5`是物件名字的長度。`1`是屬性的個數，`4`是變數名字的長度，表達式是`key:value`.  
 
-Type | Syntax  
+型態 | 語法  
 ------------ | -------------  
 String | `s:size:value;`  
 Integer | `i:value;`  
@@ -46,24 +32,21 @@ private | `{s:11:"%00pwnch%00test"}`
 protected | `{s:7:"%00*%00test"}`  
 
 ## Magic Function
-* `construct()`: called when new a object，but won't be called when unserialize()  
-* `destruct()`: called when destroy a object，also be called when unserialize  
-* `__sleep()`: run at the first moment of serialize  
-* `__wakeup()`: run at the first moment of unserialize  
-* `__toString()`: called when `echo` a object, so user don't need explicit function call and able to define how object return the string.  
-
-## Reference1
-1. [chybeta's blog](https://chybeta.github.io/2017/06/17/%E6%B5%85%E8%B0%88php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/)  
+* `construct()`: 當new一個obj時會呼叫到，但unserialize()不會call到  
+* `destruct()`: 當unset一個obj時會呼叫到，而且unserialize也會call到  
+* `__sleep()`: 在序列化的第一時間執行  
+* `__wakeup()`: 在反序列化的第一時間執行  
+* `__toString()`: 在`echo`一個obj時會呼叫到。這個雖然跟反序列化的呼叫鏈沒有直接關係，可是可以作為POP CHAIN的一部分！  
+其實object就是一個週期，你一旦宣告了就算沒有unset，thread結束php還是會自己call `destruct`去把物件解體。  
 
 ## unserialize With phar
-Sam Thomas published a new way to trigger a unserialization without use of `unserialize()` in blackhat 2018. This can be done with stream wrapper of `phar://`.  
-Trace to the kernel of PHP, we can find that `meta-data` would be unserialized when library function use `phar://` to parse the document. Therefore, we can build up a malicious phar document and pass to file functions such as:  
+Sam Thomas在2018年BH中發表了一種新的，不需要`unserialize()`就能觸發反序列化的方式。那就是使用`phar://`。  
+危險就在於，只要函數背後是用phar去處理元數據的就能觸發反序列化！  
 ```php
-// file(phar://) -> unserialization
-// from now on, trigger point is not limited to unserialize() anymore :)
+// 以下函數都有危險了:)
 file_exists, file_get_contents, file_put_contents, file, fopen, is_dir, is_executable, is_file, is_link, is_readable, is_writable, copy, unlink, stat, readfile
 ```  
-Just a little test can prove the concept:  
+自己寫個小測試:  
 ```php
 class Test {
         public function __destruct() {
@@ -74,7 +57,6 @@ class Test {
 file_exists($filename);
 // $filename = phar://uploaded/xxx.gif
 ```  
-Then you can see **unserialization happen!**.  
 
 ## What is phar
 PHP can use phar to archive a file. A phar file can be separated into 4 parts: stub(`anything<?php blah; __HALT_COMPILER();?>`), manifest(which is the core of exploit), compressed contents, optional signature.  
@@ -108,15 +90,15 @@ $phar->startBuffering();
 $phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");     // forge to gif and upload to application?filename=phar://uploads/exp.gif
 ..........
 ```
-[Find more detail here](http://blog.1pwnch.com/websecurity/2018/11/24/The-Magic-Power-of-Phar/#more)  
+[參考細節](https://shinmao.github.io/websecurity/2018/11/24/The-Magic-Power-of-Phar/#more)  
 
 2. Trace any function: whether it **calls file open function** in the bottom side, then whether we can control its parameter. What's more interesting, it even can be used to make a DOS attack.  
 
-## Reference2
+## xReference
 1. [Blackhat议题解读 | 利用 phar 拓展 php 反序列化漏洞攻击面](https://www.anquanke.com/post/id/157657)  
 2. [blackhat议题深入 | phar反序列化](https://mp.weixin.qq.com/s?__biz=MzIzMTc1MjExOQ==&mid=2247485159&idx=1&sn=50b2e94d2d6fc5f69c540113ae9b3f1c&chksm=e89e2e3fdfe9a729869444aa593e97b52970add524b219553f646e8af2aec06e25e8678e7dde&mpshare=1&scene=23&srcid=0822QPN3ZXccNvKuWTQoahLi#rd)
 
-# Python unserialization
+# Python 反序列化
 [關於模塊的細節我相當推這篇文章](https://www.jianshu.com/p/5f936abf31f7?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation)  
 Functions **pickle** and **cPickle** also can realize the function of serialization  
 1. `cPickle.dumps`: object -> string  
