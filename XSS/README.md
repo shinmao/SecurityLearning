@@ -59,6 +59,26 @@ Reflected 和 stored 都會經過後端，而DOM XSS完全在客戶端運行！
   // type
   <input type="image" src=x onerror=alert(1)>
   ```  
+* 用onerror繞過括號  
+  利用onerror的xss很常見，throw則可以用來觸發error  
+  throw會傳遞後面的參數給前面指定的函數  
+  ```
+  <script>onerror=alert;throw 1</script>
+  <script>onerror=eval;throw'=alert\x281\x29'</script>
+  // 上面用;區分語句，重點在於要區分！所以也可以使用{}來區分
+  <script>{onerror=alert}throw 1</script>
+
+  throw onerror=alert,123,'haha'
+  {onerror=eval}throw{lineNumber:1,columnNumber:1,fileName:'second arg',message:'alert(1)'}
+  TypeError.prototype.name = '=/',0[onerror=eval]['/-alert(1)//']
+  ```  
+  :one: 第一種在safari和IE上會pop 1，但是在chrome和opera上會在字首加上uncaught的字串。  
+  :two: 第二種payload可以解決uncaught的問題，而`=`放在throw單引號裡的原因是：`"Uncaught=alert(1)"`作為字串參數送給了`eval`！chrome在字首加上了`Uncaught`，為了讓eval可以將其視為代碼而執行，payload才要接上`=code`。值得注意的是，這個payload在firefox上會執行失敗，原因是firefox的prefix是`uncaught exception`，這樣當然導致eval無法執行囉！    
+  :four: 第四種會pop Uncaught haha。throw接受表達式，上面的payload先設定了一個error handler，然後表達式最後的部分會作為參數送給error handler。當然這個payload如果使用eval在firefox執行也會因為uncaught exception而出現error！  
+  :five: 第五種payload是利用throw new Error的方式，他就不會有前面的uncaught exception (e.g. `throw new Error('alert(1)')`)，但是這就需要括號了！改用error原型的obj在`message`中傳入error handler的參數，甚至還可以在`fileName`中傳入handler的第二個參數！  
+  :six: 第六種則是由＠Pepe Vila提出，甚至已經不需要throw，不過只能在chrome上使用。  
+  [參考原文：XSS without parentheses and semi-colons](https://portswigger.net/blog/xss-without-parentheses-and-semi-colons)
+
 
 [PHP過濾函數](https://blog.csdn.net/h1023417614/article/details/29560985)  
 
