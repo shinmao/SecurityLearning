@@ -17,10 +17,8 @@ Reflected 和 stored 都會經過後端，而DOM XSS完全在客戶端運行！
   * http://www.jsfuck.com/  
   js func: `escape()/unescape()`, `encodeURL()/decodeURL()`, `encodeURLComponent()/decodeURLComponent()`  
   * html編碼
-    ```php
-    htmlspecialchars($_GET['hi']);  // no open html tag for you
-    ```  
-  * unicode編碼: `%u + ASCII(hex)` ASP, IIS 會自動解析unicode e.g. `<%s%cr%u0131pt>`  
+    a: `&#97;`  
+  * unicode編碼: `%u + ASCII(hex)` ASP, IIS 會自動解析unicode e.g. `<%s%cr%u0131pt>`, e: `\u{65}`  
   * `IBM037`,`IBM500`,`IBM1026`,`cp875` [Bypass RequestValidation on aspx]  
   * ascii編碼
     ```js
