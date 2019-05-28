@@ -14,3 +14,6 @@ Let's learn about Web Security.
 ](https://developer.mozilla.org/en-US/docs/WebAssembly/Using_the_JavaScript_API)  
 * [Introduction to WebAssembly](https://sensepost.com/blog/2018/introduction-to-webassembly/)  
 * [玩轉 WebAssembly && 逆向](https://blog.1pwnch.com/web/reverse/2019/05/22/Say-Hello-to-WASM/#more)
+
+## Frontend
+* [你真的会使用XMLHttpRequest吗?](https://segmentfault.com/a/1190000004322487)
