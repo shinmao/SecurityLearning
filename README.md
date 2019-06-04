@@ -16,4 +16,5 @@ Let's learn about Web Security.
 * [玩轉 WebAssembly && 逆向](https://blog.1pwnch.com/web/reverse/2019/05/22/Say-Hello-to-WASM/#more)
 
 ## Frontend
-* [你真的会使用XMLHttpRequest吗?](https://segmentfault.com/a/1190000004322487)
+* [你真的会使用XMLHttpRequest吗?](https://segmentfault.com/a/1190000004322487)  
+* [SOP與CORS安全詳解](https://jiwo.org/ken/detail.php?id=2393)  
