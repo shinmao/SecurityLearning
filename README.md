@@ -18,3 +18,12 @@ Let's learn about Web Security.
 ## Frontend
 * [你真的会使用XMLHttpRequest吗?](https://segmentfault.com/a/1190000004322487)  
 * [SOP與CORS安全詳解](https://jiwo.org/ken/detail.php?id=2393)  
+
+## XS-Leaks
+* [Exposing Intranets with reliable Browser-based Port scanning](https://portswigger.net/blog/exposing-intranets-with-reliable-browser-based-port-scanning)  
+* [从35c3CTF的filemanager题目中学到的一个小tips](https://blog.wonderkun.cc/2018/12/30/%E4%BB%8E35c3CTF%E7%9A%84filemanager%E9%A2%98%E7%9B%AE%E4%B8%AD%E5%AD%A6%E5%88%B0%E7%9A%84%E4%B8%80%E4%B8%AA%E5%B0%8Ftips/#more)  
+* [github-xsleaks](https://github.com/xsleaks/xsleaks/wiki)  
+* [secret note keeper -- Facebook CTF 2019](https://sectt.github.io/writeups/FBCTF19/secret_note_keeper/README)  
+* [gimme-a-bit-exploring-attacks-in-the-post-xss-world](https://speakerdeck.com/lmt_swallow/gimme-a-bit-exploring-attacks-in-the-post-xss-world)  
+
+雖然和XSS一樣是跨域偷信息的技巧，但因為受限於SOP所以不是直接回傳信息，而是利用盲注: **配合爆破觀察瀏覽器的行為**(猜中和沒猜中頁面會有何差異)! 至於如何跨域觀察瀏覽器的行為呢? 特定信息是可以跨域傳送的，像是iframe count就不受SOP的限制，樓上35c3的filemanager就是利用onload數量和xss-auditor來跨域爆破出flag的!
