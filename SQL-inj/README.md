@@ -1,21 +1,4 @@
-# SQL injection  
-🔔 MySQL
-*  [Basic](#basic-injection)  
-*  [Union based](#union-based)  
-*  [Blind based](#blind-based)  
-*  [Error based](#error-based)  
-*  [Some injection](#some-injection)  
-*  [Waf bypass](#waf-bypass)  
-*  [Write Webshell](#webshell)  
-*  [Read file](#read-file)  
-*  [sql privilege issue](#sql-privilege-issue)  
-*  [Defense](#defense)  
-
-🔔 NoSQL
-*  [NoSQL injection](#nosql-injection)  
-
-🔗 Reference  
-*  [Reference](#reference)
+# SQL injection
 
 # Basic injection  
 select password from users where name = '$id';  
@@ -222,6 +205,11 @@ We always use `order by` to get the number of table columns in union-based. Howe
 
 參考與更多：  
 [seebug我的wafbypass之道](https://paper.seebug.org/218/)  
+
+# Column truncation vulnerability
+This vulnerability is based on `sql_mode`, if the mode includes `STRICT_ALL_TABLES`, it would check the length of column data and **cut** it!!  
+
+:triangular_flag_on_post: [fbctf2019 Product Manager](https://github.com/shinmao/CTF-writeups/tree/master/fbctf2019/ProductManager) Imagine that you can register one more **admin** account.
 
 # Webshell
 :racehorse: Select `into outfile` requires write-permission from users, file should **not be already exist**, and without the limitation of `secure_file_priv`.  
