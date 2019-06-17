@@ -123,17 +123,13 @@ echo $a;   // 1
 * [0CTF ezDoor](https://shinmao.github.io/websecurity/ctf/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
 * 在windows下，`a"php`會被解析成`a.php`，`a.ph>`可以匹配任意字元，`a.p<`可以匹配多個任意字元  
 
-4. `get_defined_vars()`  
+## php函數重新認識
+* `get_defined_vars()`  
 [官方文檔](http://php.net/manual/en/function.get-defined-vars.php)  
 記住要先`reset`！  
 [參考phplimit by phith0n](https://shinmao.github.io/ctf/websecurity/2018/11/26/Code-Breaking-Puzzles/#more)  
 
-Be careful, if the return data of the function is other type instead of string (e.g. array, object). We can use `implode()` to concate all the data to a string in advance.  
-
-# Reference
-* [My learning note of move_upload_file](https://shinmao.github.io/web/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
-* [pupiles關於0ctf ezDoor的發想](http://pupiles.com/%E7%94%B1%E4%B8%80%E9%81%93ctf%E9%A2%98%E5%BC%95%E5%8F%91%E7%9A%84%E6%80%9D%E8%80%83.html)  
-* [php manual preg match](http://php.net/manual/zh/function.preg-match.php)  
-* [求生 正規表達式](http://j796160836.pixnet.net/blog/post/29514227-%5B%E8%BD%89%E8%B2%BC%5D%E5%B8%B8%E7%94%A8%E7%9A%84php%E6%AD%A3%E8%A6%8F%E8%A1%A8%E7%A4%BA%E5%BC%8F)  
-* [PHP Manual in-array](http://php.net/manual/en/function.in-array.php)  
-* [PHP Mamual parse-str](http://php.net/manual/zh/function.parse-str.php)  
+## PHP-FPM 未授權訪問漏洞 && RCE
+* [Fastcgi协议分析 && PHP-FPM未授权访问漏洞 && Exp编写](https://www.leavesongs.com/PENETRATION/fastcgi-and-php-fpm.html)  
+* [Fuck PHP-FPM with FastCGI by 1pwnch](https://blog.1pwnch.com/websecurity/2019/06/12/Fuck-PHP-FPM-with-Fastcgi/#more)  
+* [Wallbreaker wp by kaibro](https://github.com/w181496/CTF/tree/master/0ctf2019_final/Wallbreaker%20(not%20very)%20Hard)
