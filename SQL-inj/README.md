@@ -195,7 +195,7 @@ We always use `order by` to get the number of table columns in union-based. Howe
   - error-based：`select * from users where name = helloworld();`  
     `ERROR 1305 (42000): FUNCTION CODINGGROUND.helloworld does not exist`  
   - `mysql.innodb_table_stats`  
-  - `sys.statement_analysis`  
+  - `sys.statement_analysis`: 若mysql版本號在5.7以上，`select query from sys.statement_analysis`可以洩漏以前的query  
 - HPP （asp）  
   - 當 GET/POST/COOKIE 同時提交 `uid`，伺服器會按照 GET/POST/COOKIE 的順序去接收並且用逗號將他們隔開  
   - Exploit: `http://example.com/?uid=1 and 1=2 union/*  POST: uid=*/select.....`  
