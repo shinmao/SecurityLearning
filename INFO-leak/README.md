@@ -1,5 +1,5 @@
 # Information leak  
-Before exploiting, we can use some trick to get related information or even source code!  
+* [Enumeration](https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation)
 
 ### Allow/disallow file  
 ```
