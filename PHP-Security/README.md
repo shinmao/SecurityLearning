@@ -1,14 +1,25 @@
 # PHP Security
+Do you know much about PHP?
+* `<?` is not necessary for PHP?  
+* Double quotes can also understand variables and functions?
+* Space and dot in variable name would be converted to underline?
 
-## PHP String escape sequences + PHP Variable functions 妙用  
-php有多種表示字串的方法，參考[some tricks hidden in double quoted](https://secure.php.net/manual/en/language.types.string.php)  
-假如 waf 擋了字串 `system`:  
+## Different use of PHP file extension
+* [服务器针对文件的解析漏洞汇总](https://mp.weixin.qq.com/s/f0y_AjRtc4NjEqeJe6cPhw)  
+* [Apache2 php5 conf](https://github.com/shinmao/SecurityLearning/blob/master/Webshell/apache2_php5.conf)* [php & apache2 &操作系统之间的一些黑魔法](http://wonderkun.cc/index.html/?p=626)  
+* [Learn from 0ctf ezDoor](https://blog.1pwnch.com/websecurity/ctf/2018/04/13/The-Magic-from-0CTF-ezDoor/#more)  
+* **File Parsing Vulnerability** of Apache: Apache parses extension from the right side to left side, jumps to the left one if he cannot recognize the right one. **This vul is not related to the version of Apache, but the setting of parsing php files**.
+* On window, `a"php` would be parsed to `a.php`, `a.ph>` can match any character, and `a.p<` can match several characters.  
+
+## PHP String escape sequences + PHP Variable functions  
+[Strings literal can be specified in four ways](https://secure.php.net/manual/en/language.types.string.php)  
+If string such as `system` is blocked by WAF:  
 ```php
 // system("ls")
 "\x73\x79\x73\x74\x65\x6d"("ls")
 ```  
-只要在雙引號內, `\x[0-9A-Fa-f]{1,2}` 都會被視為16進制的ascii碼，如此ㄧ來就順理成章的轉換編碼.  
-如果`"`也被 waf 了，我們還可以用括號來表示字串：  
+With double quotes, `\x[0-9A-Fa-f]{1,2}` would be parsed as ascii of hex one.  
+How if `"` is also blocked by WAF? We can use **brackets** to represent the string:  
 ```php
 // following are all string
 echo "a";
@@ -16,32 +27,31 @@ echo (string)"a";
 echo (string)a;
 echo (a);
 ```  
-**不管在括號內是什麼東西，只要沒有特意宣告型態，就會被視為字串**！  
+**In other words, no matter what you put, thing  in the brackets would be regarded as string**！  
 
-## 用`get_defined_functions`繞過關鍵字  
+## Bypass keywords with `get_defined_functions`  
 ```php
 print_r(get_defined_functions()[internal]);
 // system("ls")
 get_defined_functions()[internal][1077]("ls")
 ```  
-[How To Exploit PHP Remotely To Bypass Filters & WAF Rules](https://www.secjuice.com/php-rce-bypass-filters-sanitization-waf/)
 
-## preg match 小技巧 
-[繞過preg_match?](https://bugs.php.net/bug.php?id=61744)  
-PHP正則是基於**PCRE**的函式庫。在apache modules 和 php-cgi有兩個相關的限制:  
+## PCRE-DoS
+[bypass preg_match?](https://bugs.php.net/bug.php?id=61744)  
+The regex of PHP is based on **PCRE**. There are two relevant limitation in apache modules and php-cgi:  
 1. `pcre.backtrack_limit`  
 2. `pcre.recursion_limit`  
 [pcre-configuration](http://php.net/manual/en/pcre.configuration.php)  
-如果這個限制被打破了，`preg_match`會返回**false**，這時候就看開發者有沒有正確處理了  
+If the limit is broken, `preg_match` would return with **false**. Whether the rule would be bypassed or not depends on the way of developers to deal with the problem.  
 * Exploit:  
-想辦法超過上限!  
+Break the count of limit!  
 [code-breaking-puzzles pcrewaf](https://shinmao.github.io/ctf/websecurity/2018/11/26/Code-Breaking-Puzzles/#more)  
-* 正確手勢:  
-`preg_match`正確匹配會返回1，不然就返回0， 在上面這種錯誤發生時會返回**false**。  
+* How to fix the problem:  
+`preg_match` would return with 1 if matched, otherwise with 0, but with **false** in the case above.  
 ```php
 if(preg_match == 0)
 ```  
-由於php的弱類型特性，上面的代碼就會被繞過。應該使用`if(preg_match() === 0)`。
+Because PHP is language of weak-type, false would be reguarded as 0. We should use strong comparison here.
 
 ## 弱類型
 [PHP型態轉換表](http://us3.php.net/manual/en/types.comparisons.php)  
@@ -118,10 +128,6 @@ echo $a;   // 1
 
 ## resource operation
 [resource operation 匯整 by Sebastian Bergmann](https://github.com/sebastianbergmann/resource-operations/blob/master/src/ResourceOperations.php)  
-
-## php 路徑技巧
-* [0CTF ezDoor](https://shinmao.github.io/websecurity/ctf/2018/04/13/The-Magic-from-0CTF-ezDoor/)  
-* 在windows下，`a"php`會被解析成`a.php`，`a.ph>`可以匹配任意字元，`a.p<`可以匹配多個任意字元  
 
 ## php函數重新認識
 * `get_defined_vars()`  

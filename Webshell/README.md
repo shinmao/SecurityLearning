@@ -16,12 +16,7 @@
 ## Some other knowledge
 * [system v.s. exec v.s. shell_exec](https://blog.longwin.com.tw/2013/06/php-system-exec-shell_exec-diff-2013/)   
 
-# PHP Bypass blacklist extension  
-* [服务器针对文件的解析漏洞汇总](https://mp.weixin.qq.com/s/f0y_AjRtc4NjEqeJe6cPhw)  
-* [Apache2 php5 conf](https://github.com/shinmao/SecurityLearning/blob/master/Webshell/apache2_php5.conf)  
-* [My own notes](https://blog.1pwnch.com/websecurity/ctf/2018/04/13/The-Magic-from-0CTF-ezDoor/#more)  
-
-# Reverse shell
+## Reverse shell
 * [Linux反弹shell（一）文件描述符与重定向](https://xz.aliyun.com/t/2548)  
 * [Linux 反弹shell（二）反弹shell的本质](https://xz.aliyun.com/t/2549)  
 * [Linux下多种反弹shell方法](https://www.03sec.com/3140.shtml)
