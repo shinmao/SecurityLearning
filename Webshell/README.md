@@ -11,6 +11,7 @@
 * [XOR shell by Meepwn Quals 2018](https://github.com/shinmao/CTF-writeups/tree/master/Meepwn_CTF_Quals2018#omegasector)  
 * [千变万化的WebShell-Seebug](https://paper.seebug.org/36/)
 * [创造tips的秘籍——PHP回调后门](https://www.leavesongs.com/PENETRATION/php-callback-backdoor.html)  
+* [PHP回調後門的捕捉與繞過](https://github.com/shinmao/SecurityLearning/blob/master/Webshell/PHP%E5%8A%A8%E6%80%81%E7%89%B9%E6%80%A7%E7%9A%84%E6%8D%95%E6%8D%89%E4%B8%8E%E9%80%83%E9%80%B8byP%E7%89%9B.pdf)  
 * [Create webshell with filename by HITCON CTF](https://blog.1pwnch.com/websecurity/ctf/2018/02/20/A-tiny-shell/#more)  
 
 ## Some other knowledge
