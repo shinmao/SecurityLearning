@@ -1,8 +1,7 @@
-# Cross-Site Scripting  
-1. reflected xss  
-2. stored xss  
-3. DOM xss: 最近の流行り  
-Reflected 和 stored 都會經過後端，而DOM XSS完全在客戶端運行！  
+# Cross-Site Scripting   
+
+# CSS tricks
+[One XSS cheatsheet to rule them all](https://portswigger.net/research/one-xss-cheatsheet-to-rule-them-all)
 
 # Bypass
 * toUpperCase()  
@@ -232,6 +231,7 @@ Also use the tag of `<base>` but the concept is different
 # Cheatsheet
 [Brute XSS payload by Pgaijin66](https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt)  
 [PayloadAllTheThings by swisskyrepo](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20injection)  
+[XSS cheat sheet by Gareth Heyes](https://portswigger.net/web-security/cross-site-scripting/cheat-sheet)
 
 # An interesting feature related to Transfer-Encoding
 If POST request includeds header of `Transfer-Encoding: chunked`, the data stream would be responded to client without any changes. This causes to the malicious content such like XSS.(Has been patched in the lastest version)  
