@@ -98,6 +98,8 @@ put into API **which is already believed by server** e.g. `api=http://aaa.com/a?
 * `file://`  
   ```c
   file:///etc/passwd
+  // the part of first two slashes after file is <protocol>
+  // the third slash is <root dir>
   file://domain/etc/passwd
   ```
 * `tftp://`  
